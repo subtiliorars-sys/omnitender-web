@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniTender — Text Alerts Sign-Up</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>OmniTender</h1>
+    <p>Operational &amp; promotional text alerts</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>Sign up for OmniTender text alerts</h2>
+      <p>Get timely updates and offers from OmniTender by SMS. Enter your details
+         and check the box to opt in. You can cancel anytime by replying STOP.</p>
+
+      <form id="optin">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" autocomplete="name" required>
+
+        <label for="phone">Mobile phone number</label>
+        <input type="tel" id="phone" name="phone" placeholder="+1 555 123 4567"
+               autocomplete="tel" required>
+
+        <div class="consent">
+          <input type="checkbox" id="agree" name="agree" required>
+          <label for="agree" style="font-weight:400;margin:0;">
+            By checking this box, I agree to receive recurring automated
+            operational and marketing text messages (e.g. account, sales, and
+            promotional alerts) from OmniTender at the number provided. Consent
+            is not a condition of purchase. Message frequency varies.
+            Message &amp; data rates may apply. Reply HELP for help and STOP to
+            unsubscribe. See our
+            <a href="privacy.html">Privacy Policy</a> and
+            <a href="terms.html">Terms &amp; Conditions</a>.
+          </label>
+        </div>
+
+        <button type="submit" id="submit">Sign me up</button>
+      </form>
+
+      <div class="ok" id="ok">
+        ✅ Thanks! You're opted in to OmniTender text alerts. Reply STOP anytime to cancel.
+      </div>
+
+      <p class="fine">
+        We respect your privacy. Your mobile information is never sold or shared
+        with third parties for their marketing. Reply <strong>HELP</strong> for
+        help, <strong>STOP</strong> to cancel.
+      </p>
+    </div>
+  </main>
+
+  <footer>
+    <a href="privacy.html">Privacy Policy</a> ·
+    <a href="terms.html">Terms &amp; Conditions</a><br>
+    &copy; 2026 OmniTender. All rights reserved.
+  </footer>
+
+  <script>
+    // NOTE: this records consent client-side and shows confirmation.
+    // To store/act on opt-ins, point `action` at a form handler or the
+    // OmniVerse backend later. The visible consent flow is what carriers review.
+    document.getElementById('optin').addEventListener('submit', function (e) {
+      e.preventDefault();
+      document.getElementById('optin').style.display = 'none';
+      document.getElementById('ok').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
