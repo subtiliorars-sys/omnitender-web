@@ -62,11 +62,22 @@
   </footer>
 
   <script>
-    // NOTE: this records consent client-side and shows confirmation.
-    // To store/act on opt-ins, point `action` at a form handler or the
-    // OmniVerse backend later. The visible consent flow is what carriers review.
+    // On opt-in: send the lead to the OmniVerse backend (logs it + alerts the
+    // team), then show confirmation. Errors are ignored so the UX never blocks.
     document.getElementById('optin').addEventListener('submit', function (e) {
       e.preventDefault();
+      var name = document.getElementById('name').value;
+      var phone = document.getElementById('phone').value;
+      fetch('https://omnitender-omniverse.fly.dev/lead-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name,
+          phone: phone,
+          source: 'opt-in form',
+          notes: 'Opted in via website consent form'
+        })
+      }).catch(function () {});
       document.getElementById('optin').style.display = 'none';
       document.getElementById('ok').style.display = 'block';
     });
