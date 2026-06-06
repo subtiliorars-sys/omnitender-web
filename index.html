@@ -3,31 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OmniTender — Text Alerts Sign-Up</title>
+  <title>OmniTender Text Alerts — Sign Up for SMS Updates &amp; Offers</title>
+  <meta name="description" content="Sign up for OmniTender SMS alerts to get timely operational and promotional text updates. Opt in by SMS, cancel anytime by replying STOP. Consent is not a condition of purchase.">
+  <meta name="theme-color" content="#ff6600">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://d2htga59lk9fv.cloudfront.net/index.html">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0a0a'/><text x='16' y='23' font-size='22' font-family='Arial,Helvetica,sans-serif' font-weight='bold' text-anchor='middle' fill='%23ff6600'>O</text></svg>">
+
+  <!-- Open Graph / social -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="OmniTender">
+  <meta property="og:title" content="OmniTender Text Alerts — Sign Up">
+  <meta property="og:description" content="Get timely operational and promotional text updates from OmniTender. Opt in by SMS, cancel anytime by replying STOP.">
+  <meta property="og:url" content="https://d2htga59lk9fv.cloudfront.net/index.html">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="OmniTender Text Alerts — Sign Up">
+  <meta name="twitter:description" content="Get timely operational and promotional text updates from OmniTender. Opt in by SMS, cancel anytime by replying STOP.">
+
   <link rel="stylesheet" href="style.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "OmniTender",
+    "url": "https://d2htga59lk9fv.cloudfront.net/",
+    "description": "OmniTender operational and promotional SMS alert program and merchant payment services.",
+    "email": "support@omni-tender.com",
+    "telephone": "+1-828-413-0859",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+1-828-413-0859",
+      "email": "support@omni-tender.com",
+      "contactType": "customer support"
+    }
+  }
+  </script>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
   <header>
-    <h1>OmniTender</h1>
-    <p>Operational &amp; promotional text alerts</p>
+    <a class="brand" href="index.html">OmniTender</a>
+    <p class="tagline">Operational &amp; promotional text alerts</p>
   </header>
 
-  <main>
+  <main id="main">
     <div class="card">
-      <h2>Sign up for OmniTender text alerts</h2>
+      <h1>Sign up for OmniTender text alerts</h1>
       <p>Get timely updates and offers from OmniTender by SMS. Enter your details
          and check the box to opt in. You can cancel anytime by replying STOP.</p>
 
-      <form id="optin">
+      <form id="optin" novalidate>
         <label for="name">Name</label>
-        <input type="text" id="name" name="name" autocomplete="name" required>
+        <input type="text" id="name" name="name" autocomplete="name"
+               aria-required="true" aria-describedby="name-error">
+        <p class="field-error" id="name-error">Please enter your name.</p>
 
         <label for="phone">Mobile phone number</label>
         <input type="tel" id="phone" name="phone" placeholder="+1 555 123 4567"
-               autocomplete="tel" required>
+               autocomplete="tel" inputmode="tel"
+               aria-required="true" aria-describedby="phone-error">
+        <p class="field-error" id="phone-error">Please enter a valid mobile phone number.</p>
 
         <div class="consent">
-          <input type="checkbox" id="agree" name="agree" required>
+          <input type="checkbox" id="agree" name="agree"
+                 aria-required="true" aria-describedby="agree-error">
           <label for="agree" style="font-weight:400;margin:0;">
             By checking this box, I agree to receive recurring automated
             operational and marketing text messages (e.g. account, sales, and
@@ -39,12 +80,19 @@
             <a href="terms.html">Terms &amp; Conditions</a>.
           </label>
         </div>
+        <p class="field-error" id="agree-error">Please check the box to give consent.</p>
 
         <button type="submit" id="submit">Sign me up</button>
       </form>
 
-      <div class="ok" id="ok">
+      <div class="ok" id="ok" role="status" tabindex="-1">
         ✅ Thanks! You're opted in to OmniTender text alerts. Reply STOP anytime to cancel.
+      </div>
+
+      <div class="err" id="err" role="alert" tabindex="-1">
+        ⚠️ Something went wrong sending your sign-up. Please try again, or contact us at
+        <a href="mailto:support@omni-tender.com">support@omni-tender.com</a> or
+        <a href="tel:+18284130859">(828) 413-0859</a>.
       </div>
 
       <p class="fine">
@@ -56,32 +104,85 @@
   </main>
 
   <footer>
-    <a href="privacy.html">Privacy Policy</a> ·
-    <a href="terms.html">Terms &amp; Conditions</a><br>
+    <nav aria-label="Legal">
+      <a href="privacy.html">Privacy Policy</a> ·
+      <a href="terms.html">Terms &amp; Conditions</a>
+    </nav>
     &copy; 2026 OmniTender. All rights reserved.
   </footer>
 
   <script>
-    // On opt-in: send the lead to the OmniVerse backend (logs it + alerts the
-    // team), then show confirmation. Errors are ignored so the UX never blocks.
-    document.getElementById('optin').addEventListener('submit', function (e) {
-      e.preventDefault();
-      var name = document.getElementById('name').value;
-      var phone = document.getElementById('phone').value;
-      fetch('https://omnitender-omniverse.fly.dev/lead-webhook', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name,
-          consent: true,
-          phone: phone,
-          source: 'opt-in form',
-          notes: 'Opted in via website consent form'
+    // Opt-in handler. Validates inline, then POSTs the lead to the OmniVerse
+    // backend (logs it + alerts the team). Shows a clear success or failure
+    // state and never leaves the user without a next step.
+    (function () {
+      var form = document.getElementById('optin');
+      var btn = document.getElementById('submit');
+      var ok = document.getElementById('ok');
+      var err = document.getElementById('err');
+
+      function fieldError(id, show) {
+        var input = document.getElementById(id);
+        var msg = document.getElementById(id + '-error');
+        if (input) input.setAttribute('aria-invalid', show ? 'true' : 'false');
+        if (msg) msg.classList.toggle('show', show);
+      }
+
+      function validate() {
+        var name = document.getElementById('name').value.trim();
+        var phone = document.getElementById('phone').value.trim();
+        var agree = document.getElementById('agree').checked;
+        // Require at least 7 digits in the phone number.
+        var phoneOk = (phone.match(/\d/g) || []).length >= 7;
+
+        fieldError('name', !name);
+        fieldError('phone', !phoneOk);
+        fieldError('agree', !agree);
+
+        if (!name) return 'name';
+        if (!phoneOk) return 'phone';
+        if (!agree) return 'agree';
+        return null;
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        err.style.display = 'none';
+
+        var firstBad = validate();
+        if (firstBad) {
+          document.getElementById(firstBad).focus();
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Submitting…';
+
+        fetch('https://omnitender-omniverse.fly.dev/lead-webhook', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: document.getElementById('name').value.trim(),
+            consent: true,
+            phone: document.getElementById('phone').value.trim(),
+            source: 'opt-in form',
+            notes: 'Opted in via website consent form'
+          })
         })
-      }).catch(function () {});
-      document.getElementById('optin').style.display = 'none';
-      document.getElementById('ok').style.display = 'block';
-    });
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          form.style.display = 'none';
+          ok.style.display = 'block';
+          ok.focus();
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = 'Sign me up';
+          err.style.display = 'block';
+          err.focus();
+        });
+      });
+    })();
   </script>
 </body>
 </html>
