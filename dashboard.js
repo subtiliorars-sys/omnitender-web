@@ -314,12 +314,18 @@
   }
 
   /* ---- XSS escape ---- */
+  /* Escapes &<>"'/ — covers text AND single/double-quoted attribute contexts,
+   * so future markup that drops a value into an attribute stays safe even though
+   * today's sinks are all text-node context. API content (lead/recipient names)
+   * is attacker-influenceable via the public forms, so this runs on all of it. */
   function esc(str) {
     return String(str)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/\//g, '&#47;');
   }
 
   /* ---- init ---- */
