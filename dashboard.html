@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniTender — Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ---- dashboard-specific additions (additive only) ---- */
+    .dash-main { max-width: 900px; margin: 0 auto; padding: 28px 16px 60px; }
+
+    /* unlock card */
+    #unlock-view .card { max-width: 420px; margin: 0 auto; }
+    #unlock-view .card p { color: var(--muted); font-size: .93rem; margin-top: 4px; }
+    #unlock-view input[type=password] {
+      width: 100%; padding: 12px; font-size: 1rem;
+      border: 1px solid #c7d0d9; border-radius: 8px; margin-top: 6px;
+    }
+    .error-note {
+      color: #b91c1c; background: #fef2f2; border: 1px solid #fca5a5;
+      border-radius: 8px; padding: 10px 14px; font-size: .9rem; margin-top: 12px;
+    }
+
+    /* top toolbar */
+    .dash-toolbar {
+      display: flex; flex-wrap: wrap; align-items: center;
+      gap: 10px; margin-bottom: 20px;
+    }
+    .dash-toolbar h2 { margin: 0; color: var(--brand); flex: 1 0 auto; }
+    .dash-toolbar .ts { font-size: .82rem; color: var(--muted); }
+    .btn-sm {
+      background: var(--accent); color: #fff; border: 0; border-radius: 6px;
+      padding: 8px 16px; font-size: .9rem; font-weight: 600; cursor: pointer;
+      width: auto;
+    }
+    .btn-sm:hover { background: #4a93c0; }
+    .btn-lock {
+      background: transparent; color: var(--muted); border: 1px solid #c7d0d9;
+      border-radius: 6px; padding: 7px 14px; font-size: .88rem; cursor: pointer;
+      width: auto;
+    }
+    .btn-lock:hover { background: #f0f0f0; }
+
+    /* health pill */
+    .pill {
+      display: inline-block; padding: 3px 12px; border-radius: 999px;
+      font-size: .82rem; font-weight: 700; letter-spacing: .4px;
+    }
+    .pill-up   { background: #d1fae5; color: #065f46; }
+    .pill-down { background: #fee2e2; color: #991b1b; }
+    .pill-wait { background: #f3f4f6; color: #6b7280; }
+
+    /* twilio alert banner */
+    .alert-banner {
+      background: #fef2f2; border: 1px solid #f87171; border-radius: 10px;
+      padding: 14px 18px; margin-bottom: 18px; color: #991b1b;
+      font-weight: 600; font-size: .95rem;
+    }
+    .alert-banner.hidden { display: none; }
+
+    /* stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 14px;
+      margin-bottom: 0;
+    }
+    .stat-box {
+      background: #fff; border: 1px solid #e3e9ef; border-radius: 10px;
+      padding: 18px 14px; text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    }
+    .stat-box .num {
+      font-size: 2rem; font-weight: 700; color: var(--brand); line-height: 1;
+    }
+    .stat-box .lbl {
+      font-size: .78rem; color: var(--muted); margin-top: 4px; text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    /* pre sections */
+    .dash-pre {
+      background: #f0f4f8; border: 1px solid #d4dde6; border-radius: 8px;
+      padding: 14px 16px; font-size: .85rem; font-family: monospace;
+      white-space: pre-wrap; word-break: break-word;
+      max-height: 320px; overflow-y: auto; margin: 0;
+    }
+    .dash-pre.prominent {
+      background: #fff8e7; border-color: #f3c95e;
+      max-height: 400px;
+    }
+
+    /* leads list */
+    .leads-list { list-style: none; margin: 0; padding: 0; }
+    .leads-list li {
+      padding: 8px 0; border-bottom: 1px solid #eef0f3;
+      font-size: .9rem; color: var(--ink);
+    }
+    .leads-list li:last-child { border-bottom: 0; }
+    .leads-list .src {
+      font-size: .78rem; color: var(--muted); margin-left: 6px;
+    }
+
+    /* recipients list */
+    .recip-list { list-style: none; margin: 0; padding: 0; }
+    .recip-list li {
+      padding: 6px 0; border-bottom: 1px solid #eef0f3;
+      font-size: .88rem;
+    }
+    .recip-list li:last-child { border-bottom: 0; }
+    .recip-ch {
+      display: inline-block; background: #e8f0fe; color: #1a55b0;
+      border-radius: 4px; padding: 1px 7px; font-size: .75rem;
+      font-weight: 600; margin-right: 6px;
+    }
+
+    /* section titles */
+    .sec-title {
+      font-size: .78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .6px; color: var(--muted); margin: 0 0 10px;
+    }
+
+    /* section card with title */
+    .dash-card { margin-bottom: 18px; }
+
+    /* inline error */
+    .inline-err { font-size: .85rem; color: #b91c1c; }
+
+    /* dashboard grid: two columns where space allows */
+    .dash-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 18px;
+    }
+    .dash-grid .full-col { grid-column: 1 / -1; }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .dash-grid  { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>OmniTender</h1>
+    <p>Admin dashboard</p>
+  </header>
+
+  <!-- UNLOCK SCREEN -->
+  <div id="unlock-view">
+    <div class="dash-main">
+      <div class="card">
+        <h2>Admin access</h2>
+        <p>Enter the dashboard token to continue. Session only — never stored in cookies or localStorage.</p>
+        <label for="token-input">Dashboard token</label>
+        <input type="password" id="token-input" placeholder="Bearer token" autocomplete="off">
+        <button class="btn-sm" id="unlock-btn" style="margin-top:14px;">Unlock</button>
+        <div id="unlock-err" class="error-note" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD SCREEN -->
+  <div id="dash-view" style="display:none;">
+    <div class="dash-main">
+
+      <!-- toolbar -->
+      <div class="dash-toolbar">
+        <h2>OmniVerse ops</h2>
+        <span class="ts" id="last-updated"></span>
+        <button class="btn-sm" id="refresh-btn">Refresh</button>
+        <button class="btn-lock" id="lock-btn">Lock</button>
+      </div>
+
+      <!-- twilio alert banner -->
+      <div id="twilio-banner" class="alert-banner hidden"></div>
+
+      <!-- health + stats row -->
+      <div class="dash-grid">
+
+        <!-- health -->
+        <div class="card dash-card">
+          <p class="sec-title">Bot health</p>
+          <div id="health-body">
+            <span class="pill pill-wait">checking…</span>
+          </div>
+        </div>
+
+        <!-- stats -->
+        <div class="card dash-card">
+          <p class="sec-title">Today's counts</p>
+          <div id="stats-body" class="stats-grid">
+            <div class="stat-box"><div class="num">—</div><div class="lbl">Leads</div></div>
+            <div class="stat-box"><div class="num">—</div><div class="lbl">Onboarding</div></div>
+            <div class="stat-box"><div class="num">—</div><div class="lbl">Tickets</div></div>
+            <div class="stat-box"><div class="num">—</div><div class="lbl">Calls</div></div>
+          </div>
+        </div>
+
+        <!-- needs-you queue — full width, prominent -->
+        <div class="card dash-card full-col">
+          <p class="sec-title">Needs you — exception queue</p>
+          <pre id="queue-body" class="dash-pre prominent">loading…</pre>
+        </div>
+
+        <!-- recent leads -->
+        <div class="card dash-card">
+          <p class="sec-title">Recent leads <span id="leads-count" style="font-weight:400;color:var(--muted);"></span></p>
+          <div id="leads-body"><span class="inline-err">loading…</span></div>
+        </div>
+
+        <!-- recipients -->
+        <div class="card dash-card">
+          <p class="sec-title">Recipients <span id="recip-count" style="font-weight:400;color:var(--muted);"></span></p>
+          <div id="recip-body"><span class="inline-err">loading…</span></div>
+        </div>
+
+        <!-- pipeline -->
+        <div class="card dash-card">
+          <p class="sec-title">Onboarding pipeline</p>
+          <pre id="pipeline-body" class="dash-pre">loading…</pre>
+        </div>
+
+        <!-- digest -->
+        <div class="card dash-card">
+          <p class="sec-title">Daily digest</p>
+          <pre id="digest-body" class="dash-pre">loading…</pre>
+        </div>
+
+        <!-- export -->
+        <div class="card dash-card full-col">
+          <p class="sec-title">Data export</p>
+          <p style="margin:0 0 12px;font-size:.9rem;color:var(--muted);">
+            Download a full JSON backup of all bot data.
+          </p>
+          <button class="btn-sm" id="export-btn">Download export.json</button>
+          <span id="export-status" style="font-size:.85rem;color:var(--muted);margin-left:12px;"></span>
+        </div>
+
+      </div><!-- /dash-grid -->
+    </div>
+  </div><!-- /dash-view -->
+
+  <footer>
+    &copy; 2026 OmniTender. All rights reserved. &mdash; Internal use only.
+  </footer>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>
