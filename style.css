@@ -17,6 +17,9 @@
   --ok-ink: #7be0a3;
   --radius: 12px;
   --maxw: 680px;
+  /* Render native form controls, scrollbars, and the caret in dark mode so they
+     match the black theme (prevents light-mode control/scrollbar flashes). */
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -122,6 +125,14 @@ input[type=email] {
 input::placeholder { color: #7d7d7d; }
 input:hover { border-color: #4a4a4a; }
 input:focus-visible { border-color: var(--brand); }
+/* Keep browser-autofilled fields on-theme (override the default light fill). */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ink);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-2) inset;
+  caret-color: var(--ink);
+}
 /* Mark invalid fields only after the user has interacted (set via JS). */
 input[aria-invalid="true"] { border-color: var(--danger); }
 
