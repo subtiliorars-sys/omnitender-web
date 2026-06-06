@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>OmniTender Text Alerts — Sign Up for SMS Updates &amp; Offers</title>
   <meta name="description" content="Sign up for OmniTender SMS alerts to get timely operational and promotional text updates. Opt in by SMS, cancel anytime by replying STOP. Consent is not a condition of purchase.">
   <meta name="theme-color" content="#ff6600">
@@ -19,6 +21,10 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="OmniTender Text Alerts — Sign Up">
   <meta name="twitter:description" content="Get timely operational and promotional text updates from OmniTender. Opt in by SMS, cancel anytime by replying STOP.">
+
+  <!-- Pre-warm the connection to the lead backend so the form POST is faster. -->
+  <link rel="preconnect" href="https://omnitender-omniverse.fly.dev" crossorigin>
+  <link rel="dns-prefetch" href="https://omnitender-omniverse.fly.dev">
 
   <link rel="stylesheet" href="style.css">
 
