@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Merchant Application — Accept Card, Debit &amp; EBT/SNAP | OmniTender</title>
   <meta name="description" content="Apply to accept more payments with OmniTender — credit, debit, and digital/crypto, plus EBT/SNAP for eligible FNS-authorized retailers. No obligation; we follow up to set you up.">
   <meta name="theme-color" content="#ff6600">
@@ -19,6 +21,10 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="OmniTender Merchant Application">
   <meta name="twitter:description" content="Apply to accept credit, debit, digital/crypto, and EBT/SNAP payments with OmniTender. No obligation — we follow up to set you up.">
+
+  <!-- Pre-warm the connection to the application backend so the POST is faster. -->
+  <link rel="preconnect" href="https://omnitender-omniverse.fly.dev" crossorigin>
+  <link rel="dns-prefetch" href="https://omnitender-omniverse.fly.dev">
 
   <link rel="stylesheet" href="style.css">
 </head>

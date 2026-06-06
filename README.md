@@ -52,6 +52,18 @@ and `sitemap.xml`.
 > later attached, update the `<link rel="canonical">`, `og:url`, `sitemap.xml`, and
 > `robots.txt` URLs to match.
 
+## Performance & hardening
+
+- `color-scheme: dark` (meta + CSS) so native form controls, autofill, the caret,
+  and scrollbars render dark instead of flashing light over the black theme.
+- `preconnect` + `dns-prefetch` to the lead backend on the form pages, so the
+  TLS handshake is pre-warmed before the user submits.
+- `Referrer-Policy: strict-origin-when-cross-origin` (meta) on every page.
+
+> Full security headers (CSP, HSTS, frame-ancestors, etc.) and form spam
+> protection belong server-side (CloudFront Response Headers Policy + backend
+> validation) and are tracked in the founder queue, not set as meta tags here.
+
 ## Local preview
 
 It's a static site — open `index.html` directly, or serve the folder:
