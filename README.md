@@ -8,8 +8,13 @@ OmniTender's public marketing site — a small, dependency-free static site:
 | `apply.html` | Merchant application (credit, debit, digital/crypto, EBT/SNAP) |
 | `privacy.html` | Privacy Policy for the SMS program |
 | `terms.html` | SMS Terms & Conditions |
+| `404.html` | Branded not-found page (see deploy note below to wire it up) |
 | `style.css` | Single shared stylesheet (brand: vivid **orange `#FF6600`** on black) |
 | `robots.txt`, `sitemap.xml` | SEO crawl hints |
+
+Every page carries a shared accessible top nav (`Text alerts` · `Merchant
+application`) with `aria-current="page"` on the active page, so either audience
+can reach the other.
 
 No build step, no framework, no external assets — just HTML + one CSS file. The
 favicon is an inline SVG data URI, so there are no binary files to manage.
@@ -79,6 +84,11 @@ aws cloudfront create-invalidation --distribution-id E2MXZUPT4Y6JYE --paths "/*"
 > state. Use it to stand the site up the first time, not to push routine content
 > updates (that would orphan the existing distribution and change the live URL).
 > For updates, prefer the `s3 sync` + invalidation above.
+
+**404 page:** `404.html` ships in the repo but only renders for bad URLs once
+the CloudFront distribution has a **Custom Error Response** mapping 403/404 →
+`/404.html` (response code 404). That's a distribution config change (earmarked
+for the founder), not a content change.
 
 ## License
 
