@@ -1,8 +1,0 @@
-{
-  "name": "omnitender-web",
-  "bucket": "subtiliorars-omnitender-web-380592535426",
-  "distribution_id": "E2MXZUPT4Y6JYE",
-  "distribution_arn": "arn:aws:cloudfront::380592535426:distribution/E2MXZUPT4Y6JYE",
-  "oac_id": "E1U6ASJTAN5VA0",
-  "domain": "d2htga59lk9fv.cloudfront.net"
-}
