@@ -1,0 +1,3 @@
+
+# local AWS S3 restore snapshots — never commit
+.restore/
