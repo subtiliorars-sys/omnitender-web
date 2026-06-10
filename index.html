@@ -51,7 +51,6 @@
 
   <header>
     <a class="brand" href="index.html">OmniTender</a>
-    <p class="tagline">Operational &amp; promotional text alerts</p>
     <nav class="topnav" aria-label="Primary">
       <a href="index.html" aria-current="page">Text alerts</a>
       <a href="apply.html">Merchant application</a>
@@ -59,11 +58,13 @@
   </header>
 
   <main id="main">
-    <div class="card">
-      <h1>Sign up for OmniTender text alerts</h1>
-      <p>Get timely updates and offers from OmniTender by SMS. Enter your details
-         and check the box to opt in. You can cancel anytime by replying STOP.</p>
+    <div class="hero">
+      <h1>Get SMS alerts from OmniTender</h1>
+      <p class="hero-sub">Timely operational updates and offers — right to your phone.
+         Opt in below, cancel anytime by replying STOP.</p>
+    </div>
 
+    <div class="card">
       <form id="optin" novalidate>
         <label for="name">Name</label>
         <input type="text" id="name" name="name" autocomplete="name"
@@ -80,14 +81,12 @@
           <input type="checkbox" id="agree" name="agree"
                  aria-required="true" aria-describedby="agree-error">
           <label for="agree" style="font-weight:400;margin:0;">
-            By checking this box, I agree to receive recurring automated
-            operational and marketing text messages (e.g. account, sales, and
-            promotional alerts) from OmniTender at the number provided. Consent
-            is not a condition of purchase. Message frequency varies.
-            Message &amp; data rates may apply. Reply HELP for help and STOP to
-            unsubscribe. See our
-            <a href="privacy.html">Privacy Policy</a> and
-            <a href="terms.html">Terms &amp; Conditions</a>.
+            I agree to receive recurring automated operational and marketing text
+            messages from OmniTender. Consent is not a condition of purchase.
+            Message frequency varies. Msg &amp; data rates may apply.
+            Reply HELP for help, STOP to unsubscribe. See
+            <a href="privacy.html">Privacy Policy</a> ·
+            <a href="terms.html">Terms</a>.
           </label>
         </div>
         <p class="field-error" id="agree-error">Please check the box to give consent.</p>
@@ -96,20 +95,16 @@
       </form>
 
       <div class="ok" id="ok" role="status" tabindex="-1">
-        ✅ Thanks! You're opted in to OmniTender text alerts. Reply STOP anytime to cancel.
+        ✅ Thanks! You're opted in. Reply STOP anytime to cancel.
       </div>
 
       <div class="err" id="err" role="alert" tabindex="-1">
-        ⚠️ Something went wrong sending your sign-up. Please try again, or contact us at
+        ⚠️ Something went wrong. Please try again, or contact
         <a href="mailto:support@omni-tender.com">support@omni-tender.com</a> or
         <a href="tel:+18284130859">(828) 413-0859</a>.
       </div>
 
-      <p class="fine">
-        We respect your privacy. Your mobile information is never sold or shared
-        with third parties for their marketing. Reply <strong>HELP</strong> for
-        help, <strong>STOP</strong> to cancel.
-      </p>
+      <p class="fine">Your mobile information is never sold or shared with third parties for their marketing.</p>
     </div>
   </main>
 
