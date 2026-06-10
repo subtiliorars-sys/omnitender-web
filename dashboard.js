@@ -121,30 +121,31 @@
     var el = document.getElementById('stats-body');
     if (handle401(result)) return;
     if (!result.ok || !result.data) {
-      el.innerHTML = '<span class="inline-err">Could not load counts.</span>';
+      el.innerHTML = '<div class="metric-card"><div class="metric-value">—</div><div class="metric-label">Error</div></div>';
       return;
     }
     var c = result.data.counts || {};
     var keys = ['leads', 'onboarding', 'tickets', 'calls'];
+    var labels = { leads: 'Leads today', onboarding: 'Onboarding', tickets: 'Tickets', calls: 'Calls' };
     var html = '';
     keys.forEach(function (k) {
       var val = (c[k] !== undefined && c[k] !== null) ? c[k] : '—';
-      html += '<div class="stat-box">' +
-        '<div class="num">' + esc(String(val)) + '</div>' +
-        '<div class="lbl">' + esc(k) + '</div>' +
+      html += '<div class="metric-card">' +
+        '<div class="metric-value">' + esc(String(val)) + '</div>' +
+        '<div class="metric-label">' + esc(labels[k] || k) + '</div>' +
         '</div>';
     });
     /* also render any extra keys the API might send */
     Object.keys(c).forEach(function (k) {
       if (keys.indexOf(k) === -1) {
-        html += '<div class="stat-box">' +
-          '<div class="num">' + esc(String(c[k])) + '</div>' +
-          '<div class="lbl">' + esc(k) + '</div>' +
+        html += '<div class="metric-card">' +
+          '<div class="metric-value">' + esc(String(c[k])) + '</div>' +
+          '<div class="metric-label">' + esc(k) + '</div>' +
           '</div>';
       }
     });
     el.innerHTML = html;
-    el.className = 'stats-grid';
+    el.className = 'metrics-row';
   }
 
   function renderQueue(result) {
