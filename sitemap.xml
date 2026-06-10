@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://d2htga59lk9fv.cloudfront.net/index.html</loc>
+    <loc>https://omnitender.us/index.html</loc>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://d2htga59lk9fv.cloudfront.net/apply.html</loc>
+    <loc>https://omnitender.us/apply.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://d2htga59lk9fv.cloudfront.net/privacy.html</loc>
+    <loc>https://omnitender.us/privacy.html</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://d2htga59lk9fv.cloudfront.net/terms.html</loc>
+    <loc>https://omnitender.us/terms.html</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
