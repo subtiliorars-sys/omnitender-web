@@ -187,9 +187,9 @@
                 <span>Current Processing Fee Rate:</span>
                 <span id="calc-rate-val" style="color: var(--gold);">2.8%</span>
               </div>
-              <input type="range" id="calc-rate" min="2.4" max="4.5" step="0.1" value="2.8" style="width: 100%; accent-color: var(--gold); cursor: pointer;">
+              <input type="range" id="calc-rate" min="0.0" max="4.5" step="0.1" value="2.8" style="width: 100%; accent-color: var(--gold); cursor: pointer;">
               <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin-top: 4px;">
-                <span>2.4%</span>
+                <span>0%</span>
                 <span>4.5%</span>
               </div>
             </div>
@@ -199,9 +199,9 @@
           <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 24px; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 8px;">
             <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 1px;">Estimated Monthly Savings</div>
             <div id="calc-monthly-savings" style="font-size: 2.8rem; font-weight: 900; color: var(--brand); text-shadow: 0 0 15px rgba(247,121,44,0.25);">$1,400</div>
-            <div style="font-size: 0.85rem; color: var(--gold); font-weight: 600;">Stop paying processor fees now.</div>
+            <div id="calc-sub-label" style="font-size: 0.85rem; color: var(--gold); font-weight: 600;">Stop paying processor fees now.</div>
             <p style="font-size: 0.7rem; color: var(--muted); line-height: 1.4; margin-top: 20px; border-top: 1px solid #222; padding-top: 12px; font-weight: 500; text-align: left;">
-              * Projected savings are comparisons against typical commercial card effective rates. OmniTender transactions assume a minor 0.2% stablecoin network settlement fee. Actual merchant savings depend on transaction distribution and volume. The minimum processing fee rate threshold is 2.4%.
+              * Projected savings assume transition to OmniTender's dual pricing / cash discount program, where customer convenience fees cover processing costs, resulting in a true 0% transaction fee to the merchant's bottom line.
             </p>
           </div>
         </div>
@@ -417,12 +417,20 @@
         labelVol.textContent = '$' + vol.toLocaleString();
         labelRate.textContent = rate.toFixed(1) + '%';
         
-        // Fee savings calculation: (Vol * rate%) minus typical minor merchant maintenance/network overhead
-        var originalFee = vol * (rate / 100);
-        var cryptoFee = vol * 0.002; // Assuming minor stablecoin/arbitrage settlement cost of 0.2%
-        var savings = Math.max(0, Math.round(originalFee - cryptoFee));
-        
+        // Fee savings calculation: (Vol * rate%) since OmniTender results in 0% processing fees for the merchant
+        var savings = Math.round(vol * (rate / 100));
         displaySavings.textContent = '$' + savings.toLocaleString();
+        
+        var subLabel = document.getElementById('calc-sub-label');
+        if (subLabel) {
+          if (rate === 0) {
+            subLabel.textContent = "🎉 Congratulations! You already enjoy the 0% processing rate that OmniTender delivers.";
+            subLabel.style.color = "#22c55e"; // green highlight
+          } else {
+            subLabel.textContent = "Stop paying processor fees now.";
+            subLabel.style.color = "var(--gold)";
+          }
+        }
       }
 
       if (sliderVol && sliderRate) {
