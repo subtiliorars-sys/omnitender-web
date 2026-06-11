@@ -380,15 +380,22 @@
       if (logo) {
         var clicks = 0;
         var clickTimer = null;
+        var navigationTimer = null;
         logo.addEventListener('click', function (e) {
+          e.preventDefault();
           clicks++;
+          clearTimeout(clickTimer);
+          clearTimeout(navigationTimer);
+          
           if (clicks === 5) {
-            e.preventDefault();
             window.location.href = 'dashboard.html';
             clicks = 0;
+          } else {
+            clickTimer = setTimeout(function () { clicks = 0; }, 2000);
+            navigationTimer = setTimeout(function () {
+              window.location.href = 'index.html';
+            }, 600); // 600ms delay to allow quick multiple taps
           }
-          clearTimeout(clickTimer);
-          clickTimer = setTimeout(function () { clicks = 0; }, 3000);
         });
       }
 
