@@ -474,7 +474,7 @@
             for (var i = 0; i < catalog.length; i++) {
               var item = catalog[i];
               if (savings >= item.price) {
-                matches.push('1x ' + item.name);
+                matches.push(item.name);
                 if (matches.length >= 3) break; // show at most 3 choices
               }
             }
