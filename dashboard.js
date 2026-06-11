@@ -133,6 +133,7 @@
       else { bar.style.display = 'none'; }
     } catch (e) {}
     try { document.getElementById('queue').textContent = await api('/queue'); } catch (e) {}
+    loadAuditLogs();
     
     // Render pipeline distribution chart
     try {
@@ -369,9 +370,39 @@
   }
 
   /* ---- Digest ---- */
+  var cacheDigestSettings = null;
+  async function loadDigestSettings() {
+    try {
+      const settings = await api('/api/digest/settings');
+      cacheDigestSettings = settings;
+      document.getElementById('digest-email-sub').checked = !!settings.enabled;
+      document.getElementById('digest-email-input').value = settings.email || '';
+    } catch (err) {
+      console.warn('Failed to load digest settings:', err);
+    }
+  }
+
   async function loadDigest() {
-    try { document.getElementById('digest').textContent = await api('/digest'); }
-    catch (e) { document.getElementById('digest').textContent = 'Failed to load digest.'; }
+    loadDigestSettings();
+    try {
+      const pass = document.getElementById('digest-pass-input').value;
+      const headers = pass ? { 'x-digest-password': pass } : {};
+      const queryStr = pass ? '?password=' + encodeURIComponent(pass) : '';
+      
+      const response = await fetch(API + '/digest' + queryStr, { headers: Object.assign(authHeaders(), headers) });
+      if (response.status === 401) {
+        document.getElementById('digest').textContent = 'Daily Digest Report is locked/encrypted. Please enter your Password below to decrypt and view.';
+        return;
+      }
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || ('HTTP ' + response.status));
+      }
+      const text = await response.text();
+      document.getElementById('digest').textContent = text;
+    } catch (e) {
+      document.getElementById('digest').textContent = 'Failed to load digest: ' + e.message;
+    }
   }
 
   /* ---- Actions ---- */
@@ -538,15 +569,44 @@
     if (_refreshTimer !== null) { clearInterval(_refreshTimer); _refreshTimer = null; }
   }
 
-  // Inactivity tracking (15 minutes)
+  // Inactivity tracking (15 minutes) with 1 minute warning
   var INACTIVITY_TIMEOUT = 15 * 60 * 1000;
+  var WARNING_TIME = 14 * 60 * 1000;
   var _inactivityTimer = null;
+  var _warningTimer = null;
+  var _countdownInterval = null;
 
   function resetInactivityTimer() {
     if (getToken()) {
       clearTimeout(_inactivityTimer);
+      clearTimeout(_warningTimer);
+      clearInterval(_countdownInterval);
+      
+      const banner = document.getElementById('session-warning-banner');
+      if (banner) banner.style.display = 'none';
+      
+      _warningTimer = setTimeout(showSessionWarning, WARNING_TIME);
       _inactivityTimer = setTimeout(autoLock, INACTIVITY_TIMEOUT);
     }
+  }
+
+  function showSessionWarning() {
+    const banner = document.getElementById('session-warning-banner');
+    if (!banner) return;
+    banner.style.display = 'flex';
+    
+    let remaining = 60;
+    const remainingEl = document.getElementById('session-time-remaining');
+    if (remainingEl) remainingEl.textContent = remaining;
+    
+    clearInterval(_countdownInterval);
+    _countdownInterval = setInterval(() => {
+      remaining--;
+      if (remainingEl) remainingEl.textContent = remaining;
+      if (remaining <= 0) {
+        clearInterval(_countdownInterval);
+      }
+    }, 1000);
   }
 
   async function autoLock() {
@@ -693,6 +753,125 @@
     if (!summary) return;
     const item = summary.closest('.disc-item');
     if (item) item.classList.toggle('open');
+  });
+
+  // --- Audit Logs Helpers & Render ---
+  var cacheAuditLogs = [];
+  async function loadAuditLogs() {
+    try {
+      const data = await api('/api/activity-logs');
+      cacheAuditLogs = data.items || [];
+      renderAuditLogs();
+    } catch (e) {
+      document.getElementById('audit-log-stream').innerHTML = '<div style="color:red;">Failed to load activity logs.</div>';
+    }
+  }
+
+  function renderAuditLogs() {
+    const searchVal = document.getElementById('audit-search').value.toLowerCase();
+    const actionVal = document.getElementById('audit-filter-action').value;
+    const container = document.getElementById('audit-log-stream');
+    
+    if (cacheAuditLogs.length === 0) {
+      container.innerHTML = '<div style="color:var(--faint);">No activities logged.</div>';
+      return;
+    }
+    
+    const filtered = cacheAuditLogs.filter(log => {
+      const matchSearch = !searchVal || 
+        log.user.toLowerCase().includes(searchVal) || 
+        log.action.toLowerCase().includes(searchVal) || 
+        log.details.toLowerCase().includes(searchVal);
+      const matchAction = !actionVal || log.action === actionVal;
+      return matchSearch && matchAction;
+    });
+    
+    if (filtered.length === 0) {
+      container.innerHTML = '<div style="color:var(--faint);">No matching activities found.</div>';
+      return;
+    }
+    
+    container.innerHTML = filtered.map(log => {
+      const time = new Date(log.timestamp).toLocaleTimeString();
+      const date = new Date(log.timestamp).toLocaleDateString();
+      return `<div style="margin-bottom: 6px; border-bottom: 1px dashed #222; padding-bottom: 6px;">
+        <span style="color:var(--accent);">[${date} ${time}]</span> 
+        <strong style="color:var(--pos-gold);">${esc(log.user)}</strong> 
+        <span style="color:#52a8ff; font-weight:bold;">${esc(log.action)}</span> - 
+        <span style="color:#ccc;">${esc(log.details)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // --- Audit Filters Bindings ---
+  document.getElementById('audit-search').addEventListener('input', renderAuditLogs);
+  document.getElementById('audit-filter-action').addEventListener('change', renderAuditLogs);
+
+  // --- CSV Import Binding ---
+  document.getElementById('csv-import-btn').addEventListener('click', async function() {
+    const fileInput = document.getElementById('csv-file-input');
+    const statusDiv = document.getElementById('csv-import-status');
+    if (!fileInput.files || fileInput.files.length === 0) {
+      statusDiv.innerHTML = '<span style="color:red;">Please select a CSV file.</span>';
+      return;
+    }
+    
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    statusDiv.innerHTML = '<span style="color:var(--accent);">Parsing and uploading CSV...</span>';
+    
+    reader.onload = async function(e) {
+      const csvText = e.target.result;
+      try {
+        const res = await api('/api/leads/import', {
+          method: 'POST',
+          body: { csv: csvText }
+        });
+        statusDiv.innerHTML = `<span style="color:#22c55e; font-weight:bold;">✓ Imported ${res.count} leads successfully!</span>`;
+        fileInput.value = '';
+        loadLeads();
+      } catch (err) {
+        statusDiv.innerHTML = `<span style="color:red;">Import failed: ${esc(err.message)}</span>`;
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // --- Digest Subscription Settings Binding ---
+  document.getElementById('digest-sub-save-btn').addEventListener('click', async function() {
+    const email = document.getElementById('digest-email-input').value;
+    const enabled = document.getElementById('digest-email-sub').checked;
+    const password = document.getElementById('digest-pass-input').value;
+    const statusDiv = document.getElementById('digest-sub-status');
+    
+    if (enabled && (!email || !password)) {
+      statusDiv.innerHTML = '<span style="color:red;">Email and Password are required to subscribe.</span>';
+      return;
+    }
+    
+    statusDiv.innerHTML = '<span style="color:var(--accent);">Saving settings...</span>';
+    try {
+      await api('/api/digest/settings', {
+        method: 'POST',
+        body: { email, enabled, password }
+      });
+      statusDiv.innerHTML = '<span style="color:#22c55e;">✓ Subscription settings saved successfully!</span>';
+      setTimeout(() => { statusDiv.innerHTML = ''; }, 3000);
+      loadDigest();
+    } catch (err) {
+      statusDiv.innerHTML = `<span style="color:red;">Failed: ${esc(err.message)}</span>`;
+    }
+  });
+
+  // --- Session Warning Banner Renewal Binding ---
+  document.getElementById('session-renew-btn').addEventListener('click', async function() {
+    resetInactivityTimer();
+    try {
+      await api('/stats');
+      toast('Session extended.');
+    } catch (e) {
+      console.warn("Session renewal heartbeat failed", e);
+    }
   });
 
   /* ---- init ---- */

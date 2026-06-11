@@ -474,6 +474,29 @@
               <h2>Totals</h2>
               <div class="grid" id="stats"></div>
             </div>
+            
+            <div class="card">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h2 style="margin:0; border-left:3px solid var(--accent); padding-left:10px;">⚡ Live Activity Audit Logs</h2>
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="audit-search" placeholder="Filter logs..." style="width:140px; padding:4px 8px; font-size:11px; margin-top:0; min-height:0; height:auto; border-radius:4px; border:1px solid #444; background:#222; color:#fff;">
+                  <select id="audit-filter-action" style="padding:4px; font-size:11px; min-height:0; height:auto; border-radius:4px; border:1px solid #444; background:#222; color:#fff; width:110px;">
+                    <option value="">All Actions</option>
+                    <option value="login">login</option>
+                    <option value="logout">logout</option>
+                    <option value="lead-erasure">erasure</option>
+                    <option value="pipeline-action">pipeline</option>
+                    <option value="save-pricing">pricing</option>
+                    <option value="mint-invite">invite</option>
+                    <option value="bulk-csv-import">csv-import</option>
+                    <option value="digest-sub">digest-sub</option>
+                  </select>
+                </div>
+              </div>
+              <div id="audit-log-stream" style="max-height:220px; overflow-y:auto; font-family:monospace; font-size:11px; line-height:1.4; border:1px solid #222; border-radius:6px; padding:10px; background:#0a0a0a; color:#fff;">
+                <div style="color:var(--faint);">Loading audit trail...</div>
+              </div>
+            </div>
           </section>
 
           <!-- PIPELINE VIEW -->
@@ -512,6 +535,16 @@
                 <input type="text" id="leads-search" placeholder="🔍 Search leads by name, phone, business, source...">
               </div>
               <div id="leadlist"></div>
+            </div>
+
+            <div class="card">
+              <h2>📥 Bulk Import Leads (CSV)</h2>
+              <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">Select a CSV file to import leads. All formula symbols (=, +, -, @) will be automatically stripped for security.</p>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <input type="file" id="csv-file-input" accept=".csv" style="flex:1; min-height:0; padding:6px; background:#222; border:1px solid #444; border-radius:6px; color:#fff;">
+                <button class="btn btn-go" id="csv-import-btn" style="width:auto; min-height:0; padding:8px 16px; margin:0;">Upload CSV</button>
+              </div>
+              <div id="csv-import-status" style="font-size:11px; margin-top:8px;"></div>
             </div>
           </section>
 
@@ -598,6 +631,23 @@
               <h2>Daily Digest Report</h2>
               <pre id="digest">loading…</pre>
             </div>
+
+            <div class="card">
+              <h2>📧 Digest Subscription Settings</h2>
+              <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">Manage daily/weekly report email subscriptions. Credentials are required to subscribe or view encrypted logs.</p>
+              <div style="display:flex; flex-direction:column; gap:12px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <input type="checkbox" id="digest-email-sub" style="width:auto; margin:0; cursor:pointer;">
+                  <label for="digest-email-sub" style="font-size:13px; font-weight:bold; cursor:pointer;">Subscribe to Weekly/Daily email digests</label>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <input type="email" id="digest-email-input" placeholder="admin@example.com" style="flex:1; min-height:0; padding:8px;">
+                  <input type="password" id="digest-pass-input" placeholder="AES Encryption Password" style="flex:1; min-height:0; padding:8px;">
+                  <button class="btn btn-go" id="digest-sub-save-btn" style="width:auto; min-height:0; margin:0; padding:8px 16px;">Save Settings</button>
+                </div>
+                <div id="digest-sub-status" style="font-size:11px; font-weight:bold;"></div>
+              </div>
+            </div>
           </section>
           
         </main>
@@ -621,6 +671,12 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <!-- Session Inactivity Warning Banner -->
+  <div id="session-warning-banner" style="display:none; position:fixed; bottom:80px; left:50%; transform:translateX(-50%); z-index:100000; background:#d97706; color:#fff; border:1px solid #b45309; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.6); align-items:center; justify-content:space-between; gap:16px; padding:12px 20px; font-size:13px; font-weight:bold; max-width:90vw; width:450px;">
+    <span>⚠️ Inactivity Warning: Session logs out in <span id="session-time-remaining">60</span>s.</span>
+    <button class="btn" id="session-renew-btn" style="background:#fff; color:#000; width:auto; min-height:0; padding:6px 12px; font-size:11px; font-weight:bold; margin:0; border:none; border-radius:4px; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.2);">Keep Session Active</button>
+  </div>
 
   <!-- Steady Ground Crisis Exit -->
   <button id="steady-ground-btn" type="button" aria-label="Get crisis help now" style="position: fixed; bottom: 16px; right: 16px; z-index: 99998; border-radius: 9999px; padding: 8px 12px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; background: #111; border: 1px solid #dc2626; color: #fecaca; box-shadow: 0 4px 10px rgba(0,0,0,0.5);"
