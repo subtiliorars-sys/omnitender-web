@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 560" font-family="Montserrat, Arial, sans-serif">
+  <!-- V2 Concept 1: Values Crest — OmniTender black/orange brand language -->
+  <rect width="512" height="560" fill="#070707"/>
+  <!-- faint hex texture -->
+  <g stroke="#1a1a1a" stroke-width="2" fill="none">
+    <path d="M40 40 l20 -12 20 12 v24 l-20 12 -20 -12 z"/>
+    <path d="M440 70 l20 -12 20 12 v24 l-20 12 -20 -12 z"/>
+    <path d="M460 420 l20 -12 20 12 v24 l-20 12 -20 -12 z"/>
+    <path d="M20 460 l20 -12 20 12 v24 l-20 12 -20 -12 z"/>
+  </g>
+  <!-- shield (matches brand logo silhouette) -->
+  <path d="M256 52 C300 76 352 86 416 88 V300 C416 402 340 462 256 498 C172 462 96 402 96 300 V88 C160 86 212 76 256 52 Z"
+        fill="#0d0d0d" stroke="#F7792C" stroke-width="11"/>
+  <!-- quarter dividers -->
+  <line x1="256" y1="64" x2="256" y2="492" stroke="#F7792C" stroke-width="4" opacity="0.85"/>
+  <line x1="100" y1="280" x2="412" y2="280" stroke="#F7792C" stroke-width="4" opacity="0.85"/>
+
+  <!-- Q1: cross -->
+  <g stroke="#F7792C" stroke-width="14" stroke-linecap="round">
+    <line x1="176" y1="134" x2="176" y2="242"/>
+    <line x1="136" y1="172" x2="216" y2="172"/>
+  </g>
+
+  <!-- Q2: peace -->
+  <g stroke="#F7792C" stroke-width="11" fill="none" stroke-linecap="round">
+    <circle cx="336" cy="188" r="50"/>
+    <line x1="336" y1="138" x2="336" y2="238"/>
+    <line x1="336" y1="188" x2="301" y2="223"/>
+    <line x1="336" y1="188" x2="371" y2="223"/>
+  </g>
+
+  <!-- Q3: crown — gold, rounded points with ball tips (inset to clear shield edge) -->
+  <g fill="#d4af37">
+    <path d="M146 388 Q144 354 149 338 Q165 360 176 354 Q181 329 186 324 Q191 329 196 354 Q207 360 223 338 Q228 354 226 388 Z"/>
+    <circle cx="149" cy="333" r="7"/><circle cx="186" cy="318" r="7"/><circle cx="223" cy="333" r="7"/>
+    <rect x="144" y="394" width="84" height="12" rx="6"/>
+  </g>
+
+  <!-- Q4: heart -->
+  <path d="M336 444 C296 412 278 386 278 360 a29 29 0 0 1 58-6 a29 29 0 0 1 58 6 c0 26-18 52-58 84 z"
+        fill="#F7792C"/>
+
+  <!-- wordmark -->
+  <text x="256" y="534" text-anchor="middle" font-size="32" font-weight="800"
+        letter-spacing="5" fill="#ffffff">OMNITENDER</text>
+  <text x="256" y="552" text-anchor="middle" font-size="12" font-weight="500"
+        letter-spacing="9" fill="#F7792C">S Y S T E M S</text>
+</svg>
