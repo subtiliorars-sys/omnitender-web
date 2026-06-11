@@ -1,14 +1,21 @@
-/* OmniTender admin dashboard — vanilla JS, no frameworks
- * API: https://omnitender-omniverse.fly.dev
- * Token: sessionStorage only, never in URLs
+/* OmniTender CRM Dashboard JS — Unified console logic
+ * API: https://omnitender-omniverse.fly.dev (or relative for same-origin backend)
+ * Token: sessionStorage only
  */
 
 (function () {
   'use strict';
 
-  var API = 'https://omnitender-omniverse.fly.dev';
+  // Autodetect if we are running on the Fly backend directly or on the static site
+  var API = window.location.hostname === 'omnitender-omniverse.fly.dev' || window.location.port === '3000'
+    ? ''
+    : 'https://omnitender-omniverse.fly.dev';
+
   var REFRESH_MS = 30000;
   var _refreshTimer = null;
+  var currentUserRole = 'Employee';
+  var cachePipeline = [];
+  var cacheLeads = [];
 
   /* ---- token helpers ---- */
   function getToken() {
@@ -19,16 +26,18 @@
   }
   function clearToken() {
     sessionStorage.removeItem('omni_dash_token');
+    sessionStorage.removeItem('omni_dash_role');
+    sessionStorage.removeItem('omni_dash_username');
   }
 
   /* ---- view switching ---- */
   function showUnlock(errMsg) {
     document.getElementById('dash-view').style.display = 'none';
-    document.getElementById('unlock-view').style.display = '';
+    document.getElementById('unlock-view').style.display = 'block';
     var errEl = document.getElementById('unlock-err');
     if (errMsg) {
       errEl.textContent = errMsg;
-      errEl.style.display = '';
+      errEl.style.display = 'block';
     } else {
       errEl.style.display = 'none';
     }
@@ -37,7 +46,7 @@
 
   function showDash() {
     document.getElementById('unlock-view').style.display = 'none';
-    document.getElementById('dash-view').style.display = '';
+    document.getElementById('dash-view').style.display = 'block';
   }
 
   /* ---- fetch helpers ---- */
@@ -45,282 +54,29 @@
     return { 'Authorization': 'Bearer ' + getToken() };
   }
 
-  /* Returns {ok, status, data} — never throws.
-   * data is parsed JSON for json responses, raw text for others. */
-  function apiFetch(path, isText) {
-    return fetch(API + path, { headers: authHeaders() })
-      .then(function (res) {
-        if (res.status === 401) {
-          return { ok: false, status: 401, data: null };
-        }
-        if (!res.ok) {
-          return { ok: false, status: res.status, data: null };
-        }
-        var parse = isText ? res.text() : res.json();
-        return parse.then(function (data) {
-          return { ok: true, status: res.status, data: data };
-        });
-      })
-      .catch(function () {
-        return { ok: false, status: 0, data: null };
-      });
-  }
-
-  /* If any request comes back 401, wipe token and return to lock screen. */
-  function handle401(result) {
-    if (result.status === 401) {
+  async function api(path, opts) {
+    const o = opts || {};
+    const init = { method: o.method || 'GET', headers: authHeaders() };
+    if (init.method !== 'GET') {
+      init.headers['Content-Type'] = 'application/json';
+      init.headers['X-OV-Console'] = '1';
+      init.body = JSON.stringify(o.body || {});
+    }
+    const r = await fetch(API + path, init);
+    if (r.status === 401) {
       clearToken();
-      stopRefresh();
-      showUnlock('Invalid or expired token. Please unlock again.');
-      return true;
+      showUnlock('Session expired. Please log in again.');
+      throw new Error('Unauthorized');
     }
-    return false;
+    const ct = r.headers.get('content-type') || '';
+    const data = ct.includes('json') ? await r.json() : await r.text();
+    if (!r.ok) throw new Error((data && data.error) || ('HTTP ' + r.status));
+    return data;
   }
 
-  /* ---- section renderers ---- */
-
-  function renderHealth(result) {
-    var el = document.getElementById('health-body');
-    if (handle401(result)) return;
-    if (!result.ok || !result.data) {
-      el.innerHTML = '<span class="pill pill-down">UNREACHABLE</span>';
-      return;
-    }
-    var d = result.data;
-    var channels = Array.isArray(d.channels) && d.channels.length
-      ? d.channels.join(', ')
-      : 'none listed';
-    var pill = d.status === 'ok'
-      ? '<span class="pill pill-up">UP</span>'
-      : '<span class="pill pill-down">DOWN</span>';
-    el.innerHTML = pill +
-      '<span style="margin-left:10px;font-size:.9rem;color:var(--muted);">' +
-      esc(d.bot || '') + ' &mdash; channels: ' + esc(channels) + '</span>';
-  }
-
-  function renderTwilioBanner(statsResult) {
-    var banner = document.getElementById('twilio-banner');
-    if (!statsResult.ok || !statsResult.data) {
-      banner.classList.add('hidden');
-      return;
-    }
-    var tw = statsResult.data.twilio || {};
-    if (tw.ok === false || tw.code === 'no_credentials') {
-      var msg = tw.code === 'no_credentials'
-        ? 'Twilio credentials not configured — outbound SMS will not send.'
-        : 'Twilio credentials rejected (error ' + esc(String(tw.code || 'unknown')) +
-          ') — outbound SMS will not send.';
-      banner.textContent = msg;
-      banner.classList.remove('hidden');
-    } else {
-      banner.classList.add('hidden');
-    }
-  }
-
-  function renderStats(result) {
-    var el = document.getElementById('stats-body');
-    if (handle401(result)) return;
-    if (!result.ok || !result.data) {
-      el.innerHTML = '<div class="metric-card"><div class="metric-value">—</div><div class="metric-label">Error</div></div>';
-      return;
-    }
-    var c = result.data.counts || {};
-    var keys = ['leads', 'onboarding', 'tickets', 'calls'];
-    var labels = { leads: 'Leads today', onboarding: 'Onboarding', tickets: 'Tickets', calls: 'Calls' };
-    var html = '';
-    keys.forEach(function (k) {
-      var val = (c[k] !== undefined && c[k] !== null) ? c[k] : '—';
-      html += '<div class="metric-card">' +
-        '<div class="metric-value">' + esc(String(val)) + '</div>' +
-        '<div class="metric-label">' + esc(labels[k] || k) + '</div>' +
-        '</div>';
-    });
-    /* also render any extra keys the API might send */
-    Object.keys(c).forEach(function (k) {
-      if (keys.indexOf(k) === -1) {
-        html += '<div class="metric-card">' +
-          '<div class="metric-value">' + esc(String(c[k])) + '</div>' +
-          '<div class="metric-label">' + esc(k) + '</div>' +
-          '</div>';
-      }
-    });
-    el.innerHTML = html;
-    el.className = 'metrics-row';
-  }
-
-  function renderQueue(result) {
-    var el = document.getElementById('queue-body');
-    if (handle401(result)) return;
-    if (!result.ok || result.data === null) {
-      el.textContent = '— could not load queue —';
-      return;
-    }
-    el.textContent = result.data || '(empty)';
-  }
-
-  function renderLeads(result) {
-    var el = document.getElementById('leads-body');
-    var countEl = document.getElementById('leads-count');
-    if (handle401(result)) return;
-    if (!result.ok || !result.data) {
-      el.innerHTML = '<span class="inline-err">Could not load leads.</span>';
-      countEl.textContent = '';
-      return;
-    }
-    var leads = result.data.leads || [];
-    countEl.textContent = '(' + (result.data.count || leads.length) + ')';
-    if (!leads.length) {
-      el.innerHTML = '<span style="color:var(--muted);font-size:.9rem;">No leads yet.</span>';
-      return;
-    }
-    var html = '<ul class="leads-list">';
-    leads.forEach(function (l) {
-      var name = esc(l.name || '(unnamed)');
-      var biz  = l.business ? ' &mdash; ' + esc(l.business) : '';
-      var ph   = l.phone    ? ' (' + esc(l.phone) + ')' : '';
-      var src  = l.source   ? '<span class="src">[' + esc(l.source) + ']</span>' : '';
-      html += '<li>' + name + biz + ph + src + '</li>';
-    });
-    html += '</ul>';
-    el.innerHTML = html;
-  }
-
-  function renderPipeline(result) {
-    var el = document.getElementById('pipeline-body');
-    if (handle401(result)) return;
-    if (!result.ok || result.data === null) {
-      el.textContent = '— could not load pipeline —';
-      return;
-    }
-    el.textContent = result.data || '(empty)';
-  }
-
-  function renderDigest(result) {
-    var el = document.getElementById('digest-body');
-    if (handle401(result)) return;
-    if (!result.ok || result.data === null) {
-      el.textContent = '— could not load digest —';
-      return;
-    }
-    el.textContent = result.data || '(empty)';
-  }
-
-  function renderRecipients(result) {
-    var el = document.getElementById('recip-body');
-    var countEl = document.getElementById('recip-count');
-    if (handle401(result)) return;
-    if (!result.ok || !result.data) {
-      el.innerHTML = '<span class="inline-err">Could not load recipients.</span>';
-      countEl.textContent = '';
-      return;
-    }
-    var list = result.data.recipients || [];
-    countEl.textContent = '(' + (result.data.count || list.length) + ')';
-    if (!list.length) {
-      el.innerHTML = '<span style="color:var(--muted);font-size:.9rem;">No recipients.</span>';
-      return;
-    }
-    var html = '<ul class="recip-list">';
-    list.forEach(function (r) {
-      var ch = r.channel
-        ? '<span class="recip-ch">' + esc(r.channel) + '</span>'
-        : '';
-      html += '<li>' + ch + esc(r.name || '(unnamed)') +
-        (r.phone ? ' <span style="color:var(--muted);font-size:.8rem;">' + esc(r.phone) + '</span>' : '') +
-        '</li>';
-    });
-    html += '</ul>';
-    el.innerHTML = html;
-  }
-
-  /* ---- load all sections ---- */
-  function loadAll() {
-    var token = getToken();
-    if (!token) { showUnlock(); return; }
-
-    /* health is unauthenticated */
-    apiFetch('/health', false).then(renderHealth);
-
-    /* stats — also drives the twilio banner */
-    apiFetch('/stats', false).then(function (r) {
-      if (handle401(r)) return;
-      renderTwilioBanner(r);
-      renderStats(r);
-    });
-
-    /* text/plain endpoints */
-    apiFetch('/queue', true).then(renderQueue);
-    apiFetch('/pipeline', true).then(renderPipeline);
-    apiFetch('/digest', true).then(renderDigest);
-
-    /* JSON endpoints */
-    apiFetch('/leads', false).then(renderLeads);
-    apiFetch('/recipients', false).then(renderRecipients);
-
-    /* timestamp */
-    var ts = document.getElementById('last-updated');
-    ts.textContent = 'Updated ' + new Date().toLocaleTimeString();
-  }
-
-  /* ---- auto-refresh ---- */
-  function startRefresh() {
-    stopRefresh();
-    _refreshTimer = setInterval(loadAll, REFRESH_MS);
-  }
-  function stopRefresh() {
-    if (_refreshTimer !== null) {
-      clearInterval(_refreshTimer);
-      _refreshTimer = null;
-    }
-  }
-
-  /* ---- export (fetch+blob, Bearer header required) ---- */
-  function doExport() {
-    var btn = document.getElementById('export-btn');
-    var status = document.getElementById('export-status');
-    btn.disabled = true;
-    status.textContent = 'Downloading…';
-    fetch(API + '/export', { headers: authHeaders() })
-      .then(function (res) {
-        if (res.status === 401) {
-          clearToken();
-          stopRefresh();
-          showUnlock('Session expired. Please unlock again.');
-          return null;
-        }
-        if (!res.ok) {
-          status.textContent = 'Error ' + res.status;
-          btn.disabled = false;
-          return null;
-        }
-        return res.blob();
-      })
-      .then(function (blob) {
-        if (!blob) return;
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'omniverse-export-' + new Date().toISOString().slice(0, 10) + '.json';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        status.textContent = 'Downloaded.';
-        btn.disabled = false;
-      })
-      .catch(function () {
-        status.textContent = 'Network error.';
-        btn.disabled = false;
-      });
-  }
-
-  /* ---- XSS escape ---- */
-  /* Escapes &<>"'/ — covers text AND single/double-quoted attribute contexts,
-   * so future markup that drops a value into an attribute stays safe even though
-   * today's sinks are all text-node context. API content (lead/recipient names)
-   * is attacker-influenceable via the public forms, so this runs on all of it. */
+  /* ---- HTML escape ---- */
   function esc(str) {
-    return String(str)
+    return String(str == null ? '' : str)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -329,57 +85,633 @@
       .replace(/\//g, '&#47;');
   }
 
+  function money(n) {
+    return '$' + Math.round(n).toLocaleString('en-US');
+  }
+
+  function toast(msg, isErr) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isErr ? ' err' : '');
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3500);
+  }
+
+  /* ---- tabs ---- */
+  const loaders = {
+    overview: loadOverview,
+    pipeline: loadPipeline,
+    leads: loadLeads,
+    access: loadAccess,
+    savings: loadPricing,
+    digest: loadDigest
+  };
+
+  document.getElementById('nav').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    document.querySelectorAll('nav button').forEach((x) => x.classList.toggle('on', x === b));
+    document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === 'v-' + b.dataset.v));
+    loaders[b.dataset.v]();
+  });
+
+  /* ---- Overview ---- */
+  async function loadOverview() {
+    try {
+      const h = await api('/health');
+      document.getElementById('health').innerHTML = h.status === 'ok'
+        ? '<span class=up>● UP</span> — bot online (' + (h.channels || []).map(esc).join(', ') + ')'
+        : '<span class=down>● issue</span>';
+    } catch (e) { document.getElementById('health').innerHTML = '<span class=down>● UNREACHABLE</span>'; }
+    try {
+      const sj = await api('/stats');
+      const s = sj.counts || {};
+      const m = [['leads','Leads'],['onboarding','Onboarding'],['tickets','Tickets'],['calls','Calls']];
+      document.getElementById('stats').innerHTML = m.map(([k,l]) => '<div class=stat><div class=n>' + (s[k] || 0) + '</div><div class=l>' + l + '</div></div>').join('');
+      const tw = sj.twilio || {}, bar = document.getElementById('alertbar');
+      if (tw.ok === false) { bar.style.display = 'block'; bar.textContent = '⚠ Twilio credentials rejected (error ' + esc(String(tw.code || '')) + ') — SMS offline.'; }
+      else if (tw.ok === null && tw.code === 'no_credentials') { bar.style.display = 'block'; bar.textContent = '⚠ Twilio credentials not configured.'; }
+      else { bar.style.display = 'none'; }
+    } catch (e) {}
+    try { document.getElementById('queue').textContent = await api('/queue'); } catch (e) {}
+    
+    // Render pipeline distribution chart
+    try {
+      const pj = await api('/api/pipeline');
+      const items = pj.items || [];
+      const counts = { applied: 0, in_review: 0, approved: 0, hardware_sent: 0, active: 0, rejected: 0 };
+      items.forEach(item => {
+        if (counts[item.stage] !== undefined) counts[item.stage]++;
+      });
+      document.getElementById('pipeline-chart').innerHTML = renderSVGChart(counts);
+    } catch (err) {
+      document.getElementById('pipeline-chart').innerHTML = '<div class=empty>Failed to render chart: ' + esc(err.message) + '</div>';
+    }
+  }
+
+  function renderSVGChart(counts) {
+    const stages = ['applied', 'in_review', 'approved', 'hardware_sent', 'active', 'rejected'];
+    const labels = ['Applied', 'In Review', 'Approved', 'Hardware Sent', 'Active', 'Rejected'];
+    const colors = ['#F7792C', '#D4AF37', '#34d399', '#7db3f5', '#10b981', '#f87171'];
+    
+    const maxCount = Math.max(...stages.map(s => counts[s] || 0), 1);
+    
+    let svg = '<svg viewBox="0 0 600 220" width="100%" height="100%" style="font-family: inherit;">';
+    
+    // Grid lines
+    for (let i = 0; i <= 4; i++) {
+      const y = 20 + i * 40;
+      const val = Math.round(maxCount - (i * maxCount / 4));
+      svg += '<line x1="50" y1="' + y + '" x2="570" y2="' + y + '" stroke="var(--card-edge)" stroke-dasharray="4" />';
+      svg += '<text x="15" y="' + (y + 4) + '" font-size="10" fill="var(--muted)" font-weight="700">' + val + '</text>';
+    }
+    
+    // Draw bars
+    stages.forEach((stage, idx) => {
+      const count = counts[stage] || 0;
+      const barHeight = (count / maxCount) * 160;
+      const x = 70 + idx * 85;
+      const y = 180 - barHeight;
+      const color = colors[idx];
+      
+      // Bar background (shadow)
+      svg += '<rect x="' + x + '" y="20" width="40" height="160" fill="rgba(255,255,255,0.02)" rx="4" />';
+      
+      // Real bar
+      svg += '<rect x="' + x + '" y="' + y + '" width="40" height="' + barHeight + '" fill="' + color + '" rx="4" style="transition: height 0.5s ease, y 0.5s ease;">' +
+                '<title>' + labels[idx] + ': ' + count + '</title>' +
+              '</rect>';
+              
+      // Value label on top of bar
+      if (count > 0) {
+        svg += '<text x="' + (x + 20) + '" y="' + (y - 6) + '" font-size="11" font-weight="bold" fill="var(--text)" text-anchor="middle">' + count + '</text>';
+      }
+      
+      // X Axis Label
+      svg += '<text x="' + (x + 20) + '" y="198" font-size="10" font-weight="bold" fill="var(--muted)" text-anchor="middle">' + labels[idx] + '</text>';
+    });
+    
+    // Axis line
+    svg += '<line x1="50" y1="180" x2="570" y2="180" stroke="var(--card-edge)" stroke-width="2" />';
+    
+    svg += '</svg>';
+    return svg;
+  }
+
+  /* ---- Pipeline ---- */
+  const NEXT_LABEL = { applied: 'Approve', in_review: 'Approve', approved: 'Advance → hardware', hardware_sent: 'Advance → active' };
+  function pipeItem(o, closed) {
+    const itemId = 'pi-' + esc(o.shortId);
+    let detail = [o.business, o.phone, o.source ? 'via ' + o.source : ''].filter(Boolean).join(' · ');
+    let html = '<div class="disc-item" id="' + itemId + '">' +
+      '<div class="disc-summary">' +
+      '<span class="chev">▶</span>' +
+      '<span class="t">' + esc(o.name) +
+        '<span class="badge b-' + esc(o.stage) + '">' + esc(o.stage.replace('_', ' ')) + '</span>' +
+      '</span>' +
+      '<span class="m">' + esc(o.shortId) + (detail ? ' · ' + esc(detail) : '') + '</span>' +
+      '</div>' +
+      '<div class="disc-body">';
+    html += '<div class="m" style="margin-bottom:8px">' +
+      'id ' + esc(o.shortId) +
+      (o.business ? ' · ' + esc(o.business) : '') +
+      (o.phone ? ' · ' + esc(o.phone) : '') +
+      (o.source ? ' · via ' + esc(o.source) : '') +
+      '</div>';
+      
+    // Render History Audit Logs
+    if (o.history && o.history.length) {
+      html += '<div style="margin-top: 12px; border-top: 1px dashed var(--card-edge); padding-top: 8px; margin-bottom: 12px;">' +
+        '<span style="font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase;">Activity Log</span>' +
+        '<div style="font-size: 11.5px; color: var(--muted); margin-top: 4px; line-height: 1.5;">' +
+        o.history.map(function(h) {
+          const d = new Date(h.at);
+          const formattedDate = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+          return '<div style="margin-bottom: 3px;">• <strong>' + esc(formattedDate) + '</strong>: stage changed from <code>' + esc(h.from) + '</code> to <code>' + esc(h.stage) + '</code> by <em>' + esc(h.operator) + '</em></div>';
+        }).join('') +
+        '</div></div>';
+    }
+
+    html += '<div class="actions" style="margin-top:12px;">';
+    if (!closed) {
+      const goAction = (o.stage === 'applied' || o.stage === 'in_review') ? 'approve' : 'advance';
+      html += '<button class="btn btn-go" data-act="' + goAction + '" data-id="' + esc(o.shortId) + '" data-name="' + esc(o.name) + '">' + (NEXT_LABEL[o.stage] || 'Advance') + '</button>' +
+        '<button class="btn btn-no" data-act="reject" data-id="' + esc(o.shortId) + '" data-name="' + esc(o.name) + '">Reject</button>';
+    }
+    html += '<button class="btn btn-secondary btn-modal" data-modal-type="pipeline" data-modal-id="' + esc(o.shortId) + '" style="margin-left:8px; margin-top: 0; min-height: 34px; padding: 0 12px;">🔍 Details</button></div>';
+    return html + '</div></div>';
+  }
+
+  function renderPipelineList() {
+    const searchVal = document.getElementById('pipe-search').value.toLowerCase().trim();
+    const stageVal = document.getElementById('pipe-filter-stage').value;
+    
+    const filtered = cachePipeline.filter(o => {
+      const matchSearch = !searchVal || o.name.toLowerCase().includes(searchVal) || 
+                          (o.business && o.business.toLowerCase().includes(searchVal)) || 
+                          o.shortId.toLowerCase().includes(searchVal);
+      const matchStage = !stageVal || o.stage === stageVal;
+      return matchSearch && matchStage;
+    });
+
+    const open = filtered.filter((o) => o.stage !== 'active' && o.stage !== 'rejected');
+    const closed = filtered.filter((o) => o.stage === 'active' || o.stage === 'rejected');
+
+    document.getElementById('pipe').innerHTML = open.length 
+      ? open.map((o) => pipeItem(o, false)).join('') 
+      : '<div class=empty>No matching open applications.</div>';
+      
+    document.getElementById('pipe-closed').innerHTML = closed.length 
+      ? closed.slice(-10).reverse().map((o) => pipeItem(o, true)).join('') 
+      : '<div class=empty>No matching closed applications.</div>';
+  }
+
+  async function loadPipeline() {
+    try {
+      const pj = await api('/api/pipeline');
+      cachePipeline = pj.items || [];
+      renderPipelineList();
+    } catch (e) { document.getElementById('pipe').innerHTML = '<div class=empty>Failed to load: ' + esc(e.message) + '</div>'; }
+  }
+
+  /* ---- Leads ---- */
+  function renderLeadsList() {
+    const searchVal = document.getElementById('leads-search').value.toLowerCase().trim();
+    
+    const filtered = cacheLeads.filter(l => {
+      return !searchVal || 
+             (l.name && l.name.toLowerCase().includes(searchVal)) || 
+             (l.phone && l.phone.toLowerCase().includes(searchVal)) || 
+             (l.business && l.business.toLowerCase().includes(searchVal)) || 
+             (l.source && l.source.toLowerCase().includes(searchVal));
+    });
+
+    const ls = filtered.map((l) =>
+      '<div class="disc-item" id="lead-' + esc(l.id) + '">' +
+      '<div class="disc-summary"><span class="chev">▶</span><span class="t">' + esc(l.name || '(no name)') + '</span><span class="m">' + esc(l.phone || '') + '</span></div>' +
+      '<div class="disc-body">' +
+        '<p><strong>Business:</strong> ' + esc(l.business || 'N/A') + '</p>' +
+        '<p><strong>Notes:</strong> ' + esc(l.notes || 'N/A') + '</p>' +
+        '<p><strong>Source:</strong> ' + esc(l.source || 'website') + '</p>' +
+        '<p><strong>Date:</strong> ' + esc(l.createdAt || 'N/A') + '</p>' +
+        '<div class="actions"><button class="btn btn-no" data-erase="' + esc(l.id) + '" data-name="' + esc(l.name) + '">Erase Lead PII (M-7)</button>' +
+        '<button class="btn btn-secondary btn-modal" data-modal-type="lead" data-modal-id="' + esc(l.id) + '" style="margin-left:8px; margin-top: 0; min-height: 34px; padding: 0 12px;">🔍 Details</button></div>' +
+      '</div></div>'
+    );
+    document.getElementById('leadlist').innerHTML = cacheLeads.length 
+      ? (filtered.length + ' shown (' + cacheLeads.length + ' total) — latest:' + ls.join('')) 
+      : '<div class=empty>No leads yet.</div>';
+  }
+
+  async function loadLeads() {
+    try {
+      const lj = await api('/leads');
+      cacheLeads = lj.leads || [];
+      renderLeadsList();
+    } catch (e) { document.getElementById('leadlist').innerHTML = '<div class=empty>Failed to load: ' + esc(e.message) + '</div>'; }
+  }
+
+  /* ---- Access & Users ---- */
+  async function loadAccess() {
+    try {
+      const aj = await api('/api/access');
+      const inv = (aj.invites || []).slice().reverse().map((i) => {
+        const st = i.revoked ? 'revoked' : (i.redeemed ? 'redeemed' : 'open');
+        return '<div class="item"><div class="t">' + esc(i.code) +
+          '<span class="badge b-' + st + '">' + st + '</span></div>' +
+          '<div class="m">' + [i.note, i.createdAt ? i.createdAt.slice(0, 10) : ''].filter(Boolean).map(esc).join(' · ') + '</div>' +
+          (st === 'open' ? '<div class="actions" style="margin-top:4px"><button class="btn btn-no" data-revoke="' + esc(i.code) + '">Revoke</button></div>' : '') +
+          '</div>';
+      });
+      document.getElementById('invites').innerHTML = inv.length ? inv.join('') : '<div class=empty>No invites minted yet.</div>';
+      
+      const us = (aj.users || []).map((u) =>
+        '<div class="item"><div class="t">…' + esc(u.phone) + '</div><div class="m">' +
+        ['joined ' + (u.joinedAt ? u.joinedAt.slice(0, 10) : '?'), u.invitedVia ? 'via ' + u.invitedVia : '']
+          .filter(Boolean).map(esc).join(' · ') + '</div></div>');
+      document.getElementById('users').innerHTML = us.length ? us.join('') : '<div class=empty>No registered users yet.</div>';
+    } catch (e) { document.getElementById('invites').innerHTML = '<div class=empty>Failed to load invites: ' + esc(e.message) + '</div>'; }
+
+    // Load console users if Admin
+    if (currentUserRole === 'Admin') {
+      document.getElementById('admin-user-mgmt').style.display = 'block';
+      try {
+        const uj = await api('/api/console_users');
+        const cul = (uj.users || []).map((u) =>
+          '<div class="item"><div class="t">' + esc(u.username) +
+          '<span class="badge b-approved">' + esc(u.role) + '</span></div>' +
+          '<div class="m">Created ' + esc(u.createdAt.slice(0, 10)) + '</div>' +
+          (u.username.toLowerCase() !== 'admin' ? '<div class="actions" style="margin-top:4px"><button class="btn btn-no" data-deluser="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">Delete</button></div>' : '') +
+          '</div>'
+        );
+        document.getElementById('console-users-list').innerHTML = cul.length ? cul.join('') : '<div class=empty>No custom accounts created yet.</div>';
+      } catch (e) { document.getElementById('console-users-list').innerHTML = '<div class=empty>Failed to load accounts.</div>'; }
+    } else {
+      document.getElementById('admin-user-mgmt').style.display = 'none';
+    }
+  }
+
+  /* ---- Savings ---- */
+  async function loadPricing() {
+    try {
+      const p = await api('/api/pricing');
+      const labels = {
+        defaultRatePct: 'Default total rate (%) — starting point',
+        servicerPct: 'Crypto servicer % per transaction (cost floor)',
+        servicerFixed: 'Crypto servicer fixed $ per transaction',
+        terminalCryptoOnly: 'Crypto-only terminal $ (incl. tax + shipping)',
+        terminalFull: 'Crypto + debit/credit/EBT terminal $ (incl. tax + shipping)',
+      };
+      document.getElementById('pr-fields').innerHTML = Object.keys(labels).map((k) =>
+        '<div style="margin-bottom:8px"><div class="m" style="margin-bottom:3px;font-size:12px;color:var(--muted)">' + labels[k] + '</div>' +
+        '<input type="text" inputmode="decimal" data-pr="' + k + '" value="' + esc(p[k]) + '"></div>').join('');
+      if (p.updatedAt) document.getElementById('pr-meta').textContent = 'Last adjusted ' + p.updatedAt.slice(0, 10);
+    } catch (e) { document.getElementById('pr-fields').innerHTML = '<div class=empty>Failed to load pricing.</div>'; }
+  }
+
+  /* ---- Digest ---- */
+  async function loadDigest() {
+    try { document.getElementById('digest').textContent = await api('/digest'); }
+    catch (e) { document.getElementById('digest').textContent = 'Failed to load digest.'; }
+  }
+
+  /* ---- Actions ---- */
+  document.getElementById('v-pipeline').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-act]'); if (!b) return;
+    const { act, id, name } = b.dataset;
+    if (!confirm(act.toUpperCase() + ' ' + name + ' (id ' + id + ')?')) return;
+    b.disabled = true;
+    try {
+      const r = await api('/api/pipeline/action', { method: 'POST', body: { id, action: act } });
+      toast(r.message || 'Done.');
+    } catch (err) { toast(err.message, true); }
+    loadPipeline();
+  });
+
+  document.getElementById('v-leads').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-erase]'); if (!b) return;
+    const { erase, name } = b.dataset;
+    if (!confirm('ERASE ALL PII for ' + name + '? This is irreversible.')) return;
+    b.disabled = true;
+    try {
+      const r = await api('/api/leads/' + erase + '/erasure', { method: 'POST' });
+      toast('Lead erased. Receipt: ' + r.receipt);
+    } catch (err) { toast(err.message, true); }
+    loadLeads();
+  });
+
+  document.getElementById('v-access').addEventListener('click', async (e) => {
+    // Revoke Invite
+    const revokeBtn = e.target.closest('button[data-revoke]');
+    if (revokeBtn) {
+      const code = revokeBtn.dataset.revoke;
+      if (!confirm('Revoke invite ' + code + '?')) return;
+      revokeBtn.disabled = true;
+      try {
+        await api('/api/invites/revoke', { method: 'POST', body: { code } });
+        toast('Invite ' + code + ' revoked.');
+      } catch (err) { toast(err.message, true); }
+      loadAccess();
+      return;
+    }
+
+    // Delete Console User
+    const delBtn = e.target.closest('button[data-deluser]');
+    if (delBtn) {
+      const { deluser, uname } = delBtn.dataset;
+      if (!confirm('Delete console account for ' + uname + '?')) return;
+      delBtn.disabled = true;
+      try {
+        await api('/api/console_users/delete', { method: 'POST', body: { id: deluser } });
+        toast('Account deleted.');
+      } catch (err) { toast(err.message, true); }
+      loadAccess();
+      return;
+    }
+  });
+
+  document.getElementById('invite-mint').addEventListener('click', async () => {
+    const note = document.getElementById('invite-note').value.trim();
+    document.getElementById('invite-mint').disabled = true;
+    try {
+      const r = await api('/api/invites', { method: 'POST', body: { note } });
+      toast('Invite ' + r.code + ' minted.');
+      document.getElementById('invite-note').value = '';
+    } catch (err) { toast(err.message, true); }
+    document.getElementById('invite-mint').disabled = false;
+    loadAccess();
+  });
+
+  document.getElementById('console-user-create').addEventListener('click', async () => {
+    const username = document.getElementById('console-username').value.trim();
+    const password = document.getElementById('console-password').value.trim();
+    const role = document.getElementById('console-role').value;
+    if (!username || !password) { toast('Username and password required.', true); return; }
+
+    document.getElementById('console-user-create').disabled = true;
+    try {
+      await api('/api/console_users', { method: 'POST', body: { username, password, role } });
+      toast('User account ' + username + ' created.');
+      document.getElementById('console-username').value = '';
+      document.getElementById('console-password').value = '';
+    } catch (err) { toast(err.message, true); }
+    document.getElementById('console-user-create').disabled = false;
+    loadAccess();
+  });
+
+  document.getElementById('sv-calc').addEventListener('click', async () => {
+    const out = document.getElementById('sv-result');
+    const numVal = (id) => document.getElementById(id).value.replace(/[$,%]/g, '').trim();
+    const q = '/api/savings?volume=' + encodeURIComponent(numVal('sv-volume')) +
+      '&fees=' + encodeURIComponent(numVal('sv-fees')) +
+      '&rate=' + encodeURIComponent(numVal('sv-rate')) +
+      '&avgSale=' + encodeURIComponent(numVal('sv-avgsale')) +
+      '&terminal=' + encodeURIComponent(document.getElementById('sv-terminal').value);
+    try {
+      const r = await api(q);
+      let html = '<div class="grid">' +
+        '<div class=stat><div class=n>' + esc(r.ratePct) + '%</div><div class=l>Effective rate</div></div>' +
+        '<div class=stat><div class=n>' + money(r.monthlySavings) + '</div><div class=l>Saved / mo</div></div>' +
+        '<div class=stat><div class=n>' + money(r.annualSavings) + '</div><div class=l>Saved / yr</div></div>' +
+        (r.terminalCost ? '<div class=stat><div class=n>' + money(r.terminalCost) + '</div><div class=l>Terminal cost</div></div>' : '') +
+        '</div>';
+      out.innerHTML = html;
+    } catch (err) { out.innerHTML = '<div class=empty>' + esc(err.message) + '</div>'; }
+  });
+
+  document.getElementById('pr-save').addEventListener('click', async () => {
+    const body = {};
+    document.querySelectorAll('[data-pr]').forEach((i) => { body[i.dataset.pr] = i.value.replace(/[$,%]/g, '').trim(); });
+    document.getElementById('pr-save').disabled = true;
+    try {
+      await api('/api/pricing', { method: 'POST', body });
+      toast('Pricing saved.');
+    } catch (err) { toast(err.message, true); }
+    document.getElementById('pr-save').disabled = false;
+    loadPricing();
+  });
+
+  /* ---- login flow ---- */
+  document.getElementById('unlock-btn').addEventListener('click', async function () {
+    var user = document.getElementById('username-input').value.trim();
+    var pass = document.getElementById('token-input').value.trim();
+    if (!pass) { toast('Please enter password or token.', true); return; }
+
+    var btn = document.getElementById('unlock-btn');
+    btn.disabled = true;
+    btn.textContent = 'Logging in…';
+
+    try {
+      const res = await fetch(API + '/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user || 'admin', password: pass })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Login failed.');
+
+      setToken(data.token);
+      sessionStorage.setItem('omni_dash_role', data.role);
+      sessionStorage.setItem('omni_dash_username', data.username);
+      currentUserRole = data.role;
+
+      document.getElementById('token-input').value = '';
+      document.getElementById('username-input').value = '';
+
+      showDash();
+      loadOverview();
+      startRefresh();
+      toast('Welcome back, ' + data.username);
+    } catch (err) {
+      toast(err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Log In';
+    }
+  });
+
+  /* ---- auto-refresh & lock ---- */
+  function startRefresh() {
+    stopRefresh();
+    _refreshTimer = setInterval(loadOverview, REFRESH_MS);
+  }
+  function stopRefresh() {
+    if (_refreshTimer !== null) { clearInterval(_refreshTimer); _refreshTimer = null; }
+  }
+
+  // Inactivity tracking (15 minutes)
+  var INACTIVITY_TIMEOUT = 15 * 60 * 1000;
+  var _inactivityTimer = null;
+
+  function resetInactivityTimer() {
+    if (getToken()) {
+      clearTimeout(_inactivityTimer);
+      _inactivityTimer = setTimeout(autoLock, INACTIVITY_TIMEOUT);
+    }
+  }
+
+  async function autoLock() {
+    toast('Logged out due to inactivity.', true);
+    await performLogout();
+  }
+
+  async function performLogout() {
+    const token = getToken();
+    if (token) {
+      try {
+        await fetch(API + '/api/logout', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'X-OV-Console': '1'
+          }
+        });
+      } catch (err) {
+        console.warn('Network logout failed:', err);
+      }
+    }
+    clearToken();
+    showUnlock('You have been logged out.');
+  }
+
+  document.getElementById('lock-btn').addEventListener('click', async function () {
+    await performLogout();
+  });
+
+  // Track activity to reset timer
+  ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach(name => {
+    document.addEventListener(name, resetInactivityTimer, true);
+  });
+
+  /* ---- Theme Management ---- */
+  function getTheme() {
+    return localStorage.getItem('omni_theme') || 'dark';
+  }
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('omni_theme', theme);
+    const themeBtn = document.getElementById('theme-btn');
+    if (themeBtn) {
+      themeBtn.textContent = theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
+    }
+  }
+
+  document.getElementById('theme-btn').addEventListener('click', function () {
+    const current = getTheme();
+    applyTheme(current === 'light' ? 'dark' : 'light');
+  });
+
+  document.getElementById('refresh-btn').addEventListener('click', function () {
+    const activeBtn = document.querySelector('nav button.on');
+    if (activeBtn && loaders[activeBtn.dataset.v]) {
+      loaders[activeBtn.dataset.v]();
+    }
+  });
+
+  /* ---- Search & Filter input bindings ---- */
+  document.getElementById('pipe-search').addEventListener('input', renderPipelineList);
+  document.getElementById('pipe-filter-stage').addEventListener('change', renderPipelineList);
+  document.getElementById('leads-search').addEventListener('input', renderLeadsList);
+
+  /* ---- CSV & JSON Exports ---- */
+  document.getElementById('export-json-btn').addEventListener('click', function() {
+    window.open(API + '/export?token=' + getToken(), '_blank');
+  });
+  document.getElementById('export-leads-btn').addEventListener('click', function() {
+    window.open(API + '/api/export/leads?token=' + getToken(), '_blank');
+  });
+  document.getElementById('export-pipe-btn').addEventListener('click', function() {
+    window.open(API + '/api/export/pipeline?token=' + getToken(), '_blank');
+  });
+
+  /* ---- Modal overlay triggers ---- */
+  const modal = document.getElementById('details-modal');
+  const modalTitle = document.getElementById('modal-title');
+  const modalBody = document.getElementById('modal-body');
+  
+  document.getElementById('modal-close-btn').addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.style.display = 'none';
+  });
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-modal');
+    if (!btn) return;
+    const type = btn.dataset.modalType;
+    const id = btn.dataset.modalId;
+    
+    if (type === 'pipeline') {
+      const item = cachePipeline.find(o => o.shortId === id);
+      if (item) {
+        modalTitle.innerHTML = esc(item.name) + ' <span class="badge b-' + esc(item.stage) + '">' + esc(item.stage.replace('_', ' ')) + '</span>';
+        let bodyHtml = '<p><strong>Application ID:</strong> <code>' + esc(item.id) + '</code> (short: <code>' + esc(item.shortId) + '</code>)</p>' +
+          '<p><strong>Business Type:</strong> ' + esc(item.business || 'N/A') + '</p>' +
+          '<p><strong>Phone:</strong> ' + esc(item.phone || 'N/A') + '</p>' +
+          '<p><strong>Source:</strong> ' + esc(item.source || 'N/A') + '</p>' +
+          '<p><strong>Created:</strong> ' + esc(item.createdAt || 'N/A') + '</p>' +
+          '<p><strong>Last Updated:</strong> ' + esc(item.updatedAt || 'N/A') + '</p>';
+          
+        if (item.history && item.history.length) {
+          bodyHtml += '<div style="margin-top: 16px; border-top: 1px dashed var(--card-edge); padding-top: 12px;">' +
+            '<h3 style="font-size:12.5px; text-transform:uppercase; color:var(--accent); margin:0 0 8px 0;">Pipeline Progression Log</h3>' +
+            '<div style="font-size:12px; color:var(--muted); line-height:1.5;">' +
+            item.history.map(function(h) {
+              return '<div style="margin-bottom:6px;">• <strong>' + esc(new Date(h.at).toLocaleString()) + '</strong>: ' +
+                'stage <code>' + esc(h.from) + '</code> ➡️ <code>' + esc(h.stage) + '</code> ' +
+                'by operator <em>' + esc(h.operator) + '</em></div>';
+            }).join('') +
+            '</div></div>';
+        }
+        modalBody.innerHTML = bodyHtml;
+        modal.style.display = 'flex';
+      }
+    } else if (type === 'lead') {
+      const item = cacheLeads.find(l => l.id === id);
+      if (item) {
+        modalTitle.textContent = esc(item.name || 'Lead Details');
+        let bodyHtml = '<p><strong>Lead ID:</strong> <code>' + esc(item.id) + '</code></p>' +
+          '<p><strong>Phone:</strong> ' + esc(item.phone || 'N/A') + '</p>' +
+          '<p><strong>Business:</strong> ' + esc(item.business || 'N/A') + '</p>' +
+          '<p><strong>Consent Given:</strong> ' + (item.consent ? '<span class="up">Yes</span>' : '<span class="down">No</span>') + '</p>' +
+          '<p><strong>Channel/Via:</strong> ' + esc(item.via || 'N/A') + '</p>' +
+          '<p><strong>Source Form:</strong> ' + esc(item.source || 'N/A') + '</p>' +
+          '<p><strong>Submitted:</strong> ' + esc(item.createdAt || 'N/A') + '</p>' +
+          '<p style="margin-bottom: 4px;"><strong>Notes:</strong></p><pre style="font-size:12px; max-height:150px; overflow-y:auto;">' + esc(item.notes || 'None') + '</pre>';
+        modalBody.innerHTML = bodyHtml;
+        modal.style.display = 'flex';
+      }
+    }
+  });
+
+  /* ---- click disclosure items ---- */
+  document.addEventListener('click', (e) => {
+    // Prevent expanding details when clicking actions inside them
+    if (e.target.closest('.actions')) return;
+    const summary = e.target.closest('.disc-summary');
+    if (!summary) return;
+    const item = summary.closest('.disc-item');
+    if (item) item.classList.toggle('open');
+  });
+
   /* ---- init ---- */
   function init() {
-    /* unlock flow */
-    document.getElementById('unlock-btn').addEventListener('click', function () {
-      var val = document.getElementById('token-input').value.trim();
-      if (!val) {
-        document.getElementById('unlock-err').textContent = 'Please enter a token.';
-        document.getElementById('unlock-err').style.display = '';
-        return;
-      }
-      setToken(val);
-      document.getElementById('token-input').value = '';
-      showDash();
-      loadAll();
-      startRefresh();
-    });
+    // Apply initial theme
+    applyTheme(getTheme());
 
-    /* allow Enter key in token input */
-    document.getElementById('token-input').addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') {
-        document.getElementById('unlock-btn').click();
-      }
-    });
-
-    /* lock / logout */
-    document.getElementById('lock-btn').addEventListener('click', function () {
-      clearToken();
-      showUnlock();
-    });
-
-    /* manual refresh */
-    document.getElementById('refresh-btn').addEventListener('click', function () {
-      loadAll();
-    });
-
-    /* export */
-    document.getElementById('export-btn').addEventListener('click', doExport);
-
-    /* check for existing session token on load */
+    // Check if token exists in session
     if (getToken()) {
+      currentUserRole = sessionStorage.getItem('omni_dash_role') || 'Employee';
       showDash();
-      loadAll();
+      loadOverview();
       startRefresh();
+      resetInactivityTimer();
     } else {
       showUnlock();
     }
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  init();
+
 }());

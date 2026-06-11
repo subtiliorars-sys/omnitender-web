@@ -100,11 +100,11 @@
   </main>
 
   <footer>
-    <nav aria-label="Site">
-      <a href="index.html">Text alerts sign-up</a> ·
+    <nav aria-label="Legal">
       <a href="privacy.html">Privacy Policy</a> ·
       <a href="terms.html">Terms &amp; Conditions</a> ·
-      <a href="dashboard.html" style="color: var(--muted); font-weight: 500;">Console Login</a>
+      <a href="pos.html">POS Terminal</a> ·
+      <a href="dashboard.html">CRM Dashboard</a>
     </nav>
     &copy; 2026 OmniTender. All rights reserved.
   </footer>
@@ -180,5 +180,28 @@
       });
     })();
   </script>
+
+  <!-- Steady Ground Crisis Exit -->
+  <button id="steady-ground-btn" type="button" aria-label="Get crisis help now" style="position: fixed; bottom: 16px; right: 16px; z-index: 99998; border-radius: 9999px; padding: 8px 12px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; background: #111; border: 1px solid #dc2626; color: #fecaca; box-shadow: 0 4px 10px rgba(0,0,0,0.5);"
+    onclick="document.getElementById('steady-ground-modal').classList.remove('hidden')">
+    <span>🫂</span> Steady Ground
+  </button>
+  <div id="steady-ground-modal" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 99999;"
+    onclick="if(event.target===this)this.classList.add('hidden')">
+    <div style="width: 100%; max-width: 380px; background: #111; border: 1px solid #242424; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: #ececec;">
+      <h2 style="font-size: 18px; font-weight: 800; margin: 0 0 8px; color: #fff;">You don't have to hold this alone.</h2>
+      <p style="font-size: 13px; color: #9a9a9a; margin: 0 0 16px; line-height: 1.5;">If you're in pain or thinking about hurting yourself, reach a real person right now — any hour. These work offline and independently.</p>
+      <div class="space-y-2">
+        <a href="tel:988"><b>Call or text 988</b> — Suicide &amp; Crisis Lifeline (US)</a>
+        <a href="sms:741741?&body=HOME"><b>Text HOME to 741741</b> — Crisis Text Line (US)</a>
+        <a href="https://findahelpline.com" target="_blank" rel="noopener"><b>findahelpline.com</b> — find a helpline anywhere</a>
+        <a href="tel:911"><b>Call 911</b> — immediate danger (US)</a>
+      </div>
+      <button type="button" onclick="document.getElementById('steady-ground-modal').classList.add('hidden')"
+        style="width: 100%; margin-top: 16px; background: none; border: none; color: #9a9a9a; cursor: pointer; font-size: 13px; font-weight: 600; padding: 8px 0;">Close</button>
+    </div>
+  </div>
+
+  <script src="feedback.js"></script>
 </body>
 </html>

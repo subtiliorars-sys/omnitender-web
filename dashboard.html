@@ -3,273 +3,641 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OmniTender — Admin Dashboard</title>
+  <title>OmniTender — CRM Dashboard</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* ---- dashboard-specific (additive only) ---- */
-    .dash-main { max-width: var(--dash-maxw); margin: 0 auto; padding: var(--space-lg) 16px 60px; }
+    :root {
+      --radius-card: 16px;
+      --radius-sm: 8px;
+      --bg: #070707;
+      --accent: #F7792C;
+      --accent-dim: #d55e1b;
+      --card: #111111;
+      --card-edge: #242424;
+      --inset: #0d0d0d;
+      --text: #ececec;
+      --muted: #9a9a9a;
+      --faint: #5a5a5a;
+      --up: #34d399;
+      --down: #f87171;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
 
-    /* unlock card */
-    #unlock-view .card { max-width: 420px; margin: 0 auto; }
-    #unlock-view .card p { color: var(--muted); font-size: .93rem; margin-top: var(--space-xs); }
-    #unlock-view input[type=password] {
-      width: 100%; padding: 12px; font-size: 1rem;
-      border: 1px solid #3a3a3a; border-radius: var(--radius-sm); margin-top: 6px;
-      background: var(--surface-2); color: var(--ink);
+    html[data-theme="light"] {
+      --bg: #FAFAFA;
+      --card: #FFFFFF;
+      --card-edge: #E0E0E0;
+      --inset: #F3F3F3;
+      --text: #1A1A1A;
+      --muted: #555555;
+      --faint: #888888;
     }
-    .error-note {
-      color: var(--danger); background: #2a1414; border: 1px solid #7d2f2f;
-      border-radius: var(--radius-sm); padding: 10px 14px; font-size: .9rem; margin-top: 12px;
+    html[data-theme="light"] .sidebar,
+    html[data-theme="light"] header {
+      background: #F0F0F0 !important;
+      color: #1A1A1A !important;
+      border-right-color: var(--card-edge) !important;
+    }
+    html[data-theme="light"] header .brand {
+      color: #1A1A1A !important;
+    }
+    html[data-theme="light"] nav button {
+      color: var(--muted);
+    }
+    html[data-theme="light"] nav button:not(.on):hover {
+      color: var(--accent);
+      background: rgba(0, 0, 0, 0.05);
+      border-color: var(--card-edge);
+    }
+    html[data-theme="light"] nav button.on {
+      color: #FFF;
+      background: var(--accent);
+    }
+    html[data-theme="light"] pre {
+      background: #EAEAEA;
+      color: #222;
+      border-color: var(--card-edge);
+    }
+    html[data-theme="light"] .stat {
+      background: #FFF;
+    }
+    html[data-theme="light"] .item,
+    html[data-theme="light"] .disc-item {
+      background: #FFFFFF;
+      border-color: var(--card-edge);
+    }
+    html[data-theme="light"] .disc-summary:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+    html[data-theme="light"] .disc-body {
+      background: #FAFAFA;
+    }
+    html[data-theme="light"] input[type=text],
+    html[data-theme="light"] input[type=password],
+    html[data-theme="light"] select {
+      background: #FAFAFA;
+      color: #1A1A1A;
+      border-color: var(--card-edge);
     }
 
-    /* toolbar */
-    .dash-toolbar {
-      display: flex; flex-wrap: wrap; align-items: center;
-      gap: var(--space-sm); margin-bottom: var(--space-lg);
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: background 0.3s ease, color 0.3s ease;
     }
-    .dash-toolbar h2 { margin: 0; color: var(--brand); flex: 1 0 auto; }
-    .dash-toolbar .ts { font-size: .82rem; color: var(--muted); }
 
-    /* alert banner */
-    .alert-banner {
-      background: #2a1414; border: 1px solid #7d2f2f; border-radius: var(--radius);
-      padding: 14px 18px; margin-bottom: var(--space-md); color: #ffb3b3;
-      font-weight: 600; font-size: .95rem;
+    /* ---- layout structure ---- */
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
-    .alert-banner.hidden { display: none; }
 
-    /* key metrics row — 4 standout numbers */
-    .metrics-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: var(--space-md);
-      margin-bottom: var(--space-lg);
+    /* sidebar style on desktop */
+    .sidebar {
+      background: #000;
+      border-bottom: 2px solid var(--accent);
+      z-index: 10;
     }
-    .metric-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: var(--space-lg) var(--space-md);
-      text-align: center;
-    }
-    .metric-card .metric-value { font-size: 2.2rem; }
 
-    /* exception queue — prominent */
-    .queue-card {
-      background: var(--surface);
-      border: 1px solid #d4a017;
-      border-radius: var(--radius);
-      padding: var(--space-lg);
-      margin-bottom: var(--space-lg);
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
-    .queue-card .sec-label { color: #d4a017; }
-    .queue-pre {
-      background: #1a1a0a;
-      border: 1px solid #3a3a15;
+
+    /* header override */
+    header {
+      background: #000;
+      border-bottom: none;
+      box-shadow: none;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header .brand-wrapper {
+      text-align: left;
+    }
+    header .brand {
+      font-size: 1.8rem;
+      font-weight: 800;
+      text-decoration: none;
+      color: #fff;
+    }
+    header .brand span {
+      color: var(--accent);
+    }
+    header .tagline {
+      margin: 0;
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+    }
+
+    /* navigation tab bar */
+    nav {
+      display: flex;
+      gap: 4px;
+      padding: 8px 16px;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--card-edge);
+      background: #080808;
+    }
+    nav button {
+      appearance: none;
+      border: 1px solid transparent;
+      background: none;
+      color: var(--muted);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 16px;
       border-radius: var(--radius-sm);
-      padding: 14px 16px; font-size: .85rem; font-family: monospace;
-      white-space: pre-wrap; word-break: break-word;
-      max-height: 320px; overflow-y: auto; margin: var(--space-md) 0 0;
-      color: var(--ink);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    nav button.on {
+      color: #000;
+      background: var(--accent);
+    }
+    nav button:not(.on):hover {
+      color: var(--accent);
+      border-color: var(--card-edge);
+      background: rgba(255, 255, 255, 0.02);
     }
 
-    /* expandable details sections */
-    .details-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: var(--space-md);
+    .wrap {
+      padding: 24px 16px;
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+      flex: 1;
     }
-    .detail-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: var(--space-md) var(--space-lg);
+
+    @media (min-width: 768px) {
+      .app-container {
+        flex-direction: row;
+      }
+      .sidebar {
+        width: 260px;
+        min-height: 100vh;
+        border-bottom: none;
+        border-right: 1px solid var(--card-edge);
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .main-content {
+        margin-left: 260px;
+      }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 32px 24px 16px;
+        gap: 12px;
+      }
+      nav {
+        flex-direction: column;
+        border-bottom: none;
+        background: transparent;
+        padding: 16px 16px;
+        gap: 8px;
+        overflow-y: auto;
+        flex: 1;
+      }
+      nav button {
+        width: 100%;
+        text-align: left;
+        font-size: 14px;
+        padding: 12px 18px;
+      }
+      .sidebar-footer {
+        padding: 20px 24px;
+        border-top: 1px solid var(--card-edge);
+      }
+      .wrap {
+        padding: 40px 32px;
+      }
     }
-    .detail-card .sec-label { margin-bottom: var(--space-sm); }
-    .detail-card.full-col { grid-column: 1 / -1; }
-    .detail-card .dash-pre {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
+
+    /* ---- views and cards ---- */
+    .view { display: none; }
+    .view.on { display: block; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--card-edge);
+      border-radius: var(--radius-card);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+    .card h2 {
+      margin: 0 0 16px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      border-left: 3px solid var(--accent);
+      padding-left: 10px;
+    }
+
+    .alertbar {
+      background: #7f1d1d;
+      color: #fff;
+      padding: 14px 24px;
+      font-weight: 700;
+      font-size: 14px;
+      border-bottom: 1px solid #991b1b;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.6;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      background: var(--inset);
+      padding: 16px;
       border-radius: var(--radius-sm);
-      padding: 12px 14px; font-size: .85rem; font-family: monospace;
-      white-space: pre-wrap; word-break: break-word;
-      max-height: 260px; overflow-y: auto; margin: var(--space-sm) 0 0;
-    }
-    .detail-card .inline-err { font-size: .85rem; color: var(--danger); }
-
-    /* leads list */
-    .leads-list { list-style: none; margin: 0; padding: 0; }
-    .leads-list li {
-      padding: 8px 0; border-bottom: 1px solid var(--border);
-      font-size: .9rem; color: var(--ink);
-    }
-    .leads-list li:last-child { border-bottom: 0; }
-    .leads-list .src {
-      font-size: .78rem; color: var(--muted); margin-left: 6px;
+      border: 1px solid var(--card-edge);
+      color: #dcdcdc;
     }
 
-    /* recipients list */
-    .recip-list { list-style: none; margin: 0; padding: 0; }
-    .recip-list li {
-      padding: 6px 0; border-bottom: 1px solid var(--border);
-      font-size: .88rem;
+    /* stats grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+    .stat { background: var(--inset); border: 1px solid var(--card-edge); border-radius: 12px; padding: 18px 12px; text-align: center; }
+    .stat .n { font-size: 32px; font-weight: 800; color: var(--accent); line-height: 1.1; }
+    .stat .l { font-size: 11px; color: var(--muted); text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
+
+    /* lists and list items */
+    .item {
+      background: var(--inset);
+      border: 1px solid var(--card-edge);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 12px;
     }
-    .recip-list li:last-child { border-bottom: 0; }
-    .recip-ch {
-      display: inline-block; background: #2a2a2a; color: var(--brand);
-      border-radius: 4px; padding: 1px 7px; font-size: .75rem;
-      font-weight: 600; margin-right: 6px;
+    .item .t { font-weight: 700; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .item .m { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+    /* progressive disclosure */
+    .disc-item { background: var(--inset); border: 1px solid var(--card-edge); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+    .disc-summary { display: flex; align-items: center; gap: 10px; padding: 16px; cursor: pointer; user-select: none; transition: background 0.15s; }
+    .disc-summary:hover { background: rgba(255,255,255,0.02); }
+    .disc-summary .chev { color: var(--faint); font-size: 10px; transition: transform 0.2s; }
+    .disc-item.open .disc-summary .chev { transform: rotate(90deg); }
+    .disc-summary .t { font-weight: 700; font-size: 15px; flex: 1; min-width: 0; }
+    .disc-summary .m { font-size: 12px; color: var(--muted); }
+    .disc-body { display: none; padding: 16px; border-top: 1px solid var(--card-edge); background: rgba(0,0,0,0.15); }
+    .disc-item.open .disc-body { display: block; }
+    .disc-body p { margin: 6px 0; font-size: 13px; }
+
+    /* UI badges */
+    .badge { display: inline-block; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; border-radius: 6px; padding: 3px 8px; margin-left: 8px; vertical-align: middle; }
+    .b-applied { background: #3b2a17; color: var(--accent); }
+    .b-in_review { background: #3b2a17; color: var(--accent); }
+    .b-approved { background: #0f3325; color: var(--up); }
+    .b-hardware_sent { background: #16263b; color: #7db3f5; }
+    .b-active { background: #0f3325; color: var(--up); }
+    .b-rejected { background: #3b1414; color: var(--down); }
+    .b-open { background: #3b2a17; color: var(--accent); }
+    .b-redeemed { background: #0f3325; color: var(--up); }
+    .b-revoked { background: #3b1414; color: var(--down); }
+
+    /* forms and buttons */
+    .actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { appearance: none; font: inherit; font-size: 13px; font-weight: 800; border-radius: var(--radius-sm); padding: 9px 16px; cursor: pointer; border: 1px solid var(--card-edge); background: var(--card); color: var(--text); transition: all 0.15s; }
+    .btn:disabled { opacity: 0.45; cursor: default; }
+    .btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: rgba(255,255,255,0.01); }
+    .btn-go { background: var(--accent); border-color: var(--accent); color: #000; }
+    .btn-go:hover:not(:disabled) { background: var(--accent-dim); border-color: var(--accent-dim); color: #000; }
+    .btn-no { color: var(--down); border-color: #3b1414; }
+    .btn-no:hover:not(:disabled) { background: #3b1414; color: var(--down); border-color: var(--down); }
+
+    input[type=text], input[type=password], select {
+      font: inherit; font-size: 14px; background: var(--inset);
+      border: 1px solid var(--card-edge); border-radius: var(--radius-sm);
+      color: var(--text); padding: 10px 14px; width: 100%; transition: border-color 0.15s;
+    }
+    input[type=text]:focus, input[type=password]:focus, select:focus { outline: none; border-color: var(--accent); }
+    .row { display: flex; gap: 8px; }
+    .row input { flex: 1; }
+
+    /* toast */
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--accent); color: #000; font-weight: 800; font-size: 14px; padding: 12px 24px; border-radius: 10px; display: none; max-width: 90vw; z-index: 100; box-shadow: 0 4px 30px rgba(0,0,0,0.5); }
+    .toast.err { background: #7f1d1d; color: #fff; }
+
+    .empty { color: var(--faint); font-size: 13px; padding: 8px 0; text-align: center; }
+    footer { padding: 24px; text-align: center; color: var(--faint); font-size: 11px; line-height: 1.6; border-top: 1px solid var(--card-edge); margin-top: auto; }
+    
+    /* ---- unlock view ---- */
+    #unlock-view {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    #unlock-view .card {
+      max-width: 420px;
+      width: 100%;
+      margin: 0;
     }
 
-    @media (max-width: 480px) {
-      .metrics-row { grid-template-columns: repeat(2, 1fr); }
-      .details-grid { grid-template-columns: 1fr; }
+    /* ---- modal overlay ---- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.2s ease-out;
     }
-
-    /* action buttons row */
-    .action-row {
-      display: flex; flex-wrap: wrap; gap: var(--space-sm); align-items: center;
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
-    .btn-accent {
-      background: var(--brand); color: #000; border: 0;
-      border-radius: var(--radius-sm); padding: 8px 18px;
-      font-size: .9rem; font-weight: 700; cursor: pointer; width: auto;
-    }
-    .btn-accent:hover { background: var(--brand-hover); }
-    .btn-ghost {
-      background: transparent; color: var(--muted); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 7px 14px;
-      font-size: .88rem; cursor: pointer; width: auto;
-    }
-    .btn-ghost:hover { background: var(--surface-2); }
-    .export-status { font-size: .85rem; color: var(--muted); }
   </style>
 </head>
 <body>
-  <header>
-    <a class="brand" href="index.html">Omni<span>Tender</span></a>
-    <p class="tagline">S Y S T E M S</p>
-  </header>
 
-  <!-- UNLOCK SCREEN -->
+  <!-- UNLOCK / LOGIN VIEW -->
   <div id="unlock-view">
-    <div class="dash-main">
-      <div class="card">
-        <h2>Admin access</h2>
-        <p>Enter the dashboard token to continue. Session only — never stored.</p>
-        <label for="token-input">Dashboard token</label>
-        <input type="password" id="token-input" placeholder="Bearer token" autocomplete="off">
-        <button class="btn-accent" id="unlock-btn" style="margin-top:var(--space-md);">Unlock</button>
-        <div id="unlock-err" class="error-note" style="display:none;"></div>
+    <div class="card">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h1 style="margin: 0; font-size: 2rem; font-weight: 900; letter-spacing: 0.5px;">Omni<span>Tender</span></h1>
+        <p style="margin: 4px 0 0; font-size: 0.75rem; letter-spacing: 2px; color: var(--muted); text-transform: uppercase;">CRM &amp; Ops Console</p>
       </div>
+      <h2>Console Login</h2>
+      <p style="color: var(--muted); font-size: 13px; margin-top: -8px; margin-bottom: 18px;">Log in using your employee username &amp; password or owner token.</p>
+      
+      <div style="margin-bottom: 12px;">
+        <label for="username-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--muted);">Username</label>
+        <input type="text" id="username-input" placeholder="admin or employee username" autocomplete="username">
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <label for="token-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--muted);">Password / Token</label>
+        <input type="password" id="token-input" placeholder="Enter password or token" autocomplete="current-password">
+      </div>
+
+      <button class="btn btn-go" id="unlock-btn" style="width: 100%; padding: 12px; font-size: 14px;">Log In</button>
+      <div id="unlock-err" style="display: none; color: var(--down); background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); padding: 12px; border-radius: var(--radius-sm); font-size: 13px; margin-top: 14px; text-align: center;"></div>
     </div>
   </div>
 
-  <!-- DASHBOARD SCREEN -->
-  <div id="dash-view" style="display:none;">
-    <div class="dash-main">
-
-      <!-- toolbar -->
-      <div class="dash-toolbar">
-        <h2>OmniVerse ops</h2>
-        <span class="ts" id="last-updated"></span>
-        <button class="btn-accent" id="refresh-btn">Refresh</button>
-        <button class="btn-ghost" id="lock-btn">Lock</button>
-      </div>
-
-      <!-- twilio alert banner -->
-      <div id="twilio-banner" class="alert-banner hidden"></div>
-
-      <!-- KEY METRICS ROW — 4 primary numbers -->
-      <div class="metrics-row" id="stats-body">
-        <div class="metric-card"><div class="metric-value">—</div><div class="metric-label">Leads today</div></div>
-        <div class="metric-card"><div class="metric-value">—</div><div class="metric-label">Onboarding</div></div>
-        <div class="metric-card"><div class="metric-value">—</div><div class="metric-label">Tickets</div></div>
-        <div class="metric-card"><div class="metric-value">—</div><div class="metric-label">Calls</div></div>
-      </div>
-
-      <!-- EXCEPTION QUEUE — prominent, above fold -->
-      <div class="queue-card full-col">
-        <p class="sec-label">Needs you — exception queue</p>
-        <pre id="queue-body" class="queue-pre">loading…</pre>
-      </div>
-
-      <!-- EXPANDABLE: health + details toggle -->
-      <p>
-        <button class="toggle-btn" id="details-toggle" aria-expanded="false">Show details ▾</button>
-      </p>
-
-      <div class="collapsible" id="details-panel">
-        <div class="details-grid">
-
-          <!-- health -->
-          <div class="detail-card">
-            <p class="sec-label">Bot health</p>
-            <div id="health-body">
-              <span class="pill pill-wait">checking…</span>
+  <!-- DASHBOARD VIEW -->
+  <div id="dash-view" style="display: none;">
+    <div class="app-container">
+      
+      <!-- LEFT SIDEBAR -->
+      <aside class="sidebar">
+        <div>
+          <header>
+            <div class="brand-wrapper">
+              <a class="brand" href="index.html">Omni<span>Tender</span></a>
+              <p class="tagline">CRM &amp; SYSTEMS</p>
             </div>
+          </header>
+          
+          <nav id="nav">
+            <button data-v="overview" class="on">📋 Overview</button>
+            <button data-v="pipeline">📈 Pipeline</button>
+            <button data-v="leads">👥 Leads</button>
+            <button data-v="access">🔑 Access &amp; Admins</button>
+            <button data-v="savings">💰 Savings &amp; Pricing</button>
+            <button data-v="digest">📰 Digest</button>
+          </nav>
+        </div>
+        
+        <div class="sidebar-footer">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <button class="btn" id="theme-btn" style="flex: 1; padding: 6px 10px; font-size: 11px; margin-top: 0;">☀️ Light Mode</button>
+            <button class="btn btn-no" id="lock-btn" style="padding: 6px 10px; font-size: 11px; margin-top: 0;">Lock</button>
           </div>
-
-          <!-- recent leads -->
-          <div class="detail-card">
-            <p class="sec-label">Recent leads <span id="leads-count" style="font-weight:400;color:var(--muted);"></span></p>
-            <div id="leads-body"><span class="inline-err">loading…</span></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <button class="btn" id="refresh-btn" style="flex: 1; padding: 6px 10px; font-size: 11px; margin-top: 0;">Refresh</button>
           </div>
+          <p id="last-updated" style="margin: 8px 0 0; font-size: 10px; color: var(--faint); text-align: center;"></p>
+        </div>
+      </aside>
 
-          <!-- recipients -->
-          <div class="detail-card">
-            <p class="sec-label">Recipients <span id="recip-count" style="font-weight:400;color:var(--muted);"></span></p>
-            <div id="recip-body"><span class="inline-err">loading…</span></div>
-          </div>
-
-          <!-- pipeline -->
-          <div class="detail-card">
-            <p class="sec-label">Onboarding pipeline</p>
-            <pre id="pipeline-body" class="dash-pre">loading…</pre>
-          </div>
-
-          <!-- digest -->
-          <div class="detail-card">
-            <p class="sec-label">Daily digest</p>
-            <pre id="digest-body" class="dash-pre">loading…</pre>
-          </div>
-
-          <!-- export -->
-          <div class="detail-card full-col">
-            <p class="sec-label">Data export</p>
-            <p style="margin:0 0 var(--space-sm);font-size:.9rem;color:var(--muted);">
-              Download a full JSON backup of all bot data.
-            </p>
-            <div class="action-row">
-              <button class="btn-accent" id="export-btn">Download export.json</button>
-              <span class="export-status" id="export-status"></span>
+      <!-- MAIN CONTENT -->
+      <div class="main-content">
+        <div id="alertbar" class="alertbar" style="display:none"></div>
+        
+        <main class="wrap">
+          
+          <!-- OVERVIEW VIEW -->
+          <section id="v-overview" class="view on">
+            <div class="card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="margin-bottom:0; border-left:3px solid var(--accent); padding-left:10px;">System Health</h2>
+                <button class="btn" id="export-json-btn" style="width:auto; min-height:0; padding:6px 12px; font-size:11px; margin-top:0;">📥 Backup JSON</button>
+              </div>
+              <div id="health" style="font-size: 14px; padding: 4px 0; margin-top:12px;">checking…</div>
             </div>
-          </div>
+            
+            <div class="card" style="border-color: var(--accent);">
+              <h2>⚠️ Needs You — Exception Queue</h2>
+              <pre id="queue">checking…</pre>
+            </div>
 
-        </div><!-- /details-grid -->
-      </div><!-- /collapsible -->
+            <div class="card">
+              <h2>Pipeline Distribution</h2>
+              <div id="pipeline-chart" style="padding: 10px 0; min-height: 180px;">Reticulating splines…</div>
+            </div>
+            
+            <div class="card">
+              <h2>Totals</h2>
+              <div class="grid" id="stats"></div>
+            </div>
+          </section>
+
+          <!-- PIPELINE VIEW -->
+          <section id="v-pipeline" class="view">
+            <div class="card">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h2 style="margin-bottom:0; border-left:3px solid var(--accent); padding-left:10px;">Onboarding Pipeline</h2>
+                <button class="btn btn-go" id="export-pipe-btn" style="width:auto; min-height:0; padding:6px 12px; font-size:11px; margin-top:0;">📥 Export CSV</button>
+              </div>
+              <div style="display:flex; gap:8px; margin-bottom:16px;">
+                <input type="text" id="pipe-search" placeholder="🔍 Search pipeline by name, business..." style="flex:2;">
+                <select id="pipe-filter-stage" style="flex:1;">
+                  <option value="">All Stages</option>
+                  <option value="applied">Applied</option>
+                  <option value="in_review">In Review</option>
+                  <option value="approved">Approved</option>
+                  <option value="hardware_sent">Hardware Sent</option>
+                </select>
+              </div>
+              <div id="pipe"></div>
+            </div>
+            <div class="card">
+              <h2>Recently Closed</h2>
+              <div id="pipe-closed"></div>
+            </div>
+          </section>
+
+          <!-- LEADS VIEW -->
+          <section id="v-leads" class="view">
+            <div class="card">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h2 style="margin-bottom:0; border-left:3px solid var(--accent); padding-left:10px;">Recent Website Leads</h2>
+                <button class="btn btn-go" id="export-leads-btn" style="width:auto; min-height:0; padding:6px 12px; font-size:11px; margin-top:0;">📥 Export CSV</button>
+              </div>
+              <div style="margin-bottom: 16px;">
+                <input type="text" id="leads-search" placeholder="🔍 Search leads by name, phone, business, source...">
+              </div>
+              <div id="leadlist"></div>
+            </div>
+          </section>
+
+          <!-- ACCESS VIEW -->
+          <section id="v-access" class="view">
+            <div class="card">
+              <h2>Mint Invite Code</h2>
+              <p style="color: var(--muted); font-size: 12px; margin-top: -6px; margin-bottom: 12px;">Generate an invite code for Twilio SMS bot testers.</p>
+              <div class="row">
+                <input type="text" id="invite-note" placeholder="note (who is this for?)" maxlength="120">
+                <button class="btn btn-go" id="invite-mint">Mint Code</button>
+              </div>
+            </div>
+            
+            <div class="card">
+              <h2>Twilio Invites</h2>
+              <div id="invites"></div>
+            </div>
+            
+            <div class="card">
+              <h2>Registered SMS Users</h2>
+              <div id="users"></div>
+            </div>
+
+            <!-- ADMIN SECTION: Console User Accounts -->
+            <div class="card" id="admin-user-mgmt" style="display: none; border-color: var(--accent);">
+              <h2>Console User Accounts (Admin-Only)</h2>
+              <p style="color: var(--muted); font-size: 12px; margin-top: -6px; margin-bottom: 16px;">Create employee login accounts for access to this portal.</p>
+              
+              <div style="background: var(--inset); border: 1px solid var(--card-edge); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+                <h3 style="margin: 0 0 12px; font-size: 13px; color: #fff;">Create User</h3>
+                <div class="row" style="margin-bottom: 8px;">
+                  <input type="text" id="console-username" placeholder="Username" autocomplete="off">
+                  <input type="password" id="console-password" placeholder="Password" autocomplete="off">
+                </div>
+                <div class="row">
+                  <select id="console-role" style="flex: 1;">
+                    <option value="Employee">Employee (Normal Access)</option>
+                    <option value="Admin">Admin (Full User Management)</option>
+                  </select>
+                  <button class="btn btn-go" id="console-user-create">Create Account</button>
+                </div>
+              </div>
+              
+              <h3>Active Accounts</h3>
+              <div id="console-users-list"></div>
+            </div>
+          </section>
+
+          <!-- SAVINGS / PRICING VIEW -->
+          <section id="v-savings" class="view">
+            <div class="card">
+              <h2>Savings Calculator</h2>
+              <div class="row" style="margin-bottom: 8px;">
+                <input type="text" id="sv-volume" inputmode="decimal" placeholder="monthly card volume ($)">
+                <input type="text" id="sv-fees" inputmode="decimal" placeholder="monthly processing fees ($)">
+              </div>
+              <div class="row" style="margin-bottom: 8px;">
+                <input type="text" id="sv-rate" inputmode="decimal" placeholder="our rate % (blank = default)">
+                <input type="text" id="sv-avgsale" inputmode="decimal" placeholder="avg sale $ (optional)">
+              </div>
+              <div class="row" style="margin-bottom: 12px;">
+                <select id="sv-terminal">
+                  <option value="">no terminal</option>
+                  <option value="crypto">crypto-only terminal</option>
+                  <option value="full">crypto + debit/credit/EBT terminal</option>
+                </select>
+              </div>
+              <button class="btn btn-go" id="sv-calc" style="width:100%">Calculate Estimates</button>
+              <div id="sv-result" style="margin-top:16px"></div>
+            </div>
+            
+            <div class="card">
+              <h2>Global Pricing Margins</h2>
+              <div id="pr-fields"></div>
+              <button class="btn btn-go" id="pr-save" style="width:100%; margin-top:12px;">Save Pricing Configurations</button>
+              <p id="pr-meta" style="color:var(--faint); font-size:11px; margin-top:8px; text-align: center;"></p>
+            </div>
+          </section>
+
+          <!-- DIGEST VIEW -->
+          <section id="v-digest" class="view">
+            <div class="card">
+              <h2>Daily Digest Report</h2>
+              <pre id="digest">loading…</pre>
+            </div>
+          </section>
+          
+        </main>
+        
+        <footer>
+          OmniVerse — <strong>OmniTender Systems</strong> CRM Portal.<br>
+          Proprietary &amp; confidential. All rights reserved. Authorized employee use only.
+        </footer>
+      </div>
 
     </div>
-  </div><!-- /dash-view -->
+  </div>
 
-  <footer>
-    &copy; 2026 OmniTender. All rights reserved. &mdash; Internal use only.
-  </footer>
+  <!-- DETAILS MODAL -->
+  <div id="details-modal" class="modal-overlay">
+    <div class="card" style="max-width:600px; width:100%; margin:0; position:relative; box-shadow:0 10px 40px rgba(0,0,0,0.8); max-height:90vh; overflow-y:auto;">
+      <button id="modal-close-btn" style="position:absolute; right:20px; top:20px; background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; width:auto; min-height:0; padding:0; margin:0; line-height:1;">&times;</button>
+      <h2 id="modal-title" style="border-left:3px solid var(--accent); padding-left:10px; margin-bottom:16px;">Details</h2>
+      <div id="modal-body" style="font-size:14px; margin-top:16px; line-height:1.6;"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Steady Ground Crisis Exit -->
+  <button id="steady-ground-btn" type="button" aria-label="Get crisis help now" style="position: fixed; bottom: 16px; right: 16px; z-index: 99998; border-radius: 9999px; padding: 8px 12px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; background: #111; border: 1px solid #dc2626; color: #fecaca; box-shadow: 0 4px 10px rgba(0,0,0,0.5);"
+    onclick="document.getElementById('steady-ground-modal').classList.remove('hidden')">
+    <span>🫂</span> Steady Ground
+  </button>
+  <div id="steady-ground-modal" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 99999;"
+    onclick="if(event.target===this)this.classList.add('hidden')">
+    <div style="width: 100%; max-width: 380px; background: #111; border: 1px solid #242424; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: #ececec; text-align: left;">
+      <h2 style="font-size: 18px; font-weight: 800; margin: 0 0 8px; color: #fff;">You don't have to hold this alone.</h2>
+      <p style="font-size: 13px; color: #9a9a9a; margin: 0 0 16px; line-height: 1.5;">If you're in pain or thinking about hurting yourself, reach a real person right now — any hour. These work offline and independently.</p>
+      <div class="space-y-2">
+        <a href="tel:988" style="display: block; background: var(--surface); border: 1px solid var(--border); color: var(--ink); text-decoration: none; padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 8px;"><b>Call or text 988</b> — Suicide &amp; Crisis Lifeline (US)</a>
+        <a href="sms:741741?&body=HOME" style="display: block; background: var(--surface); border: 1px solid var(--border); color: var(--ink); text-decoration: none; padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 8px;"><b>Text HOME to 741741</b> — Crisis Text Line (US)</a>
+        <a href="https://findahelpline.com" target="_blank" rel="noopener" style="display: block; background: var(--surface); border: 1px solid var(--border); color: var(--ink); text-decoration: none; padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 8px;"><b>findahelpline.com</b> — find a helpline anywhere</a>
+        <a href="tel:911" style="display: block; background: var(--surface); border: 1px solid var(--border); color: var(--ink); text-decoration: none; padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 8px;"><b>Call 911</b> — immediate danger (US)</a>
+      </div>
+      <button type="button" onclick="document.getElementById('steady-ground-modal').classList.add('hidden')"
+        style="width: 100%; margin-top: 16px; background: none; border: none; color: #9a9a9a; cursor: pointer; font-size: 13px; font-weight: 600; padding: 8px 0; text-align: center;">Close</button>
+    </div>
+  </div>
 
   <script src="dashboard.js"></script>
-  <script>
-    // Toggle expandable details panel
-    (function () {
-      var toggle = document.getElementById('details-toggle');
-      var panel = document.getElementById('details-panel');
-      if (toggle && panel) {
-        toggle.addEventListener('click', function () {
-          var open = panel.classList.toggle('open');
-          toggle.setAttribute('aria-expanded', open);
-          toggle.textContent = open ? 'Hide details ▴' : 'Show details ▾';
-        });
-      }
-    })();
-  </script>
+  <script src="feedback.js"></script>
 </body>
 </html>

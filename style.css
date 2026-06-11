@@ -700,3 +700,116 @@ footer a:hover { color: var(--brand); }
   * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }
 
+/* ============================================================
+   STEADY GROUND / FEEDBACK FAB SYSTEMS (CSS Custom Styling)
+   ============================================================ */
+
+/* Steady Ground */
+#steady-ground-btn {
+  font-family: inherit;
+  z-index: 99998;
+  cursor: pointer;
+}
+#steady-ground-modal {
+  font-family: inherit;
+  z-index: 99999;
+}
+#steady-ground-modal .space-y-2 > a {
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  text-decoration: none;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  transition: background 0.15s, border-color 0.15s;
+}
+#steady-ground-modal .space-y-2 > a:hover {
+  background: var(--surface-2);
+  border-color: var(--brand);
+}
+
+/* Feedback FAB */
+#fb-fab {
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid rgba(247, 121, 44, 0.3);
+  background: #000;
+  color: var(--brand);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  font-size: 20px;
+}
+#fb-fab:hover {
+  border-color: var(--brand);
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(247, 121, 44, 0.3);
+}
+
+/* Feedback Modal (Styled in line with OmniTender aesthetic) */
+#fb-modal {
+  font-family: inherit;
+}
+#fb-modal .bg-slate-900 {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+#fb-modal h4 {
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 1rem;
+}
+#fb-modal p {
+  color: var(--muted);
+}
+#fb-modal .bg-slate-950 {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
+#fb-modal select, #fb-modal textarea {
+  border-radius: var(--radius-sm);
+}
+#fb-modal select:focus, #fb-modal textarea:focus {
+  border-color: var(--brand);
+}
+#fb-modal #fb-send {
+  background: linear-gradient(135deg, var(--brand) 0%, var(--gold) 100%);
+  color: #070707;
+  font-weight: 700;
+  cursor: pointer;
+}
+#fb-modal #fb-send:hover {
+  opacity: 0.9;
+}
+#fb-modal canvas {
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+#fb-modal #fb-tool-mark {
+  background: var(--brand);
+  color: #000;
+  cursor: pointer;
+  border: none;
+}
+#fb-modal #fb-tool-redact {
+  background: #000;
+  color: #fff;
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+#fb-modal #fb-tool-mark.ring-2 {
+  outline: 2px solid var(--brand);
+}
+#fb-modal #fb-tool-redact.ring-2 {
+  outline: 2px solid #fff;
+}
+#fb-modal #fb-shot-remove {
+  cursor: pointer;
+}
+#fb-modal #fb-close {
+  cursor: pointer;
+}
+
+
