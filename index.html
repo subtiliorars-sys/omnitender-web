@@ -158,6 +158,53 @@
       <div class="statcard"><div class="num">+15%</div><div class="lbl">Customer Growth</div></div>
     </div>
 
+    <!-- Pricing Calculator Section -->
+    <div class="form-card-container" style="margin-bottom: var(--space-2xl);">
+      <div class="card" style="padding: 32px; width: 100%;">
+        <div class="sec-head" style="margin-bottom: 24px; text-align: left; max-width: 100%;">
+          <span class="eyebrow" style="color: var(--gold); border-color: rgba(212,175,55,0.2); background: rgba(212,175,55,0.05);">Fee Calculator</span>
+          <h2 style="font-size: 1.8rem; margin: 8px 0 0; text-align: left;">Calculate Your Processing Savings</h2>
+          <p style="font-size: 0.95rem; text-align: left;">Drag the sliders below to see how much fee leakage you stop with OmniTender.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr; md:grid-template-columns: 1.2fr 0.8fr; gap: 32px; margin-top: 16px;">
+          <!-- Left: Inputs -->
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+            <div>
+              <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px;">
+                <span>Monthly Card Volume:</span>
+                <span id="calc-vol-val" style="color: var(--brand);">$50,000</span>
+              </div>
+              <input type="range" id="calc-volume" min="5000" max="250000" step="5000" value="50000" style="width: 100%; accent-color: var(--brand); cursor: pointer;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin-top: 4px;">
+                <span>$5K</span>
+                <span>$250K</span>
+              </div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px;">
+                <span>Current Processing Fee Rate:</span>
+                <span id="calc-rate-val" style="color: var(--gold);">2.8%</span>
+              </div>
+              <input type="range" id="calc-rate" min="1.5" max="4.5" step="0.1" value="2.8" style="width: 100%; accent-color: var(--gold); cursor: pointer;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin-top: 4px;">
+                <span>1.5%</span>
+                <span>4.5%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Outputs -->
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 24px; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 8px;">
+            <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 1px;">Estimated Monthly Savings</div>
+            <div id="calc-monthly-savings" style="font-size: 2.8rem; font-weight: 900; color: var(--brand); text-shadow: 0 0 15px rgba(247,121,44,0.25);">$1,400</div>
+            <div style="font-size: 0.85rem; color: var(--gold); font-weight: 600;">Stop paying processor fees now.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Final CTA & SMS optin form -->
     <div class="form-card-container">
       <div class="card" id="signup-card">
@@ -192,6 +239,19 @@
             </label>
           </div>
           <p class="field-error" id="agree-error">Please check the box to give consent.</p>
+
+          <!-- Bot prevention Honeypot (CSS hidden) -->
+          <div style="display: none !important;">
+            <label for="website">Leave this blank</label>
+            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+
+          <!-- Dynamic Math CAPTCHA -->
+          <div style="margin-top: var(--space-md); margin-bottom: var(--space-md);">
+            <label for="captcha-answer" id="captcha-label" style="font-weight: 600; font-size: 0.85rem; color: var(--muted);"></label>
+            <input type="text" id="captcha-answer" placeholder="Your answer" autocomplete="off" style="margin-top: 4px;">
+            <p class="field-error" id="captcha-error">Incorrect calculation answer.</p>
+          </div>
 
           <button type="submit" id="submit">Sign me up</button>
         </form>
@@ -231,6 +291,15 @@
       var ok = document.getElementById('ok');
       var err = document.getElementById('err');
 
+      // CAPTCHA Initialization
+      var captchaLabel = document.getElementById('captcha-label');
+      var num1 = Math.floor(Math.random() * 9) + 1;
+      var num2 = Math.floor(Math.random() * 9) + 1;
+      var captchaSum = num1 + num2;
+      if (captchaLabel) {
+        captchaLabel.textContent = "Security Question: What is " + num1 + " + " + num2 + "?";
+      }
+
       function fieldError(id, show) {
         var input = document.getElementById(id);
         var msg = document.getElementById(id + '-error');
@@ -242,16 +311,23 @@
         var name = document.getElementById('name').value.trim();
         var phone = document.getElementById('phone').value.trim();
         var agree = document.getElementById('agree').checked;
+        var honeypot = document.getElementById('website').value;
+        var captchaAns = parseInt(document.getElementById('captcha-answer').value.trim(), 10);
+        
         // Require at least 7 digits in the phone number.
         var phoneOk = (phone.match(/\d/g) || []).length >= 7;
+        var captchaOk = (captchaAns === captchaSum);
 
         fieldError('name', !name);
         fieldError('phone', !phoneOk);
         fieldError('agree', !agree);
+        fieldError('captcha-answer', !captchaOk);
 
+        if (honeypot) return 'website'; // Honeypot trap tripped
         if (!name) return 'name';
         if (!phoneOk) return 'phone';
         if (!agree) return 'agree';
+        if (!captchaOk) return 'captcha-answer';
         return null;
       }
 
@@ -261,6 +337,12 @@
 
         var firstBad = validate();
         if (firstBad) {
+          if (firstBad === 'website') {
+            // Decoy success state for bots
+            form.style.display = 'none';
+            ok.style.display = 'block';
+            return;
+          }
           document.getElementById(firstBad).focus();
           return;
         }
@@ -308,6 +390,35 @@
           clearTimeout(clickTimer);
           clickTimer = setTimeout(function () { clicks = 0; }, 3000);
         });
+      }
+
+      // Dynamic Pricing Calculator
+      var sliderVol = document.getElementById('calc-volume');
+      var sliderRate = document.getElementById('calc-rate');
+      var labelVol = document.getElementById('calc-vol-val');
+      var labelRate = document.getElementById('calc-rate-val');
+      var displaySavings = document.getElementById('calc-monthly-savings');
+
+      function recalculate() {
+        if (!sliderVol || !sliderRate || !labelVol || !labelRate || !displaySavings) return;
+        var vol = parseInt(sliderVol.value, 10);
+        var rate = parseFloat(sliderRate.value);
+        
+        labelVol.textContent = '$' + vol.toLocaleString();
+        labelRate.textContent = rate.toFixed(1) + '%';
+        
+        // Fee savings calculation: (Vol * rate%) minus typical minor merchant maintenance/network overhead
+        var originalFee = vol * (rate / 100);
+        var cryptoFee = vol * 0.002; // Assuming minor stablecoin/arbitrage settlement cost of 0.2%
+        var savings = Math.max(0, Math.round(originalFee - cryptoFee));
+        
+        displaySavings.textContent = '$' + savings.toLocaleString();
+      }
+
+      if (sliderVol && sliderRate) {
+        sliderVol.addEventListener('input', recalculate);
+        sliderRate.addEventListener('input', recalculate);
+        recalculate();
       }
     })();
   </script>

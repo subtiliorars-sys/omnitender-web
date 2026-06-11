@@ -58,27 +58,46 @@
            (FNS authorization is granted by the USDA, not OmniTender).
         </p>
 
+        <!-- Progress Indicator Bar -->
+        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 24px;">
+          <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px;">Step <span id="wizard-step-num">1</span> of 2</div>
+          <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 99px; overflow: hidden; position: relative;">
+            <div id="wizard-progress-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: linear-gradient(90deg, var(--brand), var(--gold)); border-radius: 99px; transition: width 0.3s ease;"></div>
+          </div>
+        </div>
+
         <form id="apply" novalidate>
-          <label for="business">Business name</label>
-          <input type="text" id="business" name="business" autocomplete="organization"
-                 aria-required="true" aria-describedby="business-error">
-          <p class="field-error" id="business-error">Please enter your business name.</p>
+          <!-- Step 1: Business Details -->
+          <div id="wizard-step-1" class="wizard-step">
+            <label for="business">Business name</label>
+            <input type="text" id="business" name="business" autocomplete="organization"
+                   aria-required="true" aria-describedby="business-error" style="margin-bottom: 4px;">
+            <p class="field-error" id="business-error" style="margin-bottom: 16px;">Please enter your business name.</p>
 
-          <label for="name">Your name</label>
-          <input type="text" id="name" name="name" autocomplete="name"
-                 aria-required="true" aria-describedby="name-error">
-          <p class="field-error" id="name-error">Please enter your name.</p>
+            <label for="notes">Roughly what's your monthly card volume? (optional)</label>
+            <input type="text" id="notes" name="notes" inputmode="numeric" placeholder="e.g. $20k/month" style="margin-bottom: 24px;">
+            
+            <button type="button" id="btn-next-step" class="btn btn-go" style="width: 100%; padding: 12px; font-weight: bold;">Continue &rarr;</button>
+          </div>
 
-          <label for="phone">Phone number</label>
-          <input type="tel" id="phone" name="phone" placeholder="+1 555 123 4567"
-                 autocomplete="tel" inputmode="tel"
-                 aria-required="true" aria-describedby="phone-error">
-          <p class="field-error" id="phone-error">Please enter a valid phone number.</p>
+          <!-- Step 2: Contact Details -->
+          <div id="wizard-step-2" class="wizard-step" style="display: none;">
+            <label for="name">Your name</label>
+            <input type="text" id="name" name="name" autocomplete="name"
+                   aria-required="true" aria-describedby="name-error" style="margin-bottom: 4px;">
+            <p class="field-error" id="name-error" style="margin-bottom: 16px;">Please enter your name.</p>
 
-          <label for="notes">Roughly what's your monthly card volume? (optional)</label>
-          <input type="text" id="notes" name="notes" inputmode="numeric" placeholder="e.g. $20k/month">
+            <label for="phone">Phone number</label>
+            <input type="tel" id="phone" name="phone" placeholder="+1 555 123 4567"
+                   autocomplete="tel" inputmode="tel"
+                   aria-required="true" aria-describedby="phone-error" style="margin-bottom: 4px;">
+            <p class="field-error" id="phone-error" style="margin-bottom: 24px;">Please enter a valid phone number.</p>
 
-          <button type="submit" id="submit">Submit application</button>
+            <div style="display: flex; gap: 12px;">
+              <button type="button" id="btn-back-step" class="btn" style="flex: 1; padding: 12px; font-weight: bold; background: transparent; border: 1px solid var(--border);">Back</button>
+              <button type="submit" id="submit" class="btn btn-go" style="flex: 2; padding: 12px; font-weight: bold;">Submit application</button>
+            </div>
+          </div>
         </form>
 
         <div class="ok" id="ok" role="status" tabindex="-1">
@@ -116,11 +135,45 @@
     // Merchant application handler. Validates inline, then POSTs to the OmniVerse
     // backend (creates an onboarding record + alerts the team). Shows a clear
     // success or failure state.
+    // Merchant application handler with multi-step wizard logic
     (function () {
       var form = document.getElementById('apply');
       var btn = document.getElementById('submit');
       var ok = document.getElementById('ok');
       var err = document.getElementById('err');
+
+      var step1 = document.getElementById('wizard-step-1');
+      var step2 = document.getElementById('wizard-step-2');
+      var nextBtn = document.getElementById('btn-next-step');
+      var backBtn = document.getElementById('btn-back-step');
+      var stepNumLabel = document.getElementById('wizard-step-num');
+      var progressFill = document.getElementById('wizard-progress-fill');
+
+      function updateProgress(step) {
+        if (stepNumLabel) stepNumLabel.textContent = step;
+        if (progressFill) progressFill.style.width = (step === 1 ? '50%' : '100%');
+      }
+
+      // Restore form drafts from sessionStorage if available
+      try {
+        var draftBus = sessionStorage.getItem('omni_draft_business');
+        var draftNotes = sessionStorage.getItem('omni_draft_notes');
+        var draftName = sessionStorage.getItem('omni_draft_name');
+        var draftPhone = sessionStorage.getItem('omni_draft_phone');
+        if (draftBus) document.getElementById('business').value = draftBus;
+        if (draftNotes) document.getElementById('notes').value = draftNotes;
+        if (draftName) document.getElementById('name').value = draftName;
+        if (draftPhone) document.getElementById('phone').value = draftPhone;
+      } catch (e) {}
+
+      // Save form fields dynamically on input
+      document.querySelectorAll('#apply input').forEach(function(input) {
+        input.addEventListener('input', function() {
+          try {
+            sessionStorage.setItem('omni_draft_' + input.id, input.value);
+          } catch(e) {}
+        });
+      });
 
       function fieldError(id, show) {
         var input = document.getElementById(id);
@@ -129,27 +182,55 @@
         if (msg) msg.classList.toggle('show', show);
       }
 
-      function validate() {
+      function validateStep1() {
         var business = document.getElementById('business').value.trim();
+        fieldError('business', !business);
+        return !!business;
+      }
+
+      function validateStep2() {
         var name = document.getElementById('name').value.trim();
         var phone = document.getElementById('phone').value.trim();
         var phoneOk = (phone.match(/\d/g) || []).length >= 7;
 
-        fieldError('business', !business);
         fieldError('name', !name);
         fieldError('phone', !phoneOk);
 
-        if (!business) return 'business';
         if (!name) return 'name';
         if (!phoneOk) return 'phone';
         return null;
+      }
+
+      if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+          if (validateStep1()) {
+            step1.style.display = 'none';
+            step2.style.display = 'block';
+            updateProgress(2);
+            var firstInp = document.getElementById('name');
+            if (firstInp) firstInp.focus();
+          } else {
+            var input = document.getElementById('business');
+            if (input) input.focus();
+          }
+        });
+      }
+
+      if (backBtn) {
+        backBtn.addEventListener('click', function() {
+          step2.style.display = 'none';
+          step1.style.display = 'block';
+          updateProgress(1);
+          var input = document.getElementById('business');
+          if (input) input.focus();
+        });
       }
 
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         err.style.display = 'none';
 
-        var firstBad = validate();
+        var firstBad = validateStep2();
         if (firstBad) {
           document.getElementById(firstBad).focus();
           return;
@@ -173,6 +254,13 @@
           form.style.display = 'none';
           ok.style.display = 'block';
           ok.focus();
+          // Clear drafts on successful submit
+          try {
+            sessionStorage.removeItem('omni_draft_business');
+            sessionStorage.removeItem('omni_draft_notes');
+            sessionStorage.removeItem('omni_draft_name');
+            sessionStorage.removeItem('omni_draft_phone');
+          } catch(e) {}
         })
         .catch(function () {
           btn.disabled = false;
