@@ -618,6 +618,9 @@ footer a:hover { color: var(--brand); }
 .collapsible { display: none; }
 .collapsible.open { display: block; }
 
+/* Global hidden helper */
+.hidden { display: none !important; }
+
 /* Toggle button for expandable sections — inline, text-style */
 .toggle-btn {
   background: none;
