@@ -522,9 +522,11 @@
   });
 
   /* ---- login flow ---- */
+  var tempLoginCreds = null; // Stash username/password for MFA challenge step
   document.getElementById('unlock-btn').addEventListener('click', async function () {
     var user = document.getElementById('username-input').value.trim();
     var pass = document.getElementById('token-input').value.trim();
+    var mfaCode = document.getElementById('login-mfa-input').value.trim();
     if (!pass) { toast('Please enter password or token.', true); return; }
 
     var btn = document.getElementById('unlock-btn');
@@ -532,21 +534,63 @@
     btn.textContent = 'Logging in…';
 
     try {
+      const payload = { username: user || 'admin', password: pass };
+      if (mfaCode) payload.mfaCode = mfaCode;
+      
       const res = await fetch(API + '/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user || 'admin', password: pass })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed.');
+
+      // If MFA is required to login, show the input box and let user try again with code
+      if (data.mfaRequired) {
+        tempLoginCreds = { user, pass };
+        document.getElementById('login-mfa-box').style.display = 'block';
+        toast('MFA code required to authenticate.', false);
+        document.getElementById('login-mfa-input').focus();
+        return;
+      }
+
+      // Check if First Login Setup is mandated
+      if (data.mustSetupMfa) {
+        // Stash the temporary token to fetch setup details
+        setToken(data.token);
+        sessionStorage.setItem('omni_dash_role', data.role);
+        sessionStorage.setItem('omni_dash_username', data.username);
+        currentUserRole = data.role;
+
+        // Configure MFA Setup Screen details
+        document.getElementById('mfa-setup-username').value = data.username;
+        document.getElementById('mfa-secret-text').textContent = data.token; // Using token payload hash for manual setup entry placeholder
+        
+        // Generate dynamic authenticator QR Code (simulate SVG QR using plain text layout + manual key)
+        document.getElementById('mfa-qr-placeholder').innerHTML = 
+          `<svg viewBox="0 0 100 100" width="120" height="120">` +
+          `<rect width="100" height="100" fill="#fff"/>` +
+          `<path d="M10,10 h30 v30 h-30 z M15,15 h20 v20 h-20 z" fill="#000"/>` +
+          `<path d="M60,10 h30 v30 h-30 z M65,15 h20 v20 h-20 z" fill="#000"/>` +
+          `<path d="M10,60 h30 v30 h-30 z M15,65 h20 v20 h-20 z" fill="#000"/>` +
+          `<path d="M60,60 h10 v10 h-10 z M80,60 h10 v20 h-10 z" fill="#70,80 h20 v10 h-20 z" fill="#000"/>` +
+          `</svg>`;
+        
+        document.getElementById('mfa-setup-modal').style.display = 'flex';
+        return;
+      }
 
       setToken(data.token);
       sessionStorage.setItem('omni_dash_role', data.role);
       sessionStorage.setItem('omni_dash_username', data.username);
       currentUserRole = data.role;
 
+      // Clean up form inputs
       document.getElementById('token-input').value = '';
       document.getElementById('username-input').value = '';
+      document.getElementById('login-mfa-input').value = '';
+      document.getElementById('login-mfa-box').style.display = 'none';
+      tempLoginCreds = null;
 
       showDash();
       loadOverview();
@@ -557,6 +601,56 @@
     } finally {
       btn.disabled = false;
       btn.textContent = 'Log In';
+    }
+  });
+
+  // --- First Login MFA setup submit binding ---
+  document.getElementById('mfa-setup-submit').addEventListener('click', async function() {
+    const newUsername = document.getElementById('mfa-setup-username').value.trim();
+    const newPassword = document.getElementById('mfa-setup-password').value.trim();
+    const mfaCode = document.getElementById('mfa-verification-code').value.trim();
+    const errDiv = document.getElementById('mfa-setup-err');
+
+    if (!newPassword || newPassword.length < 12) {
+      errDiv.textContent = 'A new strong password (at least 12 characters) is required.';
+      errDiv.style.display = 'block';
+      return;
+    }
+    if (!mfaCode) {
+      errDiv.textContent = 'Verification code is required.';
+      errDiv.style.display = 'block';
+      return;
+    }
+
+    errDiv.style.display = 'none';
+    const btn = document.getElementById('mfa-setup-submit');
+    btn.disabled = true;
+    btn.textContent = 'Verifying security configuration...';
+
+    try {
+      const res = await api('/api/console_users/setup-mfa', {
+        method: 'POST',
+        body: { newUsername, newPassword, mfaCode }
+      });
+      
+      toast('Security setup complete. Account activated!');
+      document.getElementById('mfa-setup-modal').style.display = 'none';
+      
+      // Clean up form inputs
+      document.getElementById('token-input').value = '';
+      document.getElementById('username-input').value = '';
+      document.getElementById('mfa-setup-password').value = '';
+      document.getElementById('mfa-verification-code').value = '';
+
+      showDash();
+      loadOverview();
+      startRefresh();
+    } catch (err) {
+      errDiv.textContent = err.message;
+      errDiv.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Verify Code & Activate Account';
     }
   });
 
