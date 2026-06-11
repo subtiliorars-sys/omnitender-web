@@ -712,6 +712,9 @@ footer a:hover { color: var(--brand); }
   font-family: inherit;
   z-index: 99998;
   cursor: pointer;
+  width: auto;
+  min-height: 0;
+  margin-top: 0;
 }
 #steady-ground-modal {
   font-family: inherit;
