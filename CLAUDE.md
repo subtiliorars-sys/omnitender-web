@@ -27,3 +27,11 @@ committed `.githooks/` (auto-enabled per clone by the Claude `SessionStart` hook
    `.git/objects`. `git fsck --unreachable --no-reflogs`, identify by `git cat-file -p <sha>`, and
    check unreachable commits' trees (`git ls-tree -r <sha>`) for a full snapshot to `git show` back.
 <!-- END git-guards protocol -->
+
+<!-- BEGIN agent-corps governance (managed) -->
+## Governance — Tier A (Universal)
+This repo is governed under the Corps Constitution (agent-corps/CORPS_CONSTITUTION.md),
+**Tier A**. Its binding invariant checklist + dated audit live in `GOVERNANCE.md`;
+read it before touching auth/exec/data/money surfaces. The git-guards `.githooks/`
+enforce the mechanical invariants — do not bypass with `--no-verify`.
+<!-- END agent-corps governance (managed) -->

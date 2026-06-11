@@ -1,0 +1,24 @@
+# git-guards T-4 brand-string lint wordlist.
+# Matched WHOLE-WORD and CASE-INSENSITIVE against public-surface files (see
+# pre-push.d/20-brand-lint). One pattern per line; lines starting with '#' are
+# ignored. Patterns are extended regex but plain strings work fine.
+#
+# Goal (Constitution T-4): public surfaces must imply NO affiliation with AA or
+# any 12-step program, and must NOT cross-promote a sibling brand.
+#
+# !!! PRUNE THIS REPO'S OWN BRAND NAME from the list below before enabling the
+#     lint, or it will match itself on every push.
+#
+# --- program-affiliation terms (keep in every repo) ---
+Alcoholics Anonymous
+the program
+# 'AA' as a standalone word is high-signal for AA affiliation but can false-
+# positive (battery sizes, degrees). Uncomment to enforce on a public marketing repo:
+# AA
+#
+# --- cross-portfolio brand names (remove the line matching THIS repo) ---
+MeniscusMaximus
+Meniscus Maximus
+Cairn
+infinite-banking
+Ilerioluwa
