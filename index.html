@@ -449,25 +449,33 @@
             // List of equipment and estimated prices
             var catalog = [
               { name: 'Commercial Convection Oven', price: 4500 },
+              { name: 'Commercial Dishwasher', price: 3500 },
               { name: 'Commercial Ice Maker', price: 2200 },
+              { name: 'Underbar Glass Washer', price: 1800 },
+              { name: 'Under-Counter Refrigerator', price: 1500 },
               { name: 'Espresso Machine', price: 1200 },
               { name: 'Air Purifier / HVAC Filter Upgrade', price: 800 },
+              { name: 'Commercial Panini Grill', price: 700 },
               { name: 'Digital Menu Board', price: 600 },
               { name: 'Commercial Blender', price: 500 },
+              { name: 'Digital Storefront A-Frame Sign', price: 350 },
               { name: 'Custom Branded Staff Uniform Set', price: 300 },
               { name: 'New Restaurant Dining Table', price: 250 },
+              { name: 'Professional Chef Cookware Set', price: 200 },
               { name: 'Outdoor Patio Heater', price: 150 },
-              { name: 'Premium Chef Knife Set', price: 125 }
+              { name: 'Smart Programmable Thermostat', price: 150 },
+              { name: 'Premium Chef Knife Set', price: 125 },
+              { name: 'Anti-Fatigue Floor Mat Set', price: 100 },
+              { name: 'LED Storefront Open Sign', price: 75 }
             ];
             
-            // Find what fits best
+            // Find up to 3 distinct items that fit the budget individually
             var matches = [];
             for (var i = 0; i < catalog.length; i++) {
               var item = catalog[i];
               if (savings >= item.price) {
-                var qty = Math.floor(savings / item.price);
-                matches.push(qty + 'x ' + item.name + (qty > 1 ? 's' : ''));
-                if (matches.length >= 2) break; // show at most 2 choices
+                matches.push('1x ' + item.name);
+                if (matches.length >= 3) break; // show at most 3 choices
               }
             }
             
