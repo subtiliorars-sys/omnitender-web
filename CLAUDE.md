@@ -2,6 +2,7 @@
 
 ## Working agreement
 - Fast, direct execution; token-efficient. Scope searches narrowly (ask before repo-wide scans).
+- Run HTML reference and accessibility validation: `./check_web_links.py`.
 - This repo ships `.githooks/` (secret-scan + multi-instance guard). Run agent-corps `install.sh` once so a Claude SessionStart hook auto-enables them (`git config core.hooksPath .githooks`).
 
 <!-- BEGIN git-guards protocol (agent-corps) — paste/keep this block in a repo's CLAUDE.md -->

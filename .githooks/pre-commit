@@ -26,4 +26,14 @@ if [ -n "$hits" ]; then
   echo ""
   exit 1
 fi
+# Run documentation/HTML validation check.
+if [ -f "./check_web_links.py" ]; then
+  echo "🔍  Validating HTML references and accessibility..."
+  python3 ./check_web_links.py
+  if [ $? -ne 0 ]; then
+    echo "🚫  COMMIT BLOCKED — HTML reference or validation check failed. Fix the broken links and try again."
+    exit 1
+  fi
+fi
+
 exit 0
