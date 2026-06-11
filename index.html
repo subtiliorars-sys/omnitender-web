@@ -200,6 +200,13 @@
             <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 1px;">Estimated Monthly Savings</div>
             <div id="calc-monthly-savings" style="font-size: 2.8rem; font-weight: 900; color: var(--brand); text-shadow: 0 0 15px rgba(247,121,44,0.25);">$1,400</div>
             <div id="calc-sub-label" style="font-size: 0.85rem; color: var(--gold); font-weight: 600;">Stop paying processor fees now.</div>
+            
+            <!-- Dynamic purchase widget -->
+            <div id="calc-equivalent-purchase" style="margin-top: 12px; font-size: 0.85rem; color: #ccc; border-top: 1px solid #222; padding-top: 12px; width: 100%; text-align: center; display: none;">
+              <div style="font-weight: 700; color: var(--gold); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 1px; margin-bottom: 8px;">What you could buy with these monthly savings:</div>
+              <div id="calc-items-list" style="font-weight: 600; font-size: 0.88rem; color: #fff; line-height: 1.4;"></div>
+            </div>
+
             <p style="font-size: 0.7rem; color: var(--muted); line-height: 1.4; margin-top: 20px; border-top: 1px solid #222; padding-top: 12px; font-weight: 500; text-align: left;">
               * Projected savings assume transition to OmniTender's dual pricing / cash discount program, where customer convenience fees cover processing costs, resulting in a true 0% transaction fee to the merchant's bottom line.
             </p>
@@ -429,6 +436,45 @@
           } else {
             subLabel.textContent = "Stop paying processor fees now.";
             subLabel.style.color = "var(--gold)";
+          }
+        }
+
+        // Dynamic equivalent purchases
+        var itemsBox = document.getElementById('calc-equivalent-purchase');
+        var itemsList = document.getElementById('calc-items-list');
+        if (itemsBox && itemsList) {
+          if (savings >= 50) {
+            itemsBox.style.display = 'block';
+            
+            // List of equipment and estimated prices
+            var catalog = [
+              { name: 'Commercial Convection Oven', price: 4500 },
+              { name: 'Espresso Machine', price: 1200 },
+              { name: 'Digital Menu Board', price: 600 },
+              { name: 'POS Hardware Terminal', price: 400 },
+              { name: 'New Restaurant Dining Table', price: 250 },
+              { name: 'Premium Chef Knife Set', price: 125 }
+            ];
+            
+            // Find what fits best
+            var matches = [];
+            for (var i = 0; i < catalog.length; i++) {
+              var item = catalog[i];
+              if (savings >= item.price) {
+                var qty = Math.floor(savings / item.price);
+                matches.push(qty + 'x ' + item.name + (qty > 1 ? 's' : ''));
+                if (matches.length >= 2) break; // show at most 2 choices
+              }
+            }
+            
+            // Fallback for smaller amounts
+            if (matches.length === 0) {
+              matches.push("A custom Neon Storefront Sign or kitchen supplies");
+            }
+            
+            itemsList.innerHTML = matches.join('<br><span style="font-size:0.75rem;color:var(--muted);font-weight:normal;">or</span><br>');
+          } else {
+            itemsBox.style.display = 'none';
           }
         }
       }
