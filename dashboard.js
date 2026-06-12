@@ -103,6 +103,7 @@
     ledger: loadLedger,
     pipeline: loadPipeline,
     leads: loadLeads,
+    feedback: loadFeedback,
     access: loadAccess,
     savings: loadPricing,
     digest: loadDigest
@@ -311,6 +312,84 @@
       renderLeadsList();
     } catch (e) { document.getElementById('leadlist').innerHTML = '<div class=empty>Failed to load: ' + esc(e.message) + '</div>'; }
   }
+
+  /* ---- Feedback ---- */
+  var cacheFeedback = [];
+
+  function feedbackStatusBadge(status) {
+    const s = status || 'new';
+    const colors = {
+      new: '#F7792C',
+      reviewing: '#60a5fa',
+      accepted: '#34d399',
+      declined: '#f87171',
+      done: '#a1a1a1'
+    };
+    return '<span style="display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:2px 8px; border-radius:999px; background:rgba(255,255,255,0.06); color:' + (colors[s] || colors.new) + ';">' + esc(s) + '</span>';
+  }
+
+  function renderFeedbackList() {
+    const filter = (document.getElementById('feedback-filter') || {}).value || '';
+    const list = filter ? cacheFeedback.filter((f) => (f.status || 'new') === filter) : cacheFeedback;
+    const el = document.getElementById('feedback-list');
+    if (!list.length) {
+      el.innerHTML = '<div class="empty">' + (filter ? 'No feedback with that status.' : 'No feedback yet — reports from the site will appear here.') + '</div>';
+      return;
+    }
+    el.innerHTML = list.map(function (f) {
+      const cat = f.category || 'bug';
+      const catLabel = cat === 'improvement' ? '✨ Improvement' : cat === 'question' ? '❓ Question' : '🐞 Bug';
+      const when = f.at ? new Date(f.at).toLocaleString() : '';
+      const ctx = f.context ? '<div style="font-size:11px; color:var(--faint); margin-top:6px; word-break:break-all;">Page: ' + esc(f.context) + '</div>' : '';
+      const shot = f.screenshot ? '<details style="margin-top:8px;"><summary style="cursor:pointer; font-size:11px; color:var(--accent);">View screenshot</summary><img src="' + esc(f.screenshot) + '" alt="Feedback screenshot" style="max-width:100%; margin-top:8px; border-radius:8px; border:1px solid var(--card-edge);"></details>' : '';
+      const note = f.reviewNote ? '<div style="font-size:11px; color:var(--muted); margin-top:8px;">Note: ' + esc(f.reviewNote) + '</div>' : '';
+      const actions = (f.status === 'done' || f.status === 'declined')
+        ? '<button class="btn" data-fb-status="' + esc(f.id) + '" data-status="reviewing" style="width:auto; min-height:0; padding:6px 10px; font-size:11px; margin:0;">Reopen</button>'
+        : '<div style="display:flex; gap:6px; flex-wrap:wrap;">' +
+            '<button class="btn btn-go" data-fb-status="' + esc(f.id) + '" data-status="accepted" style="width:auto; min-height:0; padding:6px 10px; font-size:11px; margin:0;">Accept</button>' +
+            '<button class="btn" data-fb-status="' + esc(f.id) + '" data-status="reviewing" style="width:auto; min-height:0; padding:6px 10px; font-size:11px; margin:0;">Reviewing</button>' +
+            '<button class="btn btn-no" data-fb-status="' + esc(f.id) + '" data-status="declined" style="width:auto; min-height:0; padding:6px 10px; font-size:11px; margin:0;">Decline</button>' +
+            '<button class="btn" data-fb-status="' + esc(f.id) + '" data-status="done" style="width:auto; min-height:0; padding:6px 10px; font-size:11px; margin:0;">Mark Done</button>' +
+          '</div>';
+      return '<div class="card" style="margin-bottom:12px; padding:14px;">' +
+        '<div style="display:flex; justify-content:space-between; gap:8px; align-items:flex-start; flex-wrap:wrap;">' +
+          '<div><strong>' + catLabel + '</strong> ' + feedbackStatusBadge(f.status) + '</div>' +
+          '<span style="font-size:11px; color:var(--faint);">' + esc(when) + '</span>' +
+        '</div>' +
+        '<p style="margin:10px 0 0; font-size:13px; line-height:1.5; white-space:pre-wrap;">' + esc(f.message) + '</p>' +
+        ctx + shot + note +
+        '<div style="margin-top:12px;">' + actions + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  async function loadFeedback() {
+    try {
+      const data = await api('/api/feedback');
+      cacheFeedback = data.items || [];
+      renderFeedbackList();
+    } catch (err) {
+      document.getElementById('feedback-list').innerHTML = '<div class="empty">Could not load feedback: ' + esc(err.message) + '</div>';
+    }
+  }
+
+  document.getElementById('feedback-filter').addEventListener('change', renderFeedbackList);
+
+  document.getElementById('feedback-list').addEventListener('click', async function (e) {
+    const btn = e.target.closest('[data-fb-status]');
+    if (!btn) return;
+    const id = btn.getAttribute('data-fb-status');
+    const status = btn.getAttribute('data-status');
+    btn.disabled = true;
+    try {
+      await api('/api/feedback/action', { method: 'POST', body: { id, status } });
+      toast('Feedback marked as ' + status + '.');
+      loadFeedback();
+    } catch (err) {
+      toast(err.message, true);
+      btn.disabled = false;
+    }
+  });
 
   /* ---- Access & Users ---- */
   async function loadAccess() {
@@ -557,27 +636,29 @@
 
       // Check if First Login Setup is mandated
       if (data.mustSetupMfa) {
-        // Stash the temporary token to fetch setup details
         setToken(data.token);
         sessionStorage.setItem('omni_dash_role', data.role);
         sessionStorage.setItem('omni_dash_username', data.username);
         currentUserRole = data.role;
 
-        // Configure MFA Setup Screen details
         document.getElementById('mfa-setup-username').value = data.username;
-        document.getElementById('mfa-secret-text').textContent = data.token; // Using token payload hash for manual setup entry placeholder
-        
-        // Generate dynamic authenticator QR Code (simulate SVG QR using plain text layout + manual key)
-        document.getElementById('mfa-qr-placeholder').innerHTML = 
-          `<svg viewBox="0 0 100 100" width="120" height="120">` +
-          `<rect width="100" height="100" fill="#fff"/>` +
-          `<path d="M10,10 h30 v30 h-30 z M15,15 h20 v20 h-20 z" fill="#000"/>` +
-          `<path d="M60,10 h30 v30 h-30 z M65,15 h20 v20 h-20 z" fill="#000"/>` +
-          `<path d="M10,60 h30 v30 h-30 z M15,65 h20 v20 h-20 z" fill="#000"/>` +
-          `<path d="M60,60 h10 v10 h-10 z M80,60 h10 v20 h-10 z" fill="#70,80 h20 v10 h-20 z" fill="#000"/>` +
-          `</svg>`;
-        
+        document.getElementById('mfa-secret-text').textContent = 'Loading…';
+        document.getElementById('mfa-qr-placeholder').innerHTML = 'Loading QR…';
         document.getElementById('mfa-setup-modal').style.display = 'flex';
+
+        try {
+          const setup = await api('/api/console_users/mfa-setup');
+          document.getElementById('mfa-secret-text').textContent = setup.secret || 'Unavailable';
+          if (setup.otpauthUri) {
+            document.getElementById('mfa-qr-placeholder').innerHTML =
+              '<img src="https://quickchart.io/qr?size=140&margin=1&text=' + encodeURIComponent(setup.otpauthUri) + '" alt="Scan to add authenticator" width="140" height="140" style="display:block;">';
+          } else {
+            document.getElementById('mfa-qr-placeholder').textContent = 'Enter key manually below';
+          }
+        } catch (setupErr) {
+          document.getElementById('mfa-secret-text').textContent = 'Could not load — contact admin';
+          document.getElementById('mfa-qr-placeholder').textContent = setupErr.message;
+        }
         return;
       }
 
@@ -612,8 +693,8 @@
     const mfaCode = document.getElementById('mfa-verification-code').value.trim();
     const errDiv = document.getElementById('mfa-setup-err');
 
-    if (!newPassword || newPassword.length < 12) {
-      errDiv.textContent = 'A new strong password (at least 12 characters) is required.';
+    if (!newPassword || !/^\d{6,12}$/.test(newPassword)) {
+      errDiv.textContent = 'PIN must be a numeric code between 6 and 12 digits.';
       errDiv.style.display = 'block';
       return;
     }

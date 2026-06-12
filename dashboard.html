@@ -388,7 +388,7 @@
         <p style="margin: 4px 0 0; font-size: 0.75rem; letter-spacing: 2px; color: var(--muted); text-transform: uppercase;">CRM &amp; Ops Console</p>
       </div>
       <h2>Console Login</h2>
-      <p style="color: var(--muted); font-size: 13px; margin-top: -8px; margin-bottom: 18px;">Log in using your employee username &amp; password or owner token.</p>
+      <p style="color: var(--muted); font-size: 13px; margin-top: -8px; margin-bottom: 18px;">Admin: username <strong>admin</strong> + your owner token (password field). Employees use their assigned username and PIN.</p>
       
       <div style="margin-bottom: 12px;">
         <label for="username-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--muted);">Username</label>
@@ -423,8 +423,8 @@
       </div>
 
       <div style="margin-bottom: 16px;">
-        <label for="mfa-setup-password" style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: var(--muted);">Choose Strong Password (Required)</label>
-        <input type="password" id="mfa-setup-password" placeholder="At least 12 characters" minlength="12">
+        <label for="mfa-setup-password" style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: var(--muted);">Choose Login PIN (Required)</label>
+        <input type="password" id="mfa-setup-password" placeholder="6–12 digit numeric PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12">
       </div>
 
       <div style="background: var(--inset); border: 1px solid var(--card-edge); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 16px; text-align: center;">
@@ -474,6 +474,7 @@
             <button data-v="ledger">💵 Ledger</button>
             <button data-v="pipeline">📈 Pipeline</button>
             <button data-v="leads">👥 Leads</button>
+            <button data-v="feedback">💬 Feedback</button>
             <button data-v="access">🔑 Access &amp; Admins</button>
             <button data-v="savings">💰 Savings &amp; Pricing</button>
             <button data-v="digest">📰 Digest</button>
@@ -631,6 +632,25 @@
                 <button class="btn btn-go" id="csv-import-btn" style="width:auto; min-height:0; padding:8px 16px; margin:0;">Upload CSV</button>
               </div>
               <div id="csv-import-status" style="font-size:11px; margin-top:8px;"></div>
+            </div>
+          </section>
+
+          <!-- FEEDBACK VIEW -->
+          <section id="v-feedback" class="view">
+            <div class="card">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+                <h2 style="margin-bottom:0; border-left:3px solid var(--accent); padding-left:10px;">Site Feedback &amp; Improvements</h2>
+                <select id="feedback-filter" style="min-width:140px;">
+                  <option value="">All statuses</option>
+                  <option value="new">New</option>
+                  <option value="reviewing">Reviewing</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="declined">Declined</option>
+                  <option value="done">Done</option>
+                </select>
+              </div>
+              <p style="font-size:12px; color:var(--muted); margin-top:-8px; margin-bottom:16px;">Anonymous reports from the public site feedback button. Review, accept improvements, or mark done.</p>
+              <div id="feedback-list"><div class="empty">Loading feedback…</div></div>
             </div>
           </section>
 
