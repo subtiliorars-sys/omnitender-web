@@ -100,6 +100,7 @@
   /* ---- tabs ---- */
   const loaders = {
     overview: loadOverview,
+    ledger: loadLedger,
     pipeline: loadPipeline,
     leads: loadLeads,
     access: loadAccess,
@@ -152,7 +153,7 @@
   function renderSVGChart(counts) {
     const stages = ['applied', 'in_review', 'approved', 'hardware_sent', 'active', 'rejected'];
     const labels = ['Applied', 'In Review', 'Approved', 'Hardware Sent', 'Active', 'Rejected'];
-    const colors = ['#F7792C', '#D4AF37', '#34d399', '#7db3f5', '#10b981', '#f87171'];
+    const colors = ['#F7792C', '#FFA066', '#D4AF37', '#FFC890', '#FFE1C2', '#a1a1a1'];
     
     const maxCount = Math.max(...stages.map(s => counts[s] || 0), 1);
     
@@ -966,6 +967,100 @@
     } catch (e) {
       console.warn("Session renewal heartbeat failed", e);
     }
+  });
+
+  // --- Ledger Section (Mock Data, Renderer, Filters & Export) ---
+  var cacheLedger = [
+    { txid: 'TX_910293', timestamp: '2026-06-12T10:15:30Z', customer: 'Alice Smith', amount: 120.50, method: 'USDC (OmniTender)', feeSaved: 3.62, status: 'Completed' },
+    { txid: 'TX_910292', timestamp: '2026-06-12T09:44:12Z', customer: 'Bob Jones', amount: 45.00, method: 'USDT (OmniTender)', feeSaved: 1.35, status: 'Completed' },
+    { txid: 'TX_910291', timestamp: '2026-06-11T18:22:05Z', customer: 'Charlie Brown', amount: 350.00, method: 'Visa (Credit Card)', feeSaved: 0.00, status: 'Completed' },
+    { txid: 'TX_910290', timestamp: '2026-06-11T14:10:45Z', customer: 'Diana Prince', amount: 85.20, method: 'USDC (OmniTender)', feeSaved: 2.56, status: 'Completed' },
+    { txid: 'TX_910289', timestamp: '2026-06-10T11:05:00Z', customer: 'Evan Wright', amount: 220.00, method: 'Mastercard', feeSaved: 0.00, status: 'Completed' },
+    { txid: 'TX_910288', timestamp: '2026-06-10T08:30:15Z', customer: 'Fiona Gallagher', amount: 15.75, method: 'EBT (SNAP)', feeSaved: 0.47, status: 'Completed' },
+    { txid: 'TX_910287', timestamp: '2026-06-09T16:55:00Z', customer: 'George Costanza', amount: 62.10, method: 'USDC (OmniTender)', feeSaved: 1.86, status: 'Completed' },
+    { txid: 'TX_910286', timestamp: '2026-06-09T12:04:10Z', customer: 'Hannah Abbott', amount: 110.00, method: 'USDT (OmniTender)', feeSaved: 3.30, status: 'Completed' },
+    { txid: 'TX_910285', timestamp: '2026-06-08T15:30:00Z', customer: 'Ian Malcolm', amount: 420.00, method: 'Visa (Credit Card)', feeSaved: 0.00, status: 'Refunded' },
+    { txid: 'TX_910284', timestamp: '2026-06-08T09:12:35Z', customer: 'Julia Roberts', amount: 95.50, method: 'USDC (OmniTender)', feeSaved: 2.87, status: 'Completed' },
+    { txid: 'TX_910283', timestamp: '2026-06-07T14:40:20Z', customer: 'Kevin Bacon', amount: 300.00, method: 'EBT (SNAP)', feeSaved: 9.00, status: 'Completed' }
+  ];
+
+  async function loadLedger() {
+    renderLedger();
+  }
+
+  function renderLedger() {
+    const searchVal = document.getElementById('ledger-search').value.toLowerCase().trim();
+    const sortVal = document.getElementById('ledger-sort').value;
+    
+    let filtered = cacheLedger.filter(item => {
+      return !searchVal || 
+             item.txid.toLowerCase().includes(searchVal) || 
+             item.customer.toLowerCase().includes(searchVal) || 
+             item.method.toLowerCase().includes(searchVal);
+    });
+
+    // Sort logic
+    filtered.sort((a, b) => {
+      if (sortVal === 'date-desc') {
+        return new Date(b.timestamp) - new Date(a.timestamp);
+      } else if (sortVal === 'date-asc') {
+        return new Date(a.timestamp) - new Date(b.timestamp);
+      } else if (sortVal === 'value-desc') {
+        return b.amount - a.amount;
+      } else if (sortVal === 'value-asc') {
+        return a.amount - b.amount;
+      } else if (sortVal === 'fee-desc') {
+        return b.feeSaved - a.feeSaved;
+      }
+      return 0;
+    });
+
+    const tbody = document.getElementById('ledger-body');
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty" style="text-align:center; padding: 20px;">No matching transactions found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(o => {
+      const d = new Date(o.timestamp);
+      const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const statusClass = o.status === 'Completed' ? 'badge b-active' : 'badge b-rejected';
+      return '<tr>' +
+        '<td style="padding:10px; border-bottom: 1px solid var(--card-edge); font-family: monospace; font-weight: bold;">' + esc(o.txid) + '</td>' +
+        '<td style="padding:10px; border-bottom: 1px solid var(--card-edge);">' + esc(dateStr) + '</td>' +
+        '<td style="padding:10px; border-bottom: 1px solid var(--card-edge);">' + esc(o.customer) + '</td>' +
+        '<td style="padding:10px; border-bottom: 1px solid var(--card-edge); font-weight: bold;">' + money(o.amount) + '</td>' +
+        '<td style="padding:10px; border-bottom: 1px solid var(--card-edge);"><span class="badge b-approved" style="background: rgba(247, 121, 44, 0.1); color: var(--accent); border: 1px solid rgba(247, 121, 44, 0.2);">' + esc(o.method) + '</span></td>' +
+        '<td style="padding:10px; border-bottom: 1px solid var(--card-edge); color: var(--up); font-weight: bold;">+' + money(o.feeSaved) + '</td>' +
+        '<td style="padding:10px; border-bottom: 1px solid var(--card-edge);"><span class="' + statusClass + '">' + esc(o.status) + '</span></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // --- Ledger Event Listeners ---
+  document.getElementById('ledger-search').addEventListener('input', renderLedger);
+  document.getElementById('ledger-sort').addEventListener('change', renderLedger);
+  document.getElementById('export-ledger-btn').addEventListener('click', () => {
+    const headers = ['TXID', 'Timestamp', 'Customer', 'Amount', 'Method', 'Fee Saved', 'Status'];
+    const rows = cacheLedger.map(item => [
+      item.txid,
+      item.timestamp,
+      item.customer,
+      item.amount,
+      item.method,
+      item.feeSaved,
+      item.status
+    ]);
+    let csvContent = "data:text/csv;charset=utf-8," 
+      + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "transaction_ledger.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast('CSV Export started.');
   });
 
   /* ---- init ---- */

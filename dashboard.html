@@ -471,6 +471,7 @@
           
           <nav id="nav">
             <button data-v="overview" class="on">📋 Overview</button>
+            <button data-v="ledger">💵 Ledger</button>
             <button data-v="pipeline">📈 Pipeline</button>
             <button data-v="leads">👥 Leads</button>
             <button data-v="access">🔑 Access &amp; Admins</button>
@@ -542,6 +543,44 @@
               </div>
               <div id="audit-log-stream" style="max-height:220px; overflow-y:auto; font-family:monospace; font-size:11px; line-height:1.4; border:1px solid #222; border-radius:6px; padding:10px; background:#0a0a0a; color:#fff;">
                 <div style="color:var(--faint);">Loading audit trail...</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- LEDGER VIEW -->
+          <section id="v-ledger" class="view">
+            <div class="card">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+                <h2 style="margin-bottom:0; border-left:3px solid var(--accent); padding-left:10px;">💵 Transaction Fee Ledger</h2>
+                <button class="btn btn-go" id="export-ledger-btn" style="width:auto; min-height:0; padding:6px 12px; font-size:11px; margin-top:0;">📥 Export CSV</button>
+              </div>
+              <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+                <input type="text" id="ledger-search" placeholder="🔍 Search by ID, customer, method..." style="flex:2; min-width:180px;">
+                <select id="ledger-sort" style="flex:1; min-width:120px;">
+                  <option value="date-desc">Date (Newest)</option>
+                  <option value="date-asc">Date (Oldest)</option>
+                  <option value="value-desc">Value (Highest)</option>
+                  <option value="value-asc">Value (Lowest)</option>
+                  <option value="fee-desc">Fees Saved (Highest)</option>
+                </select>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left; min-width:600px;">
+                  <thead>
+                    <tr style="border-bottom:2px solid var(--card-edge); color:var(--accent); font-weight:bold;">
+                      <th style="padding:10px;">TXID</th>
+                      <th style="padding:10px;">Date &amp; Time</th>
+                      <th style="padding:10px;">Customer</th>
+                      <th style="padding:10px;">Amount</th>
+                      <th style="padding:10px;">Payment Method</th>
+                      <th style="padding:10px;">Fees Saved</th>
+                      <th style="padding:10px;">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ledger-body">
+                    <tr><td colspan="7" class="empty">Loading ledger...</td></tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </section>
