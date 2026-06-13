@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Processor strategy — what we're building</title>
+  <link rel="stylesheet" href="../style.css?v=3">
+  <style>
+    main { max-width: 780px; margin: 0 auto; padding: 24px 16px 48px; }
+    h2 { color: var(--brand, #F7792C); margin-top: 2em; border-bottom: 1px solid var(--border, #333); padding-bottom: 6px; }
+    h3 { color: var(--gold, #e6a020); margin-top: 1.5em; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border, #333); padding: 8px; text-align: left; vertical-align: top; }
+    th { background: rgba(247,121,44,0.12); }
+    .callout { background: rgba(247,121,44,0.1); border: 1px solid rgba(247,121,44,0.35); border-radius: 8px; padding: 14px 16px; margin: 16px 0; }
+    .back { display: inline-block; margin-bottom: 16px; }
+    ul { padding-left: 1.2rem; }
+    li { margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="back" href="index.html">← Back to START HERE</a>
+    <h1>What we're trying to accomplish</h1>
+    <p><strong>OmniTender Systems LLC</strong> · Internal strategy · June 2026</p>
+
+    <div class="callout">
+      <strong>Mission in one line:</strong> Help local merchants accept every way their customers already pay — cards, debit, crypto — at <em>lower cost than legacy processors</em>, while OmniTender earns fair residuals and builds software that makes the whole stack easier to use.
+    </div>
+
+    <h2>Why we're doing this</h2>
+    <ul>
+      <li><strong>Community service</strong> — connect people to payment methods they've already funded (card, benefits, digital wallets).</li>
+      <li><strong>Merchants lose 2–4%</strong> to opaque tiered pricing; underserved areas get ignored by big ISOs.</li>
+      <li><strong>We can beat flat-rate apps</strong> (Square, generic Stripe checkout) with transparent interchange-plus or compliant dual-pricing — merchants save; we still earn margin on residuals.</li>
+      <li><strong>Wrapper software</strong> (OmniVerse, apply funnel, onboarding) is our moat — Daniel can co-build integrations with partners; that's a feature, not a blocker.</li>
+    </ul>
+
+    <h2>Important clarification — Wispr Flow</h2>
+    <p><strong>Wispr Flow is not a payment processor.</strong> It's a voice-dictation app (speech-to-text). It uses Stripe to bill its own subscription — it doesn't process merchant card payments.</p>
+    <p>When we say "beat the competition," we mean processors like legacy ISOs, overpriced tiered accounts, and weak flat-rate platforms — not Wispr Flow.</p>
+
+    <h2>Our model (how we stay lawful without our own license yet)</h2>
+    <ol>
+      <li><strong>OmniTender</strong> = sales, onboarding, support, software.</li>
+      <li><strong>Licensed partners</strong> = processing, settlement, compliance rails.</li>
+      <li><strong>We never hold</strong> merchant or customer funds.</li>
+      <li>Daniel approves every merchant before submission to a processor.</li>
+    </ol>
+    <p>This lets us launch now and negotiate better partner deals as volume grows — then optionally pursue embedded PayFac (Stax Connect, Stripe Connect) when revenue justifies it.</p>
+
+    <h2>Target processor stack</h2>
+    <p>Goal: <strong>best-in-class for each rail</strong> — competitive for the merchant, healthy margin for OmniTender.</p>
+
+    <h3>Credit &amp; debit (primary — launch now)</h3>
+    <table>
+      <tr><th>Partner</th><th>Why we're pursuing</th><th>Status</th></tr>
+      <tr>
+        <td><strong>PaymentCloud</strong> (agent/ISO)</td>
+        <td>Free agent signup, lifetime residuals, explicit dual-pricing / zero-net-cost programs for merchants, stronger economics than Square/Stripe agent paths.</td>
+        <td><strong>Apply now</strong> — PA task</td>
+      </tr>
+      <tr>
+        <td><strong>Stax Connect</strong></td>
+        <td>Embedded payments inside our software; compliant surcharging; white-label when OmniVerse is the platform layer.</td>
+        <td><strong>Phase 2</strong> — after first merchants + partner call learnings</td>
+      </tr>
+      <tr>
+        <td>Helcim</td>
+        <td>Ethical interchange-plus transparency; weaker dual-pricing story but good brand for honest merchants.</td>
+        <td>Backup / comparison quote</td>
+      </tr>
+      <tr>
+        <td>Square / Stripe direct</td>
+        <td>Easy but thin margins for us; flat 2.9% often <em>worse</em> for established merchants vs interchange-plus.</td>
+        <td>Competitor reference, not primary</td>
+      </tr>
+    </table>
+
+    <h3>Crypto (launch now)</h3>
+    <table>
+      <tr><th>Partner</th><th>Why</th><th>Status</th></tr>
+      <tr>
+        <td><strong>NOWPayments</strong></td>
+        <td>~0.5% non-custodial, white-label friendly, 300+ coins, merchant can receive USD via partner rails.</td>
+        <td><strong>Apply now</strong> — PA task</td>
+      </tr>
+      <tr>
+        <td>Bitflow (existing)</td>
+        <td>Keep if already working; compare fees vs NOWPayments on intro calls.</td>
+        <td>Evaluate in parallel</td>
+      </tr>
+      <tr>
+        <td>CoinGate / BitPay</td>
+        <td>~1%, referral models; fallback if NOWPayments terms aren't competitive.</td>
+        <td>Backup</td>
+      </tr>
+    </table>
+
+    <h3>EBT / SNAP</h3>
+    <p>Merchants often apply for USDA FNS numbers directly. OmniTender helps eligible retailers — defer heavy reseller hunt until card/crypto pipeline is live.</p>
+
+    <h2>How we win on rates AND margins (both at once)</h2>
+    <ul>
+      <li><strong>Interchange-plus or compliant dual-pricing</strong> — merchant sees real cost + small transparent margin; not bloated tiered "qualified/mid/non" games.</li>
+      <li><strong>Agent residuals</strong> — PaymentCloud pays OmniTender ongoing share; we're aligned with merchant retention.</li>
+      <li><strong>Crypto at ~0.5%</strong> vs card ~2% effective — huge savings for merchants who want it; we still earn on spread/partner rev share.</li>
+      <li><strong>Software wrapper</strong> — faster onboarding, fewer support tickets, higher conversion from ads → apply.html → live merchant.</li>
+    </ul>
+
+    <h2>Software we build (or co-build with partners)</h2>
+    <ul>
+      <li><strong>omnitender-web</strong> — apply.html funnel, ads landing, SMS opt-in.</li>
+      <li><strong>OmniVerse</strong> — lead alerts, Q&amp;A, merchant comms.</li>
+      <li><strong>Future</strong> — CRM dashboard, statement analyzer, embedded checkout via Stax/Stripe Connect APIs.</li>
+    </ul>
+    <p>Daniel's pitch to partners: <em>"We bring merchants and a software layer; you bring the license and rails. Let's integrate APIs and revenue-share."</em></p>
+
+    <h2>What the team is doing right now (tactical)</h2>
+    <ol>
+      <li>Sign OmniTender as <strong>agent/reseller</strong> on PaymentCloud + NOWPayments.</li>
+      <li>Run ads → <a href="../apply.html">apply.html</a> → intern handoff → Daniel approves → submit merchant to partner.</li>
+      <li>On every partner call: push for <strong>residual split in writing</strong>, dual-pricing program details, API/white-label path.</li>
+      <li>Log competitor quotes merchants mention (Square, Clover, local ISO) for statement analysis.</li>
+    </ol>
+
+    <h2>Success metrics (first 90 days)</h2>
+    <ul>
+      <li>PaymentCloud + NOWPayments partner codes active</li>
+      <li>First 5–15 NC merchants onboarded</li>
+      <li>Documented effective rate savings vs prior processor (statement analysis)</li>
+      <li>Partner shortlist for Phase 2 embedded (Stax Connect or equivalent) if volume warrants</li>
+    </ul>
+
+    <p><a href="partner-signup.html">→ PA: partner signup instructions</a> · <a href="intern-handoff.html">→ Intern: lead handoff</a></p>
+  </main>
+</body>
+</html>
