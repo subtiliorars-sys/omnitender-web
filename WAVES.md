@@ -6,14 +6,16 @@ Verify: `python check_web_links.py` when HTML changes.
 ## Active queue
 
 ### Wave OTW-W1 — Link sweep
-**Status:** `active`  
+**Status:** `done`  
 **Branch:** `automation/wave-otw-w1-links`
 
-- [ ] Run check_web_links.py; fix broken internal links
-- [ ] No pricing/rate claims added
+- [x] Run check_web_links.py; fix broken internal links
+- [x] No pricing/rate claims added
+
+**Notes (2026-06-13):** Extended checker with `#fragment` anchor validation; aligned `pos.html` footer and `404.html` recovery links with site nav. Scan: 0 errors.
 
 ### Wave OTW-W2 — Apply funnel clarity
-**Status:** `pending`  
+**Status:** `active`  
 **Branch:** `automation/wave-otw-w2-apply`
 
 - [ ] apply.html + dashboard copy clarity (no legal/rate promises)
