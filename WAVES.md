@@ -17,12 +17,17 @@ Verify: `python check_web_links.py` when HTML changes.
 - [x] `python check_web_links.py` — 0 errors
 
 ### Wave OTW-W2 — Apply funnel clarity
-**Status:** `active`  
-**Branch:** `automation/wave-otw-w2-apply`
+**Status:** `done`  
+**Branch:** `automation/wave-otw-w2-apply`  
+**PR:** https://github.com/subtiliorars-sys/omnitender-web/pull/10
+
+- [x] apply.html + dashboard copy clarity (no legal/rate promises)
+- [x] Cross-link savings/about where referenced
 
 ### Wave OTW-W3 — SEO hygiene
-**Status:** `active`  
-**Branch:** `automation/wave-otw-w3-seo`
+**Status:** `done`  
+**Branch:** `automation/wave-otw-w3-seo`  
+**PR:** https://github.com/subtiliorars-sys/omnitender-web/pull/11
 
 - [x] Title/meta/robots sane; CNAME unchanged
 
