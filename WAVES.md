@@ -1,16 +1,19 @@
 # omnitender-web — Wave Registry
 
-Static public site. Branch: `automation/wave-*`.
+Static public site. Branch: `automation/*`.
 Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
-### Wave OTW-W1 — Link sweep
-**Status:** `active`  
-**Branch:** `automation/wave-otw-w1-links`
+### Wave OTW-W1 — Phase A public site (MVP pages)
+**Status:** `completed` (PR pending)  
+**Branch:** `automation/work-phase-a-home`
 
-- [ ] Run check_web_links.py; fix broken internal links
-- [ ] No pricing/rate claims added
+- [x] Home — Phase A wireframe (hero, payment types, why OmniTender, how it works, calculator, CTA)
+- [x] Products, Savings, About, Contact pages + nav
+- [x] sitemap.xml updated
+- [x] No procurement/RFP positioning; no rate guarantees
+- [x] `python check_web_links.py` — 0 errors
 
 ### Wave OTW-W2 — Apply funnel clarity
 **Status:** `pending`  
