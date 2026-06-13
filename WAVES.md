@@ -5,6 +5,16 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
+### Wave OTW-W4 — Contact FAQ (education-only)
+**Status:** `in_review`  
+**Branch:** `automation/wave-otw-w4-contact-faq`
+
+- [x] FAQ section on contact.html — no rate guarantees or approval promises
+- [x] Links to savings calculator + apply funnel
+- [x] `python check_web_links.py` — 0 errors
+
+## Completed
+
 ### Wave OTW-W1 — Phase A public site (MVP pages)
 **Status:** `done`  
 **Branch:** `automation/work-phase-a-home`  
