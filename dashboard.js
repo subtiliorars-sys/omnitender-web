@@ -28,10 +28,55 @@
     sessionStorage.removeItem('omni_dash_token');
     sessionStorage.removeItem('omni_dash_role');
     sessionStorage.removeItem('omni_dash_username');
+    sessionStorage.removeItem('omni_dash_pending_setup');
+  }
+
+  function markPendingSetup(on) {
+    if (on) sessionStorage.setItem('omni_dash_pending_setup', '1');
+    else sessionStorage.removeItem('omni_dash_pending_setup');
+  }
+
+  function applySetupQr(res) {
+    const secret = res.secret || '';
+    document.getElementById('mfa-secret-text').textContent = secret || '—';
+    const copyBtn = document.getElementById('mfa-secret-copy');
+    if (copyBtn) copyBtn.disabled = !secret;
+    const qrImg = document.getElementById('mfa-qr-image');
+    const qrPlaceholder = document.getElementById('mfa-qr-placeholder');
+    if (res.mfaQr && res.mfaQr.startsWith('data:image/')) {
+      qrPlaceholder.style.display = 'none';
+      qrImg.onload = function() { qrImg.style.display = 'block'; };
+      qrImg.onerror = function() {
+        qrImg.style.display = 'none';
+        qrPlaceholder.style.display = 'flex';
+        qrPlaceholder.textContent = 'QR failed — enter key manually below';
+      };
+      qrImg.src = res.mfaQr;
+    } else {
+      qrImg.style.display = 'none';
+      qrPlaceholder.style.display = 'flex';
+      qrPlaceholder.textContent = 'Enter key manually below';
+    }
+  }
+
+  async function resumeSetupWizard(username) {
+    document.getElementById('unlock-view').style.display = 'none';
+    document.getElementById('dash-view').style.display = 'none';
+    showSetupModal(username);
+    try {
+      const res = await api('/api/console_users/mfa-setup');
+      applySetupQr(res);
+      document.getElementById('mfa-setup-step1').style.display = 'none';
+      document.getElementById('mfa-setup-step2').style.display = 'block';
+      toast('Welcome back — finish scanning the QR and enter your verification code.');
+    } catch (_) {
+      toast('First login — choose your permanent username and PIN.');
+    }
   }
 
   /* ---- view switching ---- */
   function showUnlock(errMsg) {
+    document.getElementById('mfa-setup-modal').style.display = 'none';
     document.getElementById('dash-view').style.display = 'none';
     document.getElementById('unlock-view').style.display = 'block';
     var errEl = document.getElementById('unlock-err');
@@ -63,13 +108,15 @@
       init.body = JSON.stringify(o.body || {});
     }
     const r = await fetch(API + path, init);
-    if (r.status === 401) {
-      clearToken();
-      showUnlock('Session expired. Please log in again.');
-      throw new Error('Unauthorized');
-    }
     const ct = r.headers.get('content-type') || '';
     const data = ct.includes('json') ? await r.json() : await r.text();
+    if (r.status === 401) {
+      clearToken();
+      document.getElementById('mfa-setup-modal').style.display = 'none';
+      const msg = (data && data.error) ? data.error : 'Session expired. Please log in again.';
+      showUnlock(msg);
+      throw new Error(msg);
+    }
     if (!r.ok) throw new Error((data && data.error) || ('HTTP ' + r.status));
     return data;
   }
@@ -95,6 +142,62 @@
     t.className = 'toast' + (isErr ? ' err' : '');
     t.style.display = 'block';
     setTimeout(() => { t.style.display = 'none'; }, 3500);
+  }
+
+  async function copyMfaSecret() {
+    const secret = document.getElementById('mfa-secret-text').textContent.trim();
+    if (!secret || secret === '—') {
+      toast('Setup key not ready yet.', true);
+      return;
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(secret);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = secret;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      toast('Setup key copied — paste it into your authenticator app.');
+    } catch (_) {
+      toast('Could not copy — select the key and copy manually.', true);
+    }
+  }
+
+  function updateNavBadge(tab, count) {
+    var btn = document.querySelector('nav button[data-v="' + tab + '"]');
+    if (!btn) return;
+    var existing = btn.querySelector('.nav-badge');
+    if (!count || count <= 0) {
+      if (existing) existing.remove();
+      return;
+    }
+    if (!existing) {
+      existing = document.createElement('span');
+      existing.className = 'nav-badge';
+      btn.appendChild(existing);
+    }
+    existing.textContent = count > 99 ? '99+' : String(count);
+  }
+
+  async function refreshNavBadges() {
+    try {
+      var b = await api('/api/dashboard/badges');
+      updateNavBadge('feedback', b.feedback || 0);
+      updateNavBadge('leads', b.leads || 0);
+      updateNavBadge('pipeline', b.pipeline || 0);
+    } catch (_) { /* non-fatal */ }
+  }
+
+  function assigneeHtml(record) {
+    if (!record || !record.assignedTo) return '';
+    return '<p style="font-size:11px;color:var(--muted);margin:6px 0 0;">👤 Assigned to <strong>' + esc(record.assignedTo) + '</strong></p>';
   }
 
   /* ---- tabs ---- */
@@ -135,6 +238,7 @@
       else { bar.style.display = 'none'; }
     } catch (e) {}
     try { document.getElementById('queue').textContent = await api('/queue'); } catch (e) {}
+    loadFollowUpQueue();
     loadAuditLogs();
     
     // Render pipeline distribution chart
@@ -149,6 +253,7 @@
     } catch (err) {
       document.getElementById('pipeline-chart').innerHTML = '<div class=empty>Failed to render chart: ' + esc(err.message) + '</div>';
     }
+    refreshNavBadges();
   }
 
   function renderSVGChart(counts) {
@@ -200,26 +305,128 @@
     return svg;
   }
 
+  async function loadFollowUpQueue() {
+    var el = document.getElementById('followup-queue');
+    if (!el) return;
+    try {
+      var lj = await api('/leads');
+      var pj = await api('/api/pipeline');
+      var leads = (lj.leads || []).filter(function (l) {
+        var q = l.qualification || {};
+        if (q.status === 'ready_for_human') return true;
+        var s = l.status || 'open';
+        return s !== 'archived' && s !== 'contacted';
+      }).sort(function (a, b) {
+        var qa = (a.qualification || {}).status === 'ready_for_human' ? 1 : 0;
+        var qb = (b.qualification || {}).status === 'ready_for_human' ? 1 : 0;
+        if (qa !== qb) return qb - qa;
+        var ia = (a.qualification || {}).interest === 'hot' ? 2 : (a.qualification || {}).interest === 'warm' ? 1 : 0;
+        var ib = (b.qualification || {}).interest === 'hot' ? 2 : (b.qualification || {}).interest === 'warm' ? 1 : 0;
+        return ib - ia;
+      }).slice(0, 6);
+      var pipe = (pj.items || []).filter(function (o) {
+        var q = o.qualification || {};
+        if (q.status === 'ready_for_human') return true;
+        return o.stage === 'applied' || (o.stage === 'in_review' && !o.contactedAt);
+      }).sort(function (a, b) {
+        var qa = (a.qualification || {}).status === 'ready_for_human' ? 1 : 0;
+        var qb = (b.qualification || {}).status === 'ready_for_human' ? 1 : 0;
+        return qb - qa;
+      }).slice(0, 6);
+      if (!leads.length && !pipe.length) {
+        el.innerHTML = '<div class="empty">No one waiting for outreach — new website forms will appear here automatically.</div>';
+        return;
+      }
+      var rows = [];
+      leads.forEach(function (l) {
+        var q = l.qualification || {};
+        var qualNote = q.summary ? '<br><span style="font-size:11px;color:var(--muted);">' + esc(q.summary) + '</span>' : '';
+        var assignNote = l.assignedTo ? '<br><span style="font-size:11px;color:var(--faint);">👤 ' + esc(l.assignedTo) + '</span>' : '';
+        rows.push('<div class="item" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">' +
+          '<div><strong>' + esc(l.name || 'Lead') + '</strong> <span class="badge b-in_review">SMS lead</span>' + qualificationBadge(q) + '<br>' +
+          '<span style="font-size:12px;color:var(--muted);">' + esc(l.phone || 'no phone') + '</span>' + qualNote + assignNote + '</div>' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;">' + renderContactButtons(l.phone) +
+          '<button type="button" class="btn" onclick="document.querySelector(\'nav button[data-v=leads]\').click()" style="width:auto;min-height:32px;padding:0 10px;margin:0;font-size:11px;">Open Leads</button></div></div>');
+      });
+      pipe.forEach(function (o) {
+        var q = o.qualification || {};
+        var qualNote = q.summary ? '<br><span style="font-size:11px;color:var(--muted);">' + esc(q.summary) + '</span>' : '';
+        rows.push('<div class="item" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">' +
+          '<div><strong>' + esc(o.name) + '</strong> <span class="badge b-applied">Application</span>' + qualificationBadge(q) + '<br>' +
+          '<span style="font-size:12px;color:var(--muted);">' + esc(o.phone || 'no phone') + (o.business ? ' · ' + esc(o.business) : '') + '</span>' + qualNote + '</div>' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;">' + renderContactButtons(o.phone) +
+          '<button type="button" class="btn" onclick="document.querySelector(\'nav button[data-v=pipeline]\').click()" style="width:auto;min-height:32px;padding:0 10px;margin:0;font-size:11px;">Open Pipeline</button></div></div>');
+      });
+      el.innerHTML = rows.join('');
+    } catch (e) {
+      el.innerHTML = '<div class="empty">Could not load follow-up queue.</div>';
+    }
+  }
+
   /* ---- Pipeline ---- */
-  const NEXT_LABEL = { applied: 'Approve', in_review: 'Approve', approved: 'Advance → hardware', hardware_sent: 'Advance → active' };
+  function qualificationBadge(q) {
+    if (!q || !q.status || q.status === 'none') return '';
+    var labels = {
+      awaiting_reply: ['AI outreach sent', '#a78bfa'],
+      in_progress: ['AI chatting', '#818cf8'],
+      ready_for_human: ['Ready for human', '#34d399'],
+      not_interested: ['Not interested', '#a1a1a1'],
+    };
+    var interest = q.interest === 'hot' ? ' 🔥' : q.interest === 'warm' ? ' 🟡' : '';
+    var row = labels[q.status];
+    if (!row) return '';
+    return ' <span class="badge" style="background:' + row[1] + '22;color:' + row[1] + ';">' + esc(row[0]) + interest + '</span>';
+  }
+
+  function qualificationSummaryHtml(q) {
+    if (!q || q.status === 'none') return '';
+    var html = '<div style="margin:8px 0;padding:10px 12px;border-radius:8px;background:rgba(129,140,248,0.08);border:1px solid rgba(129,140,248,0.2);">';
+    html += '<p style="margin:0 0 6px;font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;">AI qualification</p>';
+    if (q.summary) html += '<p style="margin:0 0 6px;font-size:12px;"><strong>Summary:</strong> ' + esc(q.summary) + '</p>';
+    if (q.interest) html += '<p style="margin:0;font-size:12px;"><strong>Interest:</strong> ' + esc(q.interest) + (q.score != null ? ' (' + esc(String(q.score)) + ')' : '') + '</p>';
+    if (q.status === 'ready_for_human') {
+      html += '<p style="margin:8px 0 0;font-size:11px;color:var(--up);font-weight:600;">Human follow-up — call or text and answer their questions.</p>';
+    }
+    return html + '</div>';
+  }
+
+  function renderContactButtons(phone, marginLeft) {
+    var tel = leadPhoneHref(phone);
+    var ml = marginLeft || '0';
+    if (!tel) {
+      return '<span style="font-size:11px;color:var(--faint);">No phone — use notes or email in source</span>';
+    }
+    return '<a class="btn btn-go" href="tel:' + esc(tel) + '" style="width:auto;min-height:34px;padding:0 14px;margin:0;text-decoration:none;">📞 Call</a>' +
+      '<a class="btn btn-secondary" href="sms:' + esc(tel) + '" style="width:auto;min-height:34px;padding:0 14px;margin:0 0 0 8px;text-decoration:none;">💬 Text</a>';
+  }
+
+  const NEXT_LABEL = { applied: 'Approve merchant', in_review: 'Approve merchant', approved: 'Advance → hardware', hardware_sent: 'Advance → active' };
   function pipeItem(o, closed) {
     const itemId = 'pi-' + esc(o.shortId);
     let detail = [o.business, o.phone, o.source ? 'via ' + o.source : ''].filter(Boolean).join(' · ');
+    const contactedNote = o.contactedAt
+      ? '<p style="font-size:11px;color:var(--up);margin:8px 0 0;">Contacted ' + esc(new Date(o.contactedAt).toLocaleString()) +
+        (o.contactedBy ? ' by ' + esc(o.contactedBy) : '') + '</p>'
+      : (o.qualification && o.qualification.status === 'ready_for_human')
+        ? '<p style="font-size:11px;color:var(--up);margin:8px 0 0;font-weight:600;">AI qualified — human should call or text next.</p>'
+        : (o.qualification && (o.qualification.status === 'awaiting_reply' || o.qualification.status === 'in_progress'))
+          ? '<p style="font-size:11px;color:var(--accent);margin:8px 0 0;">AI assistant is chatting with them now…</p>'
+          : '<p style="font-size:11px;color:var(--accent);margin:8px 0 0;font-weight:600;">Needs outreach — any employee can call or text now.</p>';
     let html = '<div class="disc-item" id="' + itemId + '">' +
       '<div class="disc-summary">' +
       '<span class="chev">▶</span>' +
       '<span class="t">' + esc(o.name) +
         '<span class="badge b-' + esc(o.stage) + '">' + esc(o.stage.replace('_', ' ')) + '</span>' +
+        qualificationBadge(o.qualification) +
       '</span>' +
-      '<span class="m">' + esc(o.shortId) + (detail ? ' · ' + esc(detail) : '') + '</span>' +
+      '<span class="m">' + esc(o.shortId) + (o.phone ? ' · ' + esc(o.phone) : '') + '</span>' +
       '</div>' +
       '<div class="disc-body">';
     html += '<div class="m" style="margin-bottom:8px">' +
-      'id ' + esc(o.shortId) +
-      (o.business ? ' · ' + esc(o.business) : '') +
-      (o.phone ? ' · ' + esc(o.phone) : '') +
+      '<strong>Phone:</strong> ' + esc(o.phone || 'N/A') +
+      (o.business ? ' · <strong>Business:</strong> ' + esc(o.business) : '') +
       (o.source ? ' · via ' + esc(o.source) : '') +
-      '</div>';
+      '</div>' + contactedNote + assigneeHtml(o) + qualificationSummaryHtml(o.qualification);
       
     // Render History Audit Logs
     if (o.history && o.history.length) {
@@ -234,13 +441,21 @@
         '</div></div>';
     }
 
-    html += '<div class="actions" style="margin-top:12px;">';
-    if (!closed) {
-      const goAction = (o.stage === 'applied' || o.stage === 'in_review') ? 'approve' : 'advance';
-      html += '<button class="btn btn-go" data-act="' + goAction + '" data-id="' + esc(o.shortId) + '" data-name="' + esc(o.name) + '">' + (NEXT_LABEL[o.stage] || 'Advance') + '</button>' +
-        '<button class="btn btn-no" data-act="reject" data-id="' + esc(o.shortId) + '" data-name="' + esc(o.name) + '">Reject</button>';
+    html += '<div class="actions" style="margin-top:12px; flex-wrap:wrap; gap:8px; align-items:center;">';
+    html += renderContactButtons(o.phone);
+    if (!closed && (o.stage === 'applied' || o.stage === 'in_review') && !o.assignedTo) {
+      html += '<button type="button" class="btn" data-act="claim" data-id="' + esc(o.shortId) + '" data-name="' + esc(o.name) + '" style="width:auto;min-height:34px;padding:0 12px;margin:0 0 0 8px;">👤 Claim</button>';
     }
-    html += '<button class="btn btn-secondary btn-modal" data-modal-type="pipeline" data-modal-id="' + esc(o.shortId) + '" style="margin-left:8px; margin-top: 0; min-height: 34px; padding: 0 12px;">🔍 Details</button></div>';
+    if (!closed && (o.stage === 'applied' || o.stage === 'in_review')) {
+      if (!o.contactedAt) {
+        html += '<button type="button" class="btn" data-act="contact" data-id="' + esc(o.shortId) + '" data-name="' + esc(o.name) + '" style="width:auto;min-height:34px;padding:0 12px;margin:0 0 0 8px;">✓ Mark contacted</button>';
+      }
+      html += '<button type="button" class="btn btn-go" data-act="approve" data-id="' + esc(o.shortId) + '" data-name="' + esc(o.name) + '" style="width:auto;min-height:34px;padding:0 12px;margin:0 0 0 8px;">' + (NEXT_LABEL[o.stage] || 'Approve merchant') + '</button>' +
+        '<button type="button" class="btn btn-no" data-act="reject" data-id="' + esc(o.shortId) + '" data-name="' + esc(o.name) + '" style="width:auto;min-height:34px;padding:0 12px;margin:0;">Not interested</button>';
+    } else if (!closed) {
+      html += '<button type="button" class="btn btn-go" data-act="advance" data-id="' + esc(o.shortId) + '" data-name="' + esc(o.name) + '" style="width:auto;min-height:34px;padding:0 12px;margin:0 0 0 8px;">' + (NEXT_LABEL[o.stage] || 'Advance') + '</button>';
+    }
+    html += '<button type="button" class="btn btn-secondary btn-modal" data-modal-type="pipeline" data-modal-id="' + esc(o.shortId) + '" style="width:auto;min-height:34px;padding:0 12px;margin:0;">🔍 Details</button></div>';
     return html + '</div></div>';
   }
 
@@ -273,48 +488,254 @@
       const pj = await api('/api/pipeline');
       cachePipeline = pj.items || [];
       renderPipelineList();
+      refreshNavBadges();
     } catch (e) { document.getElementById('pipe').innerHTML = '<div class=empty>Failed to load: ' + esc(e.message) + '</div>'; }
   }
 
   /* ---- Leads ---- */
+  var LEAD_ARCHIVED = 'archived';
+
+  function leadStatus(l) {
+    return l.status || 'open';
+  }
+
+  function leadIsArchived(l) {
+    return leadStatus(l) === LEAD_ARCHIVED;
+  }
+
+  function leadLooksLikeTest(l) {
+    var blob = [l.name, l.phone, l.business, l.notes, l.source].join(' ').toLowerCase();
+    return /test|smoke|demo|example|fake|dummy|pipeline smoke/.test(blob);
+  }
+
+  function leadPhoneHref(phone) {
+    var digits = String(phone || '').replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.length === 10) digits = '1' + digits;
+    return '+' + digits;
+  }
+
+  function formatLeadWhen(l) {
+    var raw = l.at || l.createdAt;
+    if (!raw) return 'N/A';
+    try { return new Date(raw).toLocaleString(); } catch (e) { return raw; }
+  }
+
+  function filterLeadsByQueue(list) {
+    var filterEl = document.getElementById('leads-filter');
+    var filter = filterEl ? filterEl.value : 'active';
+    if (filter === 'active') {
+      return list.filter(function (l) { return !leadIsArchived(l); });
+    }
+    if (filter === 'archived') {
+      return list.filter(function (l) { return leadIsArchived(l); });
+    }
+    if (!filter) return list.slice();
+    return list.filter(function (l) { return leadStatus(l) === filter; });
+  }
+
+  function renderLeadsSummary(shown, total) {
+    var el = document.getElementById('leads-queue-summary');
+    if (!el) return;
+    var open = 0;
+    var contacted = 0;
+    var archived = 0;
+    cacheLeads.forEach(function (l) {
+      var s = leadStatus(l);
+      if (s === 'archived') archived++;
+      else if (s === 'contacted') contacted++;
+      else open++;
+    });
+    el.textContent = shown + ' shown · ' + open + ' open · ' + contacted + ' contacted · ' + archived + ' archived (' + total + ' total)';
+  }
+
+  function renderLeadItem(l) {
+    var status = leadStatus(l);
+    var statusColors = { open: '#F7792C', contacted: '#60a5fa', archived: '#a1a1a1' };
+    var badge = '<span style="display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,0.06);color:' + (statusColors[status] || statusColors.open) + ';">' + esc(status) + '</span>';
+    var testBadge = leadLooksLikeTest(l) ? ' <span class="badge b-in_review">likely test</span>' : '';
+    var qualBadge = qualificationBadge(l.qualification);
+    var phone = l.phone || '';
+    var tel = leadPhoneHref(phone);
+    var contactBtns = tel
+      ? '<a class="btn btn-go" href="tel:' + esc(tel) + '" style="width:auto;min-height:34px;padding:0 12px;margin:0;text-decoration:none;">📞 Call</a>' +
+        '<a class="btn btn-secondary" href="sms:' + esc(tel) + '" style="width:auto;min-height:34px;padding:0 12px;margin:0 0 0 8px;text-decoration:none;">💬 Text</a>'
+      : '<span style="font-size:11px;color:var(--faint);">No phone on file</span>';
+    var noteBlock = l.followUpNote
+      ? '<p><strong>Follow-up note:</strong> ' + esc(l.followUpNote) + '</p>'
+      : '';
+    var promoted = l.promotedToPipelineId
+      ? '<p style="font-size:11px;color:var(--up);">Moved to Pipeline — check the Pipeline tab.</p>'
+      : '';
+
+    return '<div class="disc-item' + (leadIsArchived(l) ? ' fb-archived' : '') + '" id="lead-' + esc(l.id) + '">' +
+      '<div class="disc-summary"><span class="chev">▶</span><span class="t">' + esc(l.name || '(no name)') + testBadge + qualBadge + '</span>' +
+      '<span class="m">' + esc(phone) + ' · ' + badge + '</span></div>' +
+      '<div class="disc-body">' +
+        '<p><strong>Phone:</strong> ' + (phone ? esc(phone) : 'N/A') + '</p>' +
+        '<p><strong>Business:</strong> ' + esc(l.business || 'N/A') + '</p>' +
+        '<p><strong>Consent (SMS):</strong> ' + (l.consent ? 'Yes' : 'No / unknown') + '</p>' +
+        '<p><strong>Source:</strong> ' + esc(l.source || 'website') + '</p>' +
+        '<p><strong>Notes:</strong> ' + esc(l.notes || 'N/A') + '</p>' +
+        qualificationSummaryHtml(l.qualification) +
+        assigneeHtml(l) +
+        noteBlock + promoted +
+        '<p><strong>Submitted:</strong> ' + esc(formatLeadWhen(l)) + '</p>' +
+        '<div class="actions" style="flex-wrap:wrap; gap:8px; align-items:center;">' + contactBtns +
+          (!leadIsArchived(l) && !l.assignedTo ? '<button type="button" class="btn" data-lead-claim="' + esc(l.id) + '" style="width:auto;min-height:34px;padding:0 12px;margin:0 0 0 8px;">👤 Claim</button>' : '') +
+          (status !== 'contacted' && !leadIsArchived(l) ? '<button type="button" class="btn" data-lead-action="' + esc(l.id) + '" data-lead-status="contacted" style="width:auto;min-height:34px;padding:0 12px;margin:0 0 0 8px;">✓ Mark contacted</button>' : '') +
+          (!leadIsArchived(l) ? '<button type="button" class="btn" data-lead-promote="' + esc(l.id) + '" data-lead-name="' + esc(l.name || '') + '" style="width:auto;min-height:34px;padding:0 12px;margin:0 0 0 8px;">→ Pipeline</button>' : '') +
+          (!leadIsArchived(l) ? '<button type="button" class="btn" data-lead-action="' + esc(l.id) + '" data-lead-status="archived" style="width:auto;min-height:34px;padding:0 12px;margin:0 0 0 8px;">Archive</button>' : '') +
+          (leadIsArchived(l) ? '<button type="button" class="btn" data-lead-action="' + esc(l.id) + '" data-lead-status="open" style="width:auto;min-height:34px;padding:0 12px;margin:0;">Reopen</button>' : '') +
+          (currentUserRole === 'Admin' && (leadIsArchived(l) || l.erasure) ? '<button type="button" class="btn btn-no" data-lead-delete="' + esc(l.id) + '" data-lead-name="' + esc(l.name || 'lead') + '" style="width:auto;min-height:34px;padding:0 12px;margin:0 0 0 8px;">Delete permanently</button>' : '') +
+          '<button type="button" class="btn btn-no" data-erase="' + esc(l.id) + '" data-name="' + esc(l.name || '') + '" style="width:auto;min-height:34px;padding:0 12px;margin:0 0 0 8px;">Erase PII</button>' +
+          '<button type="button" class="btn btn-secondary btn-modal" data-modal-type="lead" data-modal-id="' + esc(l.id) + '" style="width:auto;min-height:34px;padding:0 12px;margin:0;">🔍 Details</button>' +
+        '</div></div></div>';
+  }
+
   function renderLeadsList() {
     const searchVal = document.getElementById('leads-search').value.toLowerCase().trim();
-    
-    const filtered = cacheLeads.filter(l => {
-      return !searchVal || 
-             (l.name && l.name.toLowerCase().includes(searchVal)) || 
-             (l.phone && l.phone.toLowerCase().includes(searchVal)) || 
-             (l.business && l.business.toLowerCase().includes(searchVal)) || 
-             (l.source && l.source.toLowerCase().includes(searchVal));
+
+    const searched = cacheLeads.filter(function (l) {
+      return !searchVal ||
+             (l.name && l.name.toLowerCase().includes(searchVal)) ||
+             (l.phone && l.phone.toLowerCase().includes(searchVal)) ||
+             (l.business && l.business.toLowerCase().includes(searchVal)) ||
+             (l.source && l.source.toLowerCase().includes(searchVal)) ||
+             (l.notes && l.notes.toLowerCase().includes(searchVal));
     });
 
-    const ls = filtered.map((l) =>
-      '<div class="disc-item" id="lead-' + esc(l.id) + '">' +
-      '<div class="disc-summary"><span class="chev">▶</span><span class="t">' + esc(l.name || '(no name)') + '</span><span class="m">' + esc(l.phone || '') + '</span></div>' +
-      '<div class="disc-body">' +
-        '<p><strong>Business:</strong> ' + esc(l.business || 'N/A') + '</p>' +
-        '<p><strong>Notes:</strong> ' + esc(l.notes || 'N/A') + '</p>' +
-        '<p><strong>Source:</strong> ' + esc(l.source || 'website') + '</p>' +
-        '<p><strong>Date:</strong> ' + esc(l.createdAt || 'N/A') + '</p>' +
-        '<div class="actions"><button class="btn btn-no" data-erase="' + esc(l.id) + '" data-name="' + esc(l.name) + '">Erase Lead PII (M-7)</button>' +
-        '<button class="btn btn-secondary btn-modal" data-modal-type="lead" data-modal-id="' + esc(l.id) + '" style="margin-left:8px; margin-top: 0; min-height: 34px; padding: 0 12px;">🔍 Details</button></div>' +
-      '</div></div>'
-    );
-    document.getElementById('leadlist').innerHTML = cacheLeads.length 
-      ? (filtered.length + ' shown (' + cacheLeads.length + ' total) — latest:' + ls.join('')) 
-      : '<div class=empty>No leads yet.</div>';
+    const filtered = filterLeadsByQueue(searched);
+    const el = document.getElementById('leadlist');
+    renderLeadsSummary(filtered.length, cacheLeads.length);
+
+    if (!cacheLeads.length) {
+      el.innerHTML = '<div class="empty">No leads yet — they appear here when someone submits the SMS opt-in form on the homepage.</div>';
+      return;
+    }
+    if (!filtered.length) {
+      el.innerHTML = '<div class="empty">No leads match this filter.</div>';
+      return;
+    }
+    el.innerHTML = filtered.map(renderLeadItem).join('');
   }
 
   async function loadLeads() {
     try {
+      var filterEl = document.getElementById('leads-filter');
+      if (filterEl && !filterEl.dataset.inited) {
+        var saved = sessionStorage.getItem('omni_leads_filter');
+        if (saved !== null && filterEl.querySelector('option[value="' + saved + '"]')) {
+          filterEl.value = saved;
+        }
+        filterEl.dataset.inited = '1';
+      }
       const lj = await api('/leads');
       cacheLeads = lj.leads || [];
       renderLeadsList();
+      refreshNavBadges();
     } catch (e) { document.getElementById('leadlist').innerHTML = '<div class=empty>Failed to load: ' + esc(e.message) + '</div>'; }
   }
 
-  /* ---- Feedback ---- */
+  /* ---- Feedback (three-card triage) ---- */
   var cacheFeedback = [];
+  var feedbackPick = {};
+  var FEEDBACK_ARCHIVED = ['done', 'declined'];
+
+  function feedbackIsArchived(f) {
+    return FEEDBACK_ARCHIVED.indexOf(f.status || 'new') >= 0;
+  }
+
+  function feedbackCounts() {
+    var active = 0;
+    var archived = 0;
+    cacheFeedback.forEach(function (f) {
+      if (feedbackIsArchived(f)) archived++;
+      else active++;
+    });
+    return { active: active, archived: archived };
+  }
+
+  function filterFeedbackItems() {
+    var filterEl = document.getElementById('feedback-filter');
+    var filter = filterEl ? filterEl.value : 'active';
+    if (filter === 'active') {
+      return cacheFeedback.filter(function (f) { return !feedbackIsArchived(f); });
+    }
+    if (filter === 'archived') {
+      return cacheFeedback.filter(function (f) { return feedbackIsArchived(f); });
+    }
+    if (!filter) return cacheFeedback.slice();
+    return cacheFeedback.filter(function (f) { return (f.status || 'new') === filter; });
+  }
+
+  function renderFeedbackSummary() {
+    var el = document.getElementById('feedback-queue-summary');
+    if (!el) return;
+    var c = feedbackCounts();
+    var filter = (document.getElementById('feedback-filter') || {}).value || 'active';
+    var hint = filter === 'active'
+      ? (c.active ? c.active + ' need attention · ' + c.archived + ' archived' : 'Queue clear · ' + c.archived + ' archived')
+      : c.active + ' active · ' + c.archived + ' archived';
+    el.textContent = hint;
+  }
+
+  function feedbackRecommendedSlot(f) {
+    return typeof f.recommendedSlot === 'number' ? f.recommendedSlot : 0;
+  }
+
+  function defaultFeedbackPick(f) {
+    const rec = feedbackRecommendedSlot(f);
+    const proposals = f.proposals || ['', '', ''];
+    let slot = rec;
+    if (!proposals[slot]) {
+      slot = proposals.findIndex(function (p) { return !!p; });
+      if (slot < 0) slot = rec;
+    }
+    const text = (proposals[slot] || '').trim();
+    return {
+      text: text,
+      slot: text ? slot : null,
+      source: slot === rec ? 'recommended' : 'card'
+    };
+  }
+
+  function resolveFeedbackPick(f) {
+    return feedbackPick[f.id] || defaultFeedbackPick(f);
+  }
+
+  function feedbackPickLabel(pick, f) {
+    if (pick.source === 'custom' || pick.slot === null || pick.slot === undefined) return 'Custom fix';
+    if (pick.slot === feedbackRecommendedSlot(f)) return 'Option ' + (pick.slot + 1) + ' · Recommended';
+    return 'Option ' + (pick.slot + 1);
+  }
+
+  function acceptFixButtonLabel(pick, f) {
+    if (pick.source === 'custom' || pick.slot === null || pick.slot === undefined) return '✓ Accept custom fix';
+    if (pick.slot === feedbackRecommendedSlot(f)) return '✓ Accept recommended fix';
+    return '✓ Accept option ' + (pick.slot + 1) + ' only';
+  }
+
+  function renderAcceptPreview(f, pick) {
+    const preview = pick.text
+      ? esc(pick.text)
+      : '<span style="color:var(--faint); font-style:italic;">Pick a card or write a custom fix below</span>';
+    return '<div class="fb-accept-preview" id="fb-accept-preview-' + esc(f.id) + '">' +
+      '<div class="label">Fix you will accept (one only — not all three)</div>' +
+      '<div class="text">' + preview + '</div>' +
+      '<div class="meta">' + esc(feedbackPickLabel(pick, f)) + '</div>' +
+    '</div>';
+  }
+
+  function resolveAcceptedSlot(f, solution, pick) {
+    if (pick && pick.source === 'custom') return null;
+    if (pick && pick.slot !== null && pick.slot !== undefined && pick.text === solution) return pick.slot;
+    const proposals = f.proposals || [];
+    for (let i = 0; i < 3; i++) {
+      if (proposals[i] && proposals[i].trim() === solution) return i;
+    }
+    return null;
+  }
 
   function feedbackStatusBadge(status) {
     const s = status || 'new';
@@ -328,66 +749,352 @@
     return '<span style="display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:2px 8px; border-radius:999px; background:rgba(255,255,255,0.06); color:' + (colors[s] || colors.new) + ';">' + esc(s) + '</span>';
   }
 
-  function renderFeedbackList() {
-    const filter = (document.getElementById('feedback-filter') || {}).value || '';
-    const list = filter ? cacheFeedback.filter((f) => (f.status || 'new') === filter) : cacheFeedback;
-    const el = document.getElementById('feedback-list');
-    if (!list.length) {
-      el.innerHTML = '<div class="empty">' + (filter ? 'No feedback with that status.' : 'No feedback yet — reports from the site will appear here.') + '</div>';
-      return;
+  function feedbackCategoryLabel(cat) {
+    if (cat === 'improvement') return '✨ Improvement';
+    if (cat === 'question') return '❓ Question';
+    return '🐞 Bug';
+  }
+
+  function renderProposalCard(f, slot) {
+    const proposals = f.proposals || ['', '', ''];
+    const text = proposals[slot] || '';
+    const pick = resolveFeedbackPick(f);
+    const selected = pick.slot === slot && !!text && pick.text === text;
+    const rec = feedbackRecommendedSlot(f);
+    const isRec = slot === rec && !!text;
+    const label = 'Option ' + (slot + 1);
+    const badge = isRec ? '<span class="fb-proposal-badge">★ Recommended</span>' : '';
+    if (!text) {
+      return '<div class="fb-proposal-card empty" data-fb-id="' + esc(f.id) + '" data-fb-slot="' + slot + '">' +
+        '<div class="fb-proposal-head"><span class="fb-proposal-label">' + label + '</span>' + badge + '</div>' +
+        '<div class="fb-proposal-text" style="color:var(--faint); font-style:italic;">Dismissed — reroll to draw a new card</div>' +
+        '<div class="fb-proposal-actions">' +
+          '<button type="button" class="btn" data-fb-reroll="' + esc(f.id) + '" data-fb-slot="' + slot + '">↻ Reroll</button>' +
+        '</div></div>';
     }
-    el.innerHTML = list.map(function (f) {
-      const cat = f.category || 'bug';
-      const catLabel = cat === 'improvement' ? '✨ Improvement' : cat === 'question' ? '❓ Question' : '🐞 Bug';
-      const when = f.at ? new Date(f.at).toLocaleString() : '';
-      const ctx = f.context ? '<div style="font-size:11px; color:var(--faint); margin-top:6px; word-break:break-all;">Page: ' + esc(f.context) + '</div>' : '';
-      const shot = f.screenshot ? '<details style="margin-top:8px;"><summary style="cursor:pointer; font-size:11px; color:var(--accent);">View screenshot</summary><img src="' + esc(f.screenshot) + '" alt="Feedback screenshot" style="max-width:100%; margin-top:8px; border-radius:8px; border:1px solid var(--card-edge);"></details>' : '';
-      const note = f.reviewNote ? '<div style="font-size:11px; color:var(--muted); margin-top:8px;">Note: ' + esc(f.reviewNote) + '</div>' : '';
-      const actions = (f.status === 'done' || f.status === 'declined')
-        ? '<button class="btn" data-fb-status="' + esc(f.id) + '" data-status="reviewing" style="width:auto; min-height:0; padding:6px 10px; font-size:11px; margin:0;">Reopen</button>'
-        : '<div style="display:flex; gap:6px; flex-wrap:wrap;">' +
-            '<button class="btn btn-go" data-fb-status="' + esc(f.id) + '" data-status="accepted" style="width:auto; min-height:0; padding:6px 10px; font-size:11px; margin:0;">Accept</button>' +
-            '<button class="btn" data-fb-status="' + esc(f.id) + '" data-status="reviewing" style="width:auto; min-height:0; padding:6px 10px; font-size:11px; margin:0;">Reviewing</button>' +
-            '<button class="btn btn-no" data-fb-status="' + esc(f.id) + '" data-status="declined" style="width:auto; min-height:0; padding:6px 10px; font-size:11px; margin:0;">Decline</button>' +
-            '<button class="btn" data-fb-status="' + esc(f.id) + '" data-status="done" style="width:auto; min-height:0; padding:6px 10px; font-size:11px; margin:0;">Mark Done</button>' +
-          '</div>';
-      return '<div class="card" style="margin-bottom:12px; padding:14px;">' +
-        '<div style="display:flex; justify-content:space-between; gap:8px; align-items:flex-start; flex-wrap:wrap;">' +
+    const cardClass = 'fb-proposal-card' + (selected ? ' on' : '') + (isRec ? ' recommended' : '');
+    return '<div class="' + cardClass + '" data-fb-pick="' + esc(f.id) + '" data-fb-slot="' + slot + '">' +
+      '<div class="fb-proposal-head"><span class="fb-proposal-label">' + label + '</span>' + badge + '</div>' +
+      '<div class="fb-proposal-text">' + esc(text) + '</div>' +
+      '<div class="fb-proposal-actions">' +
+        '<button type="button" class="btn" data-fb-reroll="' + esc(f.id) + '" data-fb-slot="' + slot + '">↻ Reroll</button>' +
+        '<button type="button" class="btn btn-no" data-fb-dismiss="' + esc(f.id) + '" data-fb-slot="' + slot + '">✕ Dismiss</button>' +
+        '<button type="button" class="btn" data-fb-edit="' + esc(f.id) + '" data-fb-slot="' + slot + '">✎ Edit</button>' +
+      '</div></div>';
+  }
+
+  function renderFeedbackItem(f) {
+    const catLabel = feedbackCategoryLabel(f.category || 'bug');
+    const when = f.at ? new Date(f.at).toLocaleString() : '';
+    const msg = (f.message || '').trim();
+    const msgBlock = msg
+      ? '<div class="fb-message">' + esc(msg) + '</div>'
+      : '<div class="fb-message" style="color:var(--faint); font-style:italic;">(No message text — check screenshot/context below)</div>';
+    const ctx = f.context
+      ? '<div style="font-size:11px; color:var(--faint); word-break:break-all;">Page: ' + esc(f.context) + '</div>'
+      : '';
+    const shot = f.screenshot
+      ? '<details style="margin-top:8px;"><summary style="cursor:pointer; font-size:11px; color:var(--accent);">View screenshot</summary><img src="' + esc(f.screenshot) + '" alt="Feedback screenshot" style="max-width:100%; margin-top:8px; border-radius:8px; border:1px solid var(--card-edge);"></details>'
+      : '';
+    const chosen = f.chosenSolution
+      ? '<div style="margin-top:10px; padding:10px; border-left:3px solid var(--up); background:rgba(52,211,153,0.08); font-size:12px;"><strong>Accepted fix' +
+        (f.acceptedRecommended ? ' (recommended)' : (typeof f.acceptedSlot === 'number' ? ' (option ' + (f.acceptedSlot + 1) + ')' : '')) +
+        ':</strong> ' + esc(f.chosenSolution) + '</div>'
+      : '';
+    const noteVal = esc(f.reviewNote || '');
+    const pick = resolveFeedbackPick(f);
+    const customVal = esc(pick.text || f.chosenSolution || '');
+    const closed = f.status === 'done' || f.status === 'declined';
+
+    if (closed) {
+      return '<div class="fb-item fb-archived">' +
+        '<div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">' +
           '<div><strong>' + catLabel + '</strong> ' + feedbackStatusBadge(f.status) + '</div>' +
           '<span style="font-size:11px; color:var(--faint);">' + esc(when) + '</span>' +
+        '</div>' + msgBlock + ctx + chosen +
+        (f.reviewNote ? '<div style="font-size:11px; color:var(--muted); margin-top:8px;">Note: ' + noteVal + '</div>' : '') +
+        '<div class="fb-toolbar">' +
+          '<button type="button" class="btn" data-fb-status="' + esc(f.id) + '" data-status="reviewing">Reopen</button>' +
+          (currentUserRole === 'Admin' ? '<button type="button" class="btn btn-no" data-fb-delete="' + esc(f.id) + '" style="margin-left:8px;">Delete permanently</button>' : '') +
         '</div>' +
-        '<p style="margin:10px 0 0; font-size:13px; line-height:1.5; white-space:pre-wrap;">' + esc(f.message) + '</p>' +
-        ctx + shot + note +
-        '<div style="margin-top:12px;">' + actions + '</div>' +
       '</div>';
-    }).join('');
+    }
+
+    return '<div class="fb-item" data-fb-item="' + esc(f.id) + '">' +
+      '<div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">' +
+        '<div><strong>' + catLabel + '</strong> ' + feedbackStatusBadge(f.status) + '</div>' +
+        '<span style="font-size:11px; color:var(--faint);">' + esc(when) + '</span>' +
+      '</div>' +
+      msgBlock + ctx + shot +
+      '<div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-top:14px;">Three proposed fixes — pick one (★ = recommended)</div>' +
+      '<div class="fb-proposals">' +
+        renderProposalCard(f, 0) + renderProposalCard(f, 1) + renderProposalCard(f, 2) +
+      '</div>' +
+      renderAcceptPreview(f, pick) +
+      '<label style="font-size:11px; color:var(--muted); display:block; margin-bottom:4px;">Custom fix (or edit a card — it lands here)</label>' +
+      '<textarea class="fb-custom-solution" id="fb-custom-' + esc(f.id) + '" placeholder="Write your own fix…">' + customVal + '</textarea>' +
+      '<input type="text" id="fb-note-' + esc(f.id) + '" placeholder="Review note (optional)" value="' + noteVal + '" style="width:100%; margin-bottom:8px; font-size:12px;">' +
+      chosen +
+      '<div class="fb-toolbar">' +
+        '<button type="button" class="btn btn-go" id="fb-accept-btn-' + esc(f.id) + '" data-fb-accept="' + esc(f.id) + '">' + acceptFixButtonLabel(pick, f) + '</button>' +
+        '<button type="button" class="btn" data-fb-reroll-all="' + esc(f.id) + '">↻ Reroll all three</button>' +
+        '<button type="button" class="btn" data-fb-status="' + esc(f.id) + '" data-status="reviewing">Reviewing</button>' +
+        '<button type="button" class="btn btn-no" data-fb-status="' + esc(f.id) + '" data-status="declined">Decline</button>' +
+        '<button type="button" class="btn" data-fb-status="' + esc(f.id) + '" data-status="done">Mark done</button>' +
+      '</div></div>';
+  }
+
+  function renderFeedbackList() {
+    var list = filterFeedbackItems();
+    var el = document.getElementById('feedback-list');
+    var filter = (document.getElementById('feedback-filter') || {}).value || 'active';
+    renderFeedbackSummary();
+    if (!list.length) {
+      var emptyMsg = {
+        active: 'Active queue is clear — nothing needs attention right now.',
+        archived: 'No archived items yet. Mark reports Done or Decline to archive them.',
+        '': 'No feedback yet — reports from the site will appear here.'
+      };
+      el.innerHTML = '<div class="empty">' + (emptyMsg[filter] || 'No feedback with that filter.') + '</div>';
+      return;
+    }
+    el.innerHTML = list.map(renderFeedbackItem).join('');
   }
 
   async function loadFeedback() {
     try {
+      var filterEl = document.getElementById('feedback-filter');
+      if (filterEl && !filterEl.dataset.inited) {
+        var saved = sessionStorage.getItem('omni_feedback_filter');
+        if (saved !== null && filterEl.querySelector('option[value="' + saved + '"]')) {
+          filterEl.value = saved;
+        }
+        filterEl.dataset.inited = '1';
+      }
       const data = await api('/api/feedback');
       cacheFeedback = data.items || [];
+      cacheFeedback.forEach(function (f) {
+        if (!feedbackPick[f.id] && f.status !== 'done' && f.status !== 'declined') {
+          feedbackPick[f.id] = defaultFeedbackPick(f);
+        }
+      });
       renderFeedbackList();
+      refreshNavBadges();
     } catch (err) {
       document.getElementById('feedback-list').innerHTML = '<div class="empty">Could not load feedback: ' + esc(err.message) + '</div>';
     }
   }
 
-  document.getElementById('feedback-filter').addEventListener('change', renderFeedbackList);
+  function patchFeedbackItem(updated) {
+    if (!updated || !updated.id) return;
+    const idx = cacheFeedback.findIndex((f) => f.id === updated.id);
+    if (idx >= 0) cacheFeedback[idx] = updated;
+    const pick = feedbackPick[updated.id];
+    if (pick && pick.slot !== null && pick.slot !== undefined) {
+      const proposals = updated.proposals || [];
+      if (proposals[pick.slot]) {
+        feedbackPick[updated.id] = {
+          text: proposals[pick.slot],
+          slot: pick.slot,
+          source: pick.slot === feedbackRecommendedSlot(updated) ? 'recommended' : 'card'
+        };
+      } else {
+        feedbackPick[updated.id] = defaultFeedbackPick(updated);
+      }
+    } else if (!pick && updated.status !== 'done' && updated.status !== 'declined') {
+      feedbackPick[updated.id] = defaultFeedbackPick(updated);
+    }
+    renderFeedbackList();
+  }
+
+  document.getElementById('feedback-filter').addEventListener('change', function () {
+    sessionStorage.setItem('omni_feedback_filter', this.value);
+    renderFeedbackList();
+  });
+
+  document.getElementById('feedback-list').addEventListener('input', function (e) {
+    if (!e.target.classList.contains('fb-custom-solution')) return;
+    const id = e.target.id.replace('fb-custom-', '');
+    const item = cacheFeedback.find(function (f) { return f.id === id; });
+    if (!item) return;
+    const value = e.target.value;
+    const trimmed = value.trim();
+    let slot = null;
+    let source = 'custom';
+    const proposals = item.proposals || [];
+    for (let i = 0; i < 3; i++) {
+      if (proposals[i] && proposals[i].trim() === trimmed) {
+        slot = i;
+        source = i === feedbackRecommendedSlot(item) ? 'recommended' : 'card';
+        break;
+      }
+    }
+    feedbackPick[id] = { text: value, slot: slot, source: source };
+    const pick = resolveFeedbackPick(item);
+    const preview = document.getElementById('fb-accept-preview-' + id);
+    const btn = document.getElementById('fb-accept-btn-' + id);
+    if (preview) {
+      preview.querySelector('.text').innerHTML = trimmed
+        ? esc(trimmed)
+        : '<span style="color:var(--faint); font-style:italic;">Pick a card or write a custom fix below</span>';
+      const meta = preview.querySelector('.meta');
+      if (meta) meta.textContent = feedbackPickLabel(pick, item);
+    }
+    if (btn) btn.textContent = acceptFixButtonLabel(pick, item);
+    document.querySelectorAll('[data-fb-pick="' + id + '"]').forEach(function (card) {
+      const cardSlot = parseInt(card.getAttribute('data-fb-slot'), 10);
+      const cardText = proposals[cardSlot] || '';
+      const on = slot === cardSlot && trimmed === cardText.trim();
+      card.classList.toggle('on', on);
+    });
+  });
 
   document.getElementById('feedback-list').addEventListener('click', async function (e) {
+    const pick = e.target.closest('[data-fb-pick]');
+    if (pick) {
+      const id = pick.getAttribute('data-fb-pick');
+      const slot = parseInt(pick.getAttribute('data-fb-slot'), 10);
+      const item = cacheFeedback.find((f) => f.id === id);
+      if (item && item.proposals && item.proposals[slot]) {
+        const rec = feedbackRecommendedSlot(item);
+        feedbackPick[id] = {
+          text: item.proposals[slot],
+          slot: slot,
+          source: slot === rec ? 'recommended' : 'card'
+        };
+        const ta = document.getElementById('fb-custom-' + id);
+        if (ta) ta.value = item.proposals[slot];
+        renderFeedbackList();
+      }
+      return;
+    }
+
+    const reroll = e.target.closest('[data-fb-reroll]');
+    if (reroll) {
+      const id = reroll.getAttribute('data-fb-reroll');
+      const slot = reroll.getAttribute('data-fb-slot');
+      reroll.disabled = true;
+      try {
+        const res = await api('/api/feedback/proposals/reroll', { method: 'POST', body: { id, slot } });
+        patchFeedbackItem(res.item);
+        toast('Drew a new card.');
+      } catch (err) { toast(err.message, true); reroll.disabled = false; }
+      return;
+    }
+
+    const rerollAll = e.target.closest('[data-fb-reroll-all]');
+    if (rerollAll) {
+      const id = rerollAll.getAttribute('data-fb-reroll-all');
+      rerollAll.disabled = true;
+      try {
+        const res = await api('/api/feedback/proposals/reroll', { method: 'POST', body: { id, slot: 'all' } });
+        delete feedbackPick[id];
+        patchFeedbackItem(res.item);
+        toast('Rerolled all three proposals.');
+      } catch (err) { toast(err.message, true); rerollAll.disabled = false; }
+      return;
+    }
+
+    const dismiss = e.target.closest('[data-fb-dismiss]');
+    if (dismiss) {
+      const id = dismiss.getAttribute('data-fb-dismiss');
+      const slot = dismiss.getAttribute('data-fb-slot');
+      dismiss.disabled = true;
+      try {
+        const res = await api('/api/feedback/proposals/update', { method: 'POST', body: { id, slot, text: '' } });
+        patchFeedbackItem(res.item);
+      } catch (err) { toast(err.message, true); dismiss.disabled = false; }
+      return;
+    }
+
+    const edit = e.target.closest('[data-fb-edit]');
+    if (edit) {
+      const id = edit.getAttribute('data-fb-edit');
+      const slot = parseInt(edit.getAttribute('data-fb-slot'), 10);
+      const item = cacheFeedback.find((f) => f.id === id);
+      const current = item && item.proposals ? item.proposals[slot] : '';
+      const next = window.prompt('Edit proposed fix:', current || '');
+      if (next === null) return;
+      edit.disabled = true;
+      try {
+        const res = await api('/api/feedback/proposals/update', { method: 'POST', body: { id, slot, text: next.trim() } });
+        if (next.trim()) {
+          const rec = feedbackRecommendedSlot(item);
+          feedbackPick[id] = {
+            text: next.trim(),
+            slot: slot,
+            source: slot === rec ? 'recommended' : 'card'
+          };
+        }
+        patchFeedbackItem(res.item);
+      } catch (err) { toast(err.message, true); edit.disabled = false; }
+      return;
+    }
+
+    const accept = e.target.closest('[data-fb-accept]');
+    if (accept) {
+      const id = accept.getAttribute('data-fb-accept');
+      const item = cacheFeedback.find(function (f) { return f.id === id; });
+      const ta = document.getElementById('fb-custom-' + id);
+      const noteEl = document.getElementById('fb-note-' + id);
+      const pick = item ? resolveFeedbackPick(item) : { text: '', slot: null, source: 'custom' };
+      const solution = ((ta && ta.value) || pick.text || '').trim();
+      if (!solution) { toast('Pick a card or write a custom fix first.', true); return; }
+      const acceptedSlot = item ? resolveAcceptedSlot(item, solution, pick) : null;
+      accept.disabled = true;
+      try {
+        const res = await api('/api/feedback/proposals/accept', {
+          method: 'POST',
+          body: {
+            id,
+            solution,
+            note: noteEl ? noteEl.value.trim() : '',
+            status: 'accepted',
+            acceptedSlot: acceptedSlot
+          }
+        });
+        patchFeedbackItem(res.item);
+        toast('Accepted one fix — not all three.');
+      } catch (err) { toast(err.message, true); accept.disabled = false; }
+      return;
+    }
+
     const btn = e.target.closest('[data-fb-status]');
-    if (!btn) return;
-    const id = btn.getAttribute('data-fb-status');
-    const status = btn.getAttribute('data-status');
-    btn.disabled = true;
-    try {
-      await api('/api/feedback/action', { method: 'POST', body: { id, status } });
-      toast('Feedback marked as ' + status + '.');
-      loadFeedback();
-    } catch (err) {
-      toast(err.message, true);
-      btn.disabled = false;
+    if (btn) {
+      const id = btn.getAttribute('data-fb-status');
+      const status = btn.getAttribute('data-status');
+      btn.disabled = true;
+      try {
+        const res = await api('/api/feedback/action', { method: 'POST', body: { id, status } });
+        if (res.item) patchFeedbackItem(res.item);
+        else loadFeedback();
+        refreshNavBadges();
+        if (status === 'done' || status === 'declined') {
+          toast('Archived — removed from active queue. View under Archived filter anytime.');
+        } else if (status === 'reviewing') {
+          toast('Reopened — back in the active queue.');
+        } else {
+          toast('Feedback marked as ' + status + '.');
+        }
+      } catch (err) {
+        toast(err.message, true);
+        btn.disabled = false;
+      }
+      return;
+    }
+
+    const delBtn = e.target.closest('[data-fb-delete]');
+    if (delBtn) {
+      const id = delBtn.getAttribute('data-fb-delete');
+      if (!confirm('Permanently delete this feedback item? This cannot be undone.')) return;
+      delBtn.disabled = true;
+      try {
+        await api('/api/feedback/delete', { method: 'POST', body: { id } });
+        cacheFeedback = cacheFeedback.filter(function (f) { return f.id !== id; });
+        renderFeedbackList();
+        refreshNavBadges();
+        toast('Feedback deleted.');
+      } catch (err) { toast(err.message, true); delBtn.disabled = false; }
     }
   });
 
@@ -417,13 +1124,15 @@
       document.getElementById('admin-user-mgmt').style.display = 'block';
       try {
         const uj = await api('/api/console_users');
-        const cul = (uj.users || []).map((u) =>
-          '<div class="item"><div class="t">' + esc(u.username) +
-          '<span class="badge b-approved">' + esc(u.role) + '</span></div>' +
+        const cul = (uj.users || []).map((u) => {
+          const pending = u.mustSetupMfa || !u.mfaEnabled;
+          const pendingBadge = pending ? ' <span class="badge b-in_review">setup pending</span>' : '';
+          return '<div class="item"><div class="t">' + esc(u.username) +
+          '<span class="badge b-approved">' + esc(u.role) + '</span>' + pendingBadge + '</div>' +
           '<div class="m">Created ' + esc(u.createdAt.slice(0, 10)) + '</div>' +
-          (u.username.toLowerCase() !== 'admin' ? '<div class="actions" style="margin-top:4px"><button class="btn btn-no" data-deluser="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">Delete</button></div>' : '') +
-          '</div>'
-        );
+          (u.bootstrap ? '' : '<div class="actions" style="margin-top:4px"><button class="btn btn-no" data-deluser="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">Delete</button></div>') +
+          '</div>';
+        });
         document.getElementById('console-users-list').innerHTML = cul.length ? cul.join('') : '<div class=empty>No custom accounts created yet.</div>';
       } catch (e) { document.getElementById('console-users-list').innerHTML = '<div class=empty>Failed to load accounts.</div>'; }
     } else {
@@ -489,16 +1198,111 @@
   document.getElementById('v-pipeline').addEventListener('click', async (e) => {
     const b = e.target.closest('button[data-act]'); if (!b) return;
     const { act, id, name } = b.dataset;
-    if (!confirm(act.toUpperCase() + ' ' + name + ' (id ' + id + ')?')) return;
+    if (act === 'contact') {
+      b.disabled = true;
+      try {
+        const r = await api('/api/pipeline/action', { method: 'POST', body: { id, action: act } });
+        toast(r.message || 'Marked contacted.');
+        loadPipeline();
+        loadFollowUpQueue();
+        refreshNavBadges();
+      } catch (err) { toast(err.message, true); b.disabled = false; }
+      return;
+    }
+    if (act === 'claim') {
+      b.disabled = true;
+      try {
+        const r = await api('/api/pipeline/action', { method: 'POST', body: { id, action: act } });
+        toast(r.message || 'Claimed.');
+        loadPipeline();
+        loadFollowUpQueue();
+      } catch (err) { toast(err.message, true); b.disabled = false; }
+      return;
+    }
+    var msg = act === 'approve'
+      ? 'Qualify "' + name + '" for merchant onboarding? (Use after your team has spoken with them.)'
+      : act === 'reject'
+        ? 'Mark "' + name + '" as not interested?'
+        : act.toUpperCase() + ' ' + name + ' (id ' + id + ')?';
+    if (!confirm(msg)) return;
     b.disabled = true;
     try {
       const r = await api('/api/pipeline/action', { method: 'POST', body: { id, action: act } });
       toast(r.message || 'Done.');
     } catch (err) { toast(err.message, true); }
     loadPipeline();
+    loadFollowUpQueue();
   });
 
   document.getElementById('v-leads').addEventListener('click', async (e) => {
+    const claimBtn = e.target.closest('[data-lead-claim]');
+    if (claimBtn) {
+      const id = claimBtn.getAttribute('data-lead-claim');
+      claimBtn.disabled = true;
+      try {
+        const r = await api('/api/leads/claim', { method: 'POST', body: { id } });
+        if (r.item) {
+          const idx = cacheLeads.findIndex(function (l) { return l.id === id; });
+          if (idx >= 0) cacheLeads[idx] = r.item;
+        }
+        renderLeadsList();
+        toast('Lead claimed — you own follow-up.');
+      } catch (err) { toast(err.message, true); claimBtn.disabled = false; }
+      return;
+    }
+
+    const deleteBtn = e.target.closest('[data-lead-delete]');
+    if (deleteBtn) {
+      const id = deleteBtn.getAttribute('data-lead-delete');
+      const name = deleteBtn.getAttribute('data-lead-name') || 'this lead';
+      if (!confirm('Permanently delete ' + name + '? This cannot be undone.')) return;
+      deleteBtn.disabled = true;
+      try {
+        await api('/api/leads/delete', { method: 'POST', body: { id } });
+        cacheLeads = cacheLeads.filter(function (l) { return l.id !== id; });
+        renderLeadsList();
+        refreshNavBadges();
+        toast('Lead deleted.');
+      } catch (err) { toast(err.message, true); deleteBtn.disabled = false; }
+      return;
+    }
+
+    const promoteBtn = e.target.closest('[data-lead-promote]');
+    if (promoteBtn) {
+      const id = promoteBtn.getAttribute('data-lead-promote');
+      const name = promoteBtn.getAttribute('data-lead-name') || 'this lead';
+      if (!confirm('Move "' + name + '" to the merchant Pipeline as a new application?')) return;
+      promoteBtn.disabled = true;
+      try {
+        const r = await api('/api/leads/promote', { method: 'POST', body: { id } });
+        toast('Moved to Pipeline — open the Pipeline tab to approve or advance.');
+        if (r.item) {
+          const idx = cacheLeads.findIndex(function (l) { return l.id === id; });
+          if (idx >= 0) cacheLeads[idx] = r.item;
+        }
+        renderLeadsList();
+      } catch (err) { toast(err.message, true); promoteBtn.disabled = false; }
+      return;
+    }
+
+    const actionBtn = e.target.closest('[data-lead-action]');
+    if (actionBtn) {
+      const id = actionBtn.getAttribute('data-lead-action');
+      const status = actionBtn.getAttribute('data-lead-status');
+      actionBtn.disabled = true;
+      try {
+        const r = await api('/api/leads/action', { method: 'POST', body: { id, status } });
+        if (r.item) {
+          const idx = cacheLeads.findIndex(function (l) { return l.id === id; });
+          if (idx >= 0) cacheLeads[idx] = r.item;
+        }
+        renderLeadsList();
+        refreshNavBadges();
+        toast(status === 'archived' ? 'Lead archived.' : status === 'contacted' ? 'Marked contacted.' : 'Lead reopened.');
+      } catch (err) { toast(err.message, true); actionBtn.disabled = false; }
+      return;
+    }
+
     const b = e.target.closest('button[data-erase]'); if (!b) return;
     const { erase, name } = b.dataset;
     if (!confirm('ERASE ALL PII for ' + name + '? This is irreversible.')) return;
@@ -556,12 +1360,16 @@
     const username = document.getElementById('console-username').value.trim();
     const password = document.getElementById('console-password').value.trim();
     const role = document.getElementById('console-role').value;
-    if (!username || !password) { toast('Username and password required.', true); return; }
+    if (!username || !password) { toast('Username and starter PIN are required.', true); return; }
+    if (!/^\d{6,12}$/.test(password)) {
+      toast('Starter PIN must be 6–12 numeric digits.', true);
+      return;
+    }
 
     document.getElementById('console-user-create').disabled = true;
     try {
       await api('/api/console_users', { method: 'POST', body: { username, password, role } });
-      toast('User account ' + username + ' created.');
+      toast('Account commissioned for ' + username + ' — they complete 2FA on first login.');
       document.getElementById('console-username').value = '';
       document.getElementById('console-password').value = '';
     } catch (err) { toast(err.message, true); }
@@ -602,19 +1410,37 @@
   });
 
   /* ---- login flow ---- */
-  var tempLoginCreds = null; // Stash username/password for MFA challenge step
+  function showSetupModal(starterUsername) {
+    document.getElementById('mfa-setup-step1').style.display = 'block';
+    document.getElementById('mfa-setup-step2').style.display = 'none';
+    document.getElementById('mfa-setup-err').style.display = 'none';
+    document.getElementById('mfa-setup-username').value = starterUsername || '';
+    document.getElementById('mfa-setup-password').value = '';
+    document.getElementById('mfa-verification-code').value = '';
+    document.getElementById('mfa-secret-text').textContent = '—';
+    const copyBtn = document.getElementById('mfa-secret-copy');
+    if (copyBtn) copyBtn.disabled = true;
+    const qrImg = document.getElementById('mfa-qr-image');
+    qrImg.removeAttribute('src');
+    qrImg.style.display = 'none';
+    const qrPlaceholder = document.getElementById('mfa-qr-placeholder');
+    qrPlaceholder.style.display = 'flex';
+    qrPlaceholder.textContent = 'QR loading…';
+    document.getElementById('mfa-setup-modal').style.display = 'flex';
+  }
+
   document.getElementById('unlock-btn').addEventListener('click', async function () {
     var user = document.getElementById('username-input').value.trim();
     var pass = document.getElementById('token-input').value.trim();
     var mfaCode = document.getElementById('login-mfa-input').value.trim();
-    if (!pass) { toast('Please enter password or token.', true); return; }
+    if (!user || !pass) { toast('Username and PIN are required.', true); return; }
 
     var btn = document.getElementById('unlock-btn');
     btn.disabled = true;
     btn.textContent = 'Logging in…';
 
     try {
-      const payload = { username: user || 'admin', password: pass };
+      const payload = { username: user, password: pass };
       if (mfaCode) payload.mfaCode = mfaCode;
       
       const res = await fetch(API + '/api/login', {
@@ -625,40 +1451,14 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed.');
 
-      // If MFA is required to login, show the input box and let user try again with code
-      if (data.mfaRequired) {
-        tempLoginCreds = { user, pass };
-        document.getElementById('login-mfa-box').style.display = 'block';
-        toast('MFA code required to authenticate.', false);
-        document.getElementById('login-mfa-input').focus();
-        return;
-      }
-
-      // Check if First Login Setup is mandated
       if (data.mustSetupMfa) {
         setToken(data.token);
         sessionStorage.setItem('omni_dash_role', data.role);
         sessionStorage.setItem('omni_dash_username', data.username);
         currentUserRole = data.role;
-
-        document.getElementById('mfa-setup-username').value = data.username;
-        document.getElementById('mfa-secret-text').textContent = 'Loading…';
-        document.getElementById('mfa-qr-placeholder').innerHTML = 'Loading QR…';
-        document.getElementById('mfa-setup-modal').style.display = 'flex';
-
-        try {
-          const setup = await api('/api/console_users/mfa-setup');
-          document.getElementById('mfa-secret-text').textContent = setup.secret || 'Unavailable';
-          if (setup.otpauthUri) {
-            document.getElementById('mfa-qr-placeholder').innerHTML =
-              '<img src="https://quickchart.io/qr?size=140&margin=1&text=' + encodeURIComponent(setup.otpauthUri) + '" alt="Scan to add authenticator" width="140" height="140" style="display:block;">';
-          } else {
-            document.getElementById('mfa-qr-placeholder').textContent = 'Enter key manually below';
-          }
-        } catch (setupErr) {
-          document.getElementById('mfa-secret-text').textContent = 'Could not load — contact admin';
-          document.getElementById('mfa-qr-placeholder').textContent = setupErr.message;
-        }
+        markPendingSetup(true);
+        document.getElementById('unlock-err').style.display = 'none';
+        await resumeSetupWizard(data.username);
         return;
       }
 
@@ -667,18 +1467,18 @@
       sessionStorage.setItem('omni_dash_username', data.username);
       currentUserRole = data.role;
 
-      // Clean up form inputs
       document.getElementById('token-input').value = '';
       document.getElementById('username-input').value = '';
       document.getElementById('login-mfa-input').value = '';
-      document.getElementById('login-mfa-box').style.display = 'none';
-      tempLoginCreds = null;
 
       showDash();
       loadOverview();
       startRefresh();
       toast('Welcome back, ' + data.username);
     } catch (err) {
+      const errEl = document.getElementById('unlock-err');
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
       toast(err.message, true);
     } finally {
       btn.disabled = false;
@@ -686,18 +1486,55 @@
     }
   });
 
-  // --- First Login MFA setup submit binding ---
-  document.getElementById('mfa-setup-submit').addEventListener('click', async function() {
+  document.getElementById('mfa-secret-copy').addEventListener('click', copyMfaSecret);
+
+  document.getElementById('mfa-setup-prepare').addEventListener('click', async function() {
     const newUsername = document.getElementById('mfa-setup-username').value.trim();
     const newPassword = document.getElementById('mfa-setup-password').value.trim();
-    const mfaCode = document.getElementById('mfa-verification-code').value.trim();
     const errDiv = document.getElementById('mfa-setup-err');
+    errDiv.style.display = 'none';
 
-    if (!newPassword || !/^\d{6,12}$/.test(newPassword)) {
-      errDiv.textContent = 'PIN must be a numeric code between 6 and 12 digits.';
+    if (!newUsername || !newPassword) {
+      errDiv.textContent = 'Permanent username and PIN are required.';
       errDiv.style.display = 'block';
       return;
     }
+    if (!/^\d{6,12}$/.test(newPassword)) {
+      errDiv.textContent = 'PIN must be 6–12 numeric digits.';
+      errDiv.style.display = 'block';
+      toast('PIN must be 6–12 numeric digits.', true);
+      return;
+    }
+
+    const btn = document.getElementById('mfa-setup-prepare');
+    btn.disabled = true;
+    btn.textContent = 'Preparing…';
+
+    try {
+      const res = await api('/api/console_users/setup-mfa/prepare', {
+        method: 'POST',
+        body: { newUsername, newPassword }
+      });
+      sessionStorage.setItem('omni_dash_username', res.username);
+
+      applySetupQr(res);
+
+      document.getElementById('mfa-setup-step1').style.display = 'none';
+      document.getElementById('mfa-setup-step2').style.display = 'block';
+    } catch (err) {
+      errDiv.textContent = err.message;
+      errDiv.style.display = 'block';
+      errDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      toast(err.message || 'Setup failed — try again.', true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Continue → Scan QR Code';
+    }
+  });
+
+  document.getElementById('mfa-setup-submit').addEventListener('click', async function() {
+    const mfaCode = document.getElementById('mfa-verification-code').value.trim();
+    const errDiv = document.getElementById('mfa-setup-err');
     if (!mfaCode) {
       errDiv.textContent = 'Verification code is required.';
       errDiv.style.display = 'block';
@@ -707,18 +1544,18 @@
     errDiv.style.display = 'none';
     const btn = document.getElementById('mfa-setup-submit');
     btn.disabled = true;
-    btn.textContent = 'Verifying security configuration...';
+    btn.textContent = 'Verifying…';
 
     try {
       const res = await api('/api/console_users/setup-mfa', {
         method: 'POST',
-        body: { newUsername, newPassword, mfaCode }
+        body: { mfaCode }
       });
       
-      toast('Security setup complete. Account activated!');
+      sessionStorage.setItem('omni_dash_username', res.username);
+      markPendingSetup(false);
+      toast('Account activated — welcome, ' + res.username);
       document.getElementById('mfa-setup-modal').style.display = 'none';
-      
-      // Clean up form inputs
       document.getElementById('token-input').value = '';
       document.getElementById('username-input').value = '';
       document.getElementById('mfa-setup-password').value = '';
@@ -847,6 +1684,10 @@
   document.getElementById('pipe-search').addEventListener('input', renderPipelineList);
   document.getElementById('pipe-filter-stage').addEventListener('change', renderPipelineList);
   document.getElementById('leads-search').addEventListener('input', renderLeadsList);
+  document.getElementById('leads-filter').addEventListener('change', function () {
+    sessionStorage.setItem('omni_leads_filter', this.value);
+    renderLeadsList();
+  });
 
   /* ---- CSV & JSON Exports ---- */
   document.getElementById('export-json-btn').addEventListener('click', function() {
@@ -887,7 +1728,8 @@
           '<p><strong>Phone:</strong> ' + esc(item.phone || 'N/A') + '</p>' +
           '<p><strong>Source:</strong> ' + esc(item.source || 'N/A') + '</p>' +
           '<p><strong>Created:</strong> ' + esc(item.createdAt || 'N/A') + '</p>' +
-          '<p><strong>Last Updated:</strong> ' + esc(item.updatedAt || 'N/A') + '</p>';
+          '<p><strong>Last Updated:</strong> ' + esc(item.updatedAt || 'N/A') + '</p>' +
+          qualificationSummaryHtml(item.qualification);
           
         if (item.history && item.history.length) {
           bodyHtml += '<div style="margin-top: 16px; border-top: 1px dashed var(--card-edge); padding-top: 12px;">' +
@@ -908,12 +1750,16 @@
       if (item) {
         modalTitle.textContent = esc(item.name || 'Lead Details');
         let bodyHtml = '<p><strong>Lead ID:</strong> <code>' + esc(item.id) + '</code></p>' +
+          '<p><strong>Status:</strong> ' + esc(leadStatus(item)) + '</p>' +
           '<p><strong>Phone:</strong> ' + esc(item.phone || 'N/A') + '</p>' +
           '<p><strong>Business:</strong> ' + esc(item.business || 'N/A') + '</p>' +
           '<p><strong>Consent Given:</strong> ' + (item.consent ? '<span class="up">Yes</span>' : '<span class="down">No</span>') + '</p>' +
           '<p><strong>Channel/Via:</strong> ' + esc(item.via || 'N/A') + '</p>' +
           '<p><strong>Source Form:</strong> ' + esc(item.source || 'N/A') + '</p>' +
-          '<p><strong>Submitted:</strong> ' + esc(item.createdAt || 'N/A') + '</p>' +
+          '<p><strong>Submitted:</strong> ' + esc(formatLeadWhen(item)) + '</p>' +
+          qualificationSummaryHtml(item.qualification) +
+          (item.followUpNote ? '<p><strong>Follow-up note:</strong> ' + esc(item.followUpNote) + '</p>' : '') +
+          (item.promotedToPipelineId ? '<p><strong>Pipeline:</strong> promoted (see Pipeline tab)</p>' : '') +
           '<p style="margin-bottom: 4px;"><strong>Notes:</strong></p><pre style="font-size:12px; max-height:150px; overflow-y:auto;">' + esc(item.notes || 'None') + '</pre>';
         modalBody.innerHTML = bodyHtml;
         modal.style.display = 'flex';
@@ -1106,8 +1952,8 @@
       const d = new Date(o.timestamp);
       const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const statusClass = o.status === 'Completed' ? 'badge b-active' : 'badge b-rejected';
-      return '<tr>' +
-        '<td style="padding:10px; border-bottom: 1px solid var(--card-edge); font-family: monospace; font-weight: bold;">' + esc(o.txid) + '</td>' +
+      return '<tr class="demo-row">' +
+        '<td style="padding:10px; border-bottom: 1px solid var(--card-edge); font-family: monospace; font-weight: bold;"><span class="demo-txid">' + esc(o.txid) + '</span></td>' +
         '<td style="padding:10px; border-bottom: 1px solid var(--card-edge);">' + esc(dateStr) + '</td>' +
         '<td style="padding:10px; border-bottom: 1px solid var(--card-edge);">' + esc(o.customer) + '</td>' +
         '<td style="padding:10px; border-bottom: 1px solid var(--card-edge); font-weight: bold;">' + money(o.amount) + '</td>' +
@@ -1137,7 +1983,7 @@
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "transaction_ledger.csv");
+    link.setAttribute("download", "omnitender_ledger_example.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1145,20 +1991,28 @@
   });
 
   /* ---- init ---- */
-  function init() {
-    // Apply initial theme
+  async function init() {
     applyTheme(getTheme());
 
-    // Check if token exists in session
     if (getToken()) {
       currentUserRole = sessionStorage.getItem('omni_dash_role') || 'Employee';
-      showDash();
-      loadOverview();
-      startRefresh();
-      resetInactivityTimer();
-    } else {
-      showUnlock();
+      if (sessionStorage.getItem('omni_dash_pending_setup') === '1') {
+        await resumeSetupWizard(sessionStorage.getItem('omni_dash_username') || '');
+        return;
+      }
+      try {
+        const r = await fetch(API + '/stats', { headers: authHeaders() });
+        if (r.status === 401) throw new Error('expired');
+        showDash();
+        loadOverview();
+        startRefresh();
+        resetInactivityTimer();
+        return;
+      } catch (_) {
+        clearToken();
+      }
     }
+    showUnlock();
   }
 
   init();

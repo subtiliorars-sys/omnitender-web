@@ -414,6 +414,93 @@
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
+    .mfa-setup-panel {
+      background: var(--inset);
+      border: 1px solid var(--card-edge);
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .mfa-setup-hint {
+      margin: 0 0 12px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .mfa-secret-block {
+      margin-top: 4px;
+      text-align: left;
+    }
+    .mfa-secret-label {
+      display: block;
+      font-size: 10px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .mfa-secret-row {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+    }
+    .mfa-secret-code {
+      flex: 1;
+      min-width: 0;
+      display: block;
+      font-size: 15px;
+      font-weight: bold;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--accent);
+      letter-spacing: 2px;
+      word-break: break-all;
+      line-height: 1.35;
+      padding: 10px 12px;
+      background: var(--card);
+      border: 1px solid var(--card-edge);
+      border-radius: var(--radius-sm);
+      user-select: all;
+      -webkit-user-select: all;
+    }
+    .mfa-secret-copy-btn {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      padding: 0;
+      background: var(--card);
+      border: 1px solid var(--card-edge);
+      border-radius: var(--radius-sm);
+      color: var(--accent);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .mfa-secret-copy-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--accent);
+    }
+    .mfa-secret-copy-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .mfa-secret-copy-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .mfa-secret-help {
+      margin: 8px 0 0;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -547,7 +634,7 @@
   <div id="mfa-setup-modal" class="modal-overlay" style="display: none;">
     <div class="card" style="max-width: 460px; width: 100%; margin: 0; box-shadow: 0 10px 40px rgba(0,0,0,0.8); text-align: left;">
       <h2 style="border-left: 3px solid var(--accent); padding-left: 10px; margin-bottom: 12px; color: var(--accent);">Activate Your Console Account</h2>
-      <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;">Choose your permanent username and PIN, then scan the QR code with Google Authenticator or Authy.</p>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;">Choose your permanent username and PIN, then connect Google Authenticator, Authy, or any TOTP app — scan the QR on another device, or copy the setup key on this phone.</p>
       
       <div id="mfa-setup-step1">
         <div style="margin-bottom: 12px;">
@@ -560,19 +647,26 @@
           <input type="password" id="mfa-setup-password" placeholder="6–12 digit numeric PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12">
         </div>
 
-        <button type="button" class="btn btn-go" id="mfa-setup-prepare" style="width: 100%; padding: 12px;">Continue → Scan QR Code</button>
+        <button type="button" class="btn btn-go" id="mfa-setup-prepare" style="width: 100%; padding: 12px;">Continue → Set Up Authenticator</button>
       </div>
 
       <div id="mfa-setup-step2" style="display: none;">
-        <div style="background: var(--inset); border: 1px solid var(--card-edge); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 16px; text-align: center;">
-          <h4 style="margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #fff;">Scan to Connect Authenticator</h4>
+        <div class="mfa-setup-panel">
+          <h4 style="margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #fff;">Connect Your Authenticator</h4>
+          <p class="mfa-setup-hint">On a computer? Scan the QR code. On this phone only? Copy the setup key below and paste it into your authenticator app.</p>
           <div id="mfa-qr-container">
             <img id="mfa-qr-image" width="220" height="220" alt="Authenticator QR code">
             <div id="mfa-qr-placeholder" style="width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #333; font-weight: bold; line-height: 1.3;">QR loading…</div>
           </div>
-          <div style="font-size: 11px; color: var(--muted); word-break: break-all;">
-            Or enter key manually:<br>
-            <code id="mfa-secret-text" style="font-size: 12px; font-weight: bold; color: var(--accent); letter-spacing: 1px;">SECRET_KEY</code>
+          <div class="mfa-secret-block">
+            <span class="mfa-secret-label">Setup key</span>
+            <div class="mfa-secret-row">
+              <code id="mfa-secret-text" class="mfa-secret-code">—</code>
+              <button type="button" id="mfa-secret-copy" class="mfa-secret-copy-btn" title="Copy setup key" aria-label="Copy setup key" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </button>
+            </div>
+            <p class="mfa-secret-help">In Google Authenticator: tap <strong>+</strong> → <strong>Enter a setup key</strong> → paste this key. Name it OmniTender.</p>
           </div>
         </div>
 
