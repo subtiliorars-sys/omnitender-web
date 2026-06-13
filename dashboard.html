@@ -32,14 +32,25 @@
       --muted: #555555;
       --faint: #888888;
     }
-    html[data-theme="light"] .sidebar,
-    html[data-theme="light"] header {
+    html[data-theme="light"] .sidebar {
       background: #F0F0F0 !important;
       color: #1A1A1A !important;
       border-right-color: var(--card-edge) !important;
     }
-    html[data-theme="light"] header .brand {
+    html[data-theme="light"] .sidebar header {
+      background: transparent !important;
       color: #1A1A1A !important;
+    }
+    html[data-theme="light"] .sidebar header .brand {
+      color: #1A1A1A !important;
+    }
+    html[data-theme="light"] .sidebar header .brand-wrapper {
+      background: #FFFFFF;
+      border-color: #D4D4D4;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+    }
+    html[data-theme="light"] .sidebar header .tagline {
+      color: #3A3A3A;
     }
     html[data-theme="light"] nav button {
       color: var(--muted);
@@ -107,33 +118,42 @@
       flex-direction: column;
     }
 
-    /* header override */
-    header {
-      background: #000;
+    /* sidebar brand — contained panel so logo/title/tagline don't bleed into nav bg */
+    .sidebar header {
+      background: transparent;
       border-bottom: none;
       box-shadow: none;
-      padding: 16px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    header .brand-wrapper {
+      padding: 16px 16px 12px;
+      display: block;
       text-align: left;
     }
-    header .brand {
-      font-size: 1.8rem;
+    .sidebar header .brand-wrapper {
+      text-align: left;
+      background: var(--inset);
+      border: 1px solid var(--card-edge);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+    }
+    .sidebar header .brand {
+      font-size: 1.35rem;
       font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: none;
       text-decoration: none;
       color: #fff;
+      line-height: 1.2;
     }
-    header .brand span {
+    .sidebar header .brand span {
       color: var(--accent);
     }
-    header .tagline {
-      margin: 0;
-      font-size: 0.7rem;
-      letter-spacing: 2px;
+    .sidebar header .tagline {
+      margin: 6px 0 0;
+      font-size: 0.62rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 600;
       color: var(--muted);
+      line-height: 1.3;
     }
 
     /* navigation tab bar */
@@ -200,11 +220,11 @@
       .main-content {
         margin-left: 260px;
       }
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 32px 24px 16px;
-        gap: 12px;
+      .sidebar header {
+        padding: 24px 16px 12px;
+      }
+      .sidebar header .brand-wrapper {
+        padding: 14px 16px;
       }
       nav {
         flex-direction: column;
@@ -306,6 +326,11 @@
 
     /* UI badges */
     .badge { display: inline-block; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; border-radius: 6px; padding: 3px 8px; margin-left: 8px; vertical-align: middle; }
+    .nav-badge {
+      display: inline-block; min-width: 18px; padding: 1px 6px; margin-left: 6px;
+      border-radius: 999px; background: var(--accent); color: #111;
+      font-size: 10px; font-weight: 800; vertical-align: middle; line-height: 1.4;
+    }
     .b-applied { background: #3b2a17; color: var(--accent); }
     .b-in_review { background: #3b2a17; color: var(--accent); }
     .b-approved { background: #0f3325; color: var(--up); }
@@ -369,9 +394,117 @@
       padding: 20px;
       animation: fadeIn 0.2s ease-out;
     }
+    /* Blur breaks QR scanning on some mobile browsers — keep MFA setup crisp */
+    #mfa-setup-modal {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+    #mfa-qr-container {
+      background: #fff;
+      display: inline-block;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      line-height: 0;
+    }
+    #mfa-qr-image {
+      display: none;
+      width: 220px;
+      height: 220px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
+    }
+
+    /* ---- feedback triage (three-card flow) ---- */
+    .fb-item { margin-bottom: 16px; padding: 16px; border: 1px solid var(--card-edge); border-radius: var(--radius-sm); background: var(--inset); }
+    .fb-item.fb-archived { opacity: 0.88; padding: 12px 14px; background: rgba(0,0,0,0.25); }
+    .fb-message { margin: 12px 0; font-size: 14px; line-height: 1.55; white-space: pre-wrap; color: var(--text); }
+    .fb-proposals { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 14px 0; }
+    .fb-proposal-card {
+      background: var(--card);
+      border: 2px solid var(--card-edge);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .fb-proposal-card.on { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(247, 121, 44, 0.35); }
+    .fb-proposal-card.recommended { border-color: rgba(247, 121, 44, 0.55); }
+    .fb-proposal-card.recommended.on { border-color: var(--accent); }
+    .fb-proposal-card.empty { border-style: dashed; opacity: 0.65; cursor: default; }
+    .fb-proposal-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .fb-proposal-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+    .fb-proposal-badge {
+      font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 2px 7px; border-radius: 999px; background: rgba(247, 121, 44, 0.18); color: var(--accent); white-space: nowrap;
+    }
+    .fb-accept-preview {
+      margin: 12px 0 10px; padding: 12px 14px; border-radius: var(--radius-sm);
+      border: 1px solid rgba(247, 121, 44, 0.35); background: rgba(247, 121, 44, 0.08);
+    }
+    .fb-accept-preview .label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin-bottom: 6px; }
+    .fb-accept-preview .text { font-size: 12px; line-height: 1.45; color: var(--text); white-space: pre-wrap; }
+    .fb-accept-preview .meta { font-size: 10px; color: var(--muted); margin-top: 8px; }
+    .fb-proposal-text { font-size: 12px; line-height: 1.45; flex: 1; color: var(--text); }
+    .fb-proposal-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .fb-proposal-actions button { font-size: 10px; padding: 4px 8px; min-height: 0; margin: 0; width: auto; }
+    .fb-custom-solution { width: 100%; min-height: 72px; margin: 10px 0; font-size: 12px; resize: vertical; }
+    .fb-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+
+    /* ---- vendor preview / coming-soon panels ---- */
+    .preview-banner {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      border-radius: var(--radius-sm);
+      border: 1px dashed rgba(247, 121, 44, 0.45);
+      background: rgba(247, 121, 44, 0.08);
+    }
+    .preview-badge {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #000;
+    }
+    .preview-banner strong { display: block; font-size: 13px; margin-bottom: 4px; color: var(--text); }
+    .preview-banner p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--muted); }
+    nav button .nav-preview-tag {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(247, 121, 44, 0.25);
+      color: var(--accent);
+      margin-left: 4px;
+    }
+    nav button.on .nav-preview-tag { background: rgba(0, 0, 0, 0.2); color: #000; }
+    tr.demo-row td:first-child { position: relative; }
+    .demo-txid::after {
+      content: 'sample';
+      display: block;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--faint);
+      margin-top: 2px;
     }
   </style>
 </head>
@@ -388,22 +521,21 @@
         <p style="margin: 4px 0 0; font-size: 0.75rem; letter-spacing: 2px; color: var(--muted); text-transform: uppercase;">CRM &amp; Ops Console</p>
       </div>
       <h2>Console Login</h2>
-      <p style="color: var(--muted); font-size: 13px; margin-top: -8px; margin-bottom: 18px;">Admin: username <strong>admin</strong> + your owner token (password field). Employees use their assigned username and PIN.</p>
+      <p style="color: var(--muted); font-size: 13px; margin-top: -8px; margin-bottom: 18px;">Username + PIN + authenticator. <strong>First login:</strong> leave authenticator blank. <strong>After setup step 1:</strong> use the permanent PIN you chose — the starter PIN stops working once you click Continue.</p>
       
       <div style="margin-bottom: 12px;">
         <label for="username-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--muted);">Username</label>
-        <input type="text" id="username-input" placeholder="admin or employee username" autocomplete="username">
+        <input type="text" id="username-input" placeholder="Your console username" autocomplete="username">
       </div>
       
       <div style="margin-bottom: 12px;">
-        <label for="token-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--muted);">Password / Token</label>
-        <input type="password" id="token-input" placeholder="Enter password or token" autocomplete="current-password">
+        <label for="token-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--muted);">User PIN</label>
+        <input type="password" id="token-input" placeholder="6–12 digit PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="current-password">
       </div>
 
-      <!-- TOTP 2FA input box (hidden by default) -->
-      <div id="login-mfa-box" style="display: none; margin-bottom: 20px; border-top: 1px dashed var(--card-edge); padding-top: 16px;">
-        <label for="login-mfa-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--accent);">Two-Factor Auth (TOTP) Code</label>
-        <input type="text" id="login-mfa-input" placeholder="6-digit authentication code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
+      <div style="margin-bottom: 20px;">
+        <label for="login-mfa-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--accent);">Authenticator Code (TOTP)</label>
+        <input type="text" id="login-mfa-input" placeholder="6-digit code — blank on first login" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
       </div>
 
       <button class="btn btn-go" id="unlock-btn" style="width: 100%; padding: 12px; font-size: 14px;">Log In</button>
@@ -414,38 +546,44 @@
   <!-- FIRST LOGIN SETUP / 2FA ENROLLMENT MODAL -->
   <div id="mfa-setup-modal" class="modal-overlay" style="display: none;">
     <div class="card" style="max-width: 460px; width: 100%; margin: 0; box-shadow: 0 10px 40px rgba(0,0,0,0.8); text-align: left;">
-      <h2 style="border-left: 3px solid var(--accent); padding-left: 10px; margin-bottom: 12px; color: var(--accent);">Security Verification &amp; 2FA Setup</h2>
-      <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;">This is your first login. To secure your account, you must customize your credentials and link your mobile device authenticator (Google Authenticator, Authy, etc.) to complete setup.</p>
+      <h2 style="border-left: 3px solid var(--accent); padding-left: 10px; margin-bottom: 12px; color: var(--accent);">Activate Your Console Account</h2>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;">Choose your permanent username and PIN, then scan the QR code with Google Authenticator or Authy.</p>
       
-      <div style="margin-bottom: 12px;">
-        <label for="mfa-setup-username" style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: var(--muted);">Choose New Username (Optional)</label>
-        <input type="text" id="mfa-setup-username" placeholder="Keep current or enter new handle">
-      </div>
-
-      <div style="margin-bottom: 16px;">
-        <label for="mfa-setup-password" style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: var(--muted);">Choose Login PIN (Required)</label>
-        <input type="password" id="mfa-setup-password" placeholder="6–12 digit numeric PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12">
-      </div>
-
-      <div style="background: var(--inset); border: 1px solid var(--card-edge); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 16px; text-align: center;">
-        <h4 style="margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #fff;">Scan to Connect Authenticator</h4>
-        <!-- QR Code Placeholder container -->
-        <div id="mfa-qr-container" style="background: #fff; display: inline-block; padding: 10px; border-radius: 6px; margin-bottom: 8px;">
-          <!-- SVG QR Code gets injected here dynamically -->
-          <div id="mfa-qr-placeholder" style="width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #333; font-weight: bold;">Loading QR Code...</div>
+      <div id="mfa-setup-step1">
+        <div style="margin-bottom: 12px;">
+          <label for="mfa-setup-username" style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: var(--muted);">Permanent Username (Required)</label>
+          <input type="text" id="mfa-setup-username" placeholder="e.g. subtilior.ars">
         </div>
-        <div style="font-size: 11px; color: var(--muted); word-break: break-all;">
-          Or enter key manually:<br>
-          <code id="mfa-secret-text" style="font-size: 12px; font-weight: bold; color: var(--accent); letter-spacing: 1px;">SECRET_KEY</code>
+
+        <div style="margin-bottom: 16px;">
+          <label for="mfa-setup-password" style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: var(--muted);">Permanent PIN (Required)</label>
+          <input type="password" id="mfa-setup-password" placeholder="6–12 digit numeric PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12">
         </div>
+
+        <button type="button" class="btn btn-go" id="mfa-setup-prepare" style="width: 100%; padding: 12px;">Continue → Scan QR Code</button>
       </div>
 
-      <div style="margin-bottom: 20px;">
-        <label for="mfa-verification-code" style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 6px; color: var(--accent);">Enter Authenticator Verification Code</label>
-        <input type="text" id="mfa-verification-code" placeholder="6-digit code from app" inputmode="numeric" pattern="[0-9]*" maxlength="6">
+      <div id="mfa-setup-step2" style="display: none;">
+        <div style="background: var(--inset); border: 1px solid var(--card-edge); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 16px; text-align: center;">
+          <h4 style="margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #fff;">Scan to Connect Authenticator</h4>
+          <div id="mfa-qr-container">
+            <img id="mfa-qr-image" width="220" height="220" alt="Authenticator QR code">
+            <div id="mfa-qr-placeholder" style="width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #333; font-weight: bold; line-height: 1.3;">QR loading…</div>
+          </div>
+          <div style="font-size: 11px; color: var(--muted); word-break: break-all;">
+            Or enter key manually:<br>
+            <code id="mfa-secret-text" style="font-size: 12px; font-weight: bold; color: var(--accent); letter-spacing: 1px;">SECRET_KEY</code>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label for="mfa-verification-code" style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 6px; color: var(--accent);">Enter Authenticator Verification Code</label>
+          <input type="text" id="mfa-verification-code" placeholder="6-digit code from app" inputmode="numeric" pattern="[0-9]*" maxlength="6">
+        </div>
+
+        <button type="button" class="btn btn-go" id="mfa-setup-submit" style="width: 100%; padding: 12px;">Verify Code &amp; Activate Account</button>
       </div>
 
-      <button class="btn btn-go" id="mfa-setup-submit" style="width: 100%; padding: 12px;">Verify Code &amp; Activate Account</button>
       <div id="mfa-setup-err" style="display: none; color: var(--down); background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); padding: 10px; border-radius: var(--radius-sm); font-size: 12px; margin-top: 10px; text-align: center;"></div>
     </div>
   </div>
@@ -471,7 +609,7 @@
           
           <nav id="nav">
             <button data-v="overview" class="on">📋 Overview</button>
-            <button data-v="ledger">💵 Ledger</button>
+            <button data-v="ledger">💵 Ledger <span class="nav-preview-tag">Example</span></button>
             <button data-v="pipeline">📈 Pipeline</button>
             <button data-v="leads">👥 Leads</button>
             <button data-v="feedback">💬 Feedback</button>
@@ -509,6 +647,12 @@
               <div id="health" style="font-size: 14px; padding: 4px 0; margin-top:12px;">checking…</div>
             </div>
             
+            <div class="card" style="border-color: var(--accent);">
+              <h2>📞 Follow-up queue — for your sales team</h2>
+              <p style="font-size:12px;color:var(--muted);margin:-6px 0 12px;line-height:1.5;">Any employee logged into this console can <strong>call and text</strong> everyone below. You do <em>not</em> need the owner to approve outreach. New form submissions land here automatically.</p>
+              <div id="followup-queue"><div class="empty">Loading…</div></div>
+            </div>
+
             <div class="card" style="border-color: var(--accent);">
               <h2>⚠️ Needs You — Exception Queue</h2>
               <pre id="queue">checking…</pre>
@@ -551,9 +695,16 @@
           <!-- LEDGER VIEW -->
           <section id="v-ledger" class="view">
             <div class="card">
+              <div class="preview-banner" role="note">
+                <span class="preview-badge">Vendor preview</span>
+                <div>
+                  <strong>Coming soon — live transaction &amp; fee-savings ledger</strong>
+                  <p>This tab shows <em>example</em> rows so you can see what OmniTender will look like once payment processing is wired up. Overview, Pipeline, Leads, and Feedback are live; the ledger is a demo for now.</p>
+                </div>
+              </div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
                 <h2 style="margin-bottom:0; border-left:3px solid var(--accent); padding-left:10px;">💵 Transaction Fee Ledger</h2>
-                <button class="btn btn-go" id="export-ledger-btn" style="width:auto; min-height:0; padding:6px 12px; font-size:11px; margin-top:0;">📥 Export CSV</button>
+                <button class="btn btn-go" id="export-ledger-btn" style="width:auto; min-height:0; padding:6px 12px; font-size:11px; margin-top:0;" title="Exports the example dataset">📥 Export example CSV</button>
               </div>
               <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
                 <input type="text" id="ledger-search" placeholder="🔍 Search by ID, customer, method..." style="flex:2; min-width:180px;">
@@ -588,6 +739,10 @@
 
           <!-- PIPELINE VIEW -->
           <section id="v-pipeline" class="view">
+            <div class="card" style="background: var(--inset); border-color: var(--accent);">
+              <h2 style="font-size:1rem;margin-bottom:8px;">Employee outreach first</h2>
+              <p style="font-size:12px;color:var(--muted);margin:0;line-height:1.5;">When someone applies on the website, <strong>your team calls or texts them</strong> — no owner sign-off required. <strong>Approve merchant</strong> only means they qualified after your conversation. <strong>Not interested</strong> closes them out.</p>
+            </div>
             <div class="card">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                 <h2 style="margin-bottom:0; border-left:3px solid var(--accent); padding-left:10px;">Onboarding Pipeline</h2>
@@ -613,11 +768,25 @@
 
           <!-- LEADS VIEW -->
           <section id="v-leads" class="view">
+            <div class="card" style="border-color: var(--card-edge); background: var(--inset);">
+              <h2 style="font-size: 1rem; margin-bottom: 8px;">Leads vs Pipeline</h2>
+              <p style="font-size: 12px; color: var(--muted); margin: 0; line-height: 1.5;"><strong>Leads</strong> = SMS opt-ins from the homepage. <strong>Pipeline</strong> = merchant applications. <strong>Any employee</strong> with a console login sees phone numbers and can call/text immediately — commission staff under Access &amp; Admins (Employee role).</p>
+            </div>
             <div class="card">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:12px;">
                 <h2 style="margin-bottom:0; border-left:3px solid var(--accent); padding-left:10px;">Recent Website Leads</h2>
-                <button class="btn btn-go" id="export-leads-btn" style="width:auto; min-height:0; padding:6px 12px; font-size:11px; margin-top:0;">📥 Export CSV</button>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <select id="leads-filter" style="min-width:160px;" aria-label="Lead queue filter">
+                    <option value="active" selected>Active (open + contacted)</option>
+                    <option value="archived">Archived</option>
+                    <option value="open">Open only</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="">All</option>
+                  </select>
+                  <button class="btn btn-go" id="export-leads-btn" style="width:auto; min-height:0; padding:6px 12px; font-size:11px; margin-top:0;">📥 Export CSV</button>
+                </div>
               </div>
+              <p id="leads-queue-summary" style="font-size:12px; color:var(--accent); font-weight:600; margin:0 0 12px;"></p>
               <div style="margin-bottom: 16px;">
                 <input type="text" id="leads-search" placeholder="🔍 Search leads by name, phone, business, source...">
               </div>
@@ -638,24 +807,31 @@
           <!-- FEEDBACK VIEW -->
           <section id="v-feedback" class="view">
             <div class="card">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:12px;">
                 <h2 style="margin-bottom:0; border-left:3px solid var(--accent); padding-left:10px;">Site Feedback &amp; Improvements</h2>
-                <select id="feedback-filter" style="min-width:140px;">
-                  <option value="">All statuses</option>
-                  <option value="new">New</option>
+                <select id="feedback-filter" style="min-width:180px;" aria-label="Feedback queue filter">
+                  <option value="active" selected>Active queue</option>
+                  <option value="archived">Archived (done + declined)</option>
+                  <option value="new">New only</option>
                   <option value="reviewing">Reviewing</option>
-                  <option value="accepted">Accepted</option>
+                  <option value="accepted">Accepted (fix chosen)</option>
                   <option value="declined">Declined</option>
                   <option value="done">Done</option>
+                  <option value="">All (including archived)</option>
                 </select>
               </div>
-              <p style="font-size:12px; color:var(--muted); margin-top:-8px; margin-bottom:16px;">Anonymous reports from the public site feedback button. Review, accept improvements, or mark done.</p>
+              <p id="feedback-queue-summary" style="font-size:12px; color:var(--accent); font-weight:600; margin:0 0 8px;"></p>
+              <p style="font-size:12px; color:var(--muted); margin-top:0; margin-bottom:16px;">Anonymous site reports. Each item gets <strong>three proposed fixes</strong>. <strong>Mark done</strong> or <strong>Decline</strong> archives the item — it leaves the active queue but stays in <em>Archived</em> with a Reopen button. Nothing is deleted from the backend.</p>
               <div id="feedback-list"><div class="empty">Loading feedback…</div></div>
             </div>
           </section>
 
           <!-- ACCESS VIEW -->
           <section id="v-access" class="view">
+            <div class="card" style="border-color: var(--card-edge); background: var(--inset);">
+              <h2 style="font-size: 1rem; margin-bottom: 8px;">Two different “user” lists</h2>
+              <p style="font-size: 12px; color: var(--muted); margin: 0; line-height: 1.5;"><strong>SMS bot users</strong> (invites below) — people who texted the Twilio number. <strong>Dashboard logins</strong> (bottom panel, Admins only) — employees who sign into this CRM at <code style="font-size:11px;">dashboard.html</code>.</p>
+            </div>
             <div class="card">
               <h2>Mint Invite Code</h2>
               <p style="color: var(--muted); font-size: 12px; margin-top: -6px; margin-bottom: 12px;">Generate an invite code for Twilio SMS bot testers.</p>
@@ -677,25 +853,27 @@
 
             <!-- ADMIN SECTION: Console User Accounts -->
             <div class="card" id="admin-user-mgmt" style="display: none; border-color: var(--accent);">
-              <h2>Console User Accounts (Admin-Only)</h2>
-              <p style="color: var(--muted); font-size: 12px; margin-top: -6px; margin-bottom: 16px;">Create employee login accounts for access to this portal.</p>
+              <h2>Dashboard logins for your team</h2>
+              <p style="color: var(--muted); font-size: 12px; margin-top: -6px; margin-bottom: 8px;"><strong>Only Admins see this panel</strong> — it is not saying every person you add becomes an Admin. Use the role dropdown below.</p>
+              <p style="color: var(--muted); font-size: 12px; margin-bottom: 16px;">Create a username + starter PIN for each employee. On first login they choose a permanent username &amp; PIN, scan a QR for two-factor auth, then sign in with all three.</p>
               
               <div style="background: var(--inset); border: 1px solid var(--card-edge); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px;">
-                <h3 style="margin: 0 0 12px; font-size: 13px; color: #fff;">Create User</h3>
+                <h3 style="margin: 0 0 12px; font-size: 13px; color: #fff;">Commission new dashboard user</h3>
                 <div class="row" style="margin-bottom: 8px;">
-                  <input type="text" id="console-username" placeholder="Username" autocomplete="off">
-                  <input type="password" id="console-password" placeholder="Password" autocomplete="off">
+                  <input type="text" id="console-username" placeholder="Username" autocomplete="off" aria-label="Username">
+                  <input type="password" id="console-password" placeholder="Starter PIN (6–12 digits)" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="new-password" aria-label="Starter PIN">
                 </div>
                 <div class="row">
-                  <select id="console-role" style="flex: 1;">
-                    <option value="Employee">Employee (Normal Access)</option>
-                    <option value="Admin">Admin (Full User Management)</option>
+                  <select id="console-role" style="flex: 1;" aria-label="Console role">
+                    <option value="Employee" selected>Employee — pipeline, leads, feedback, pricing (recommended for staff)</option>
+                    <option value="Admin">Admin — everything above + create/delete dashboard users</option>
                   </select>
-                  <button class="btn btn-go" id="console-user-create">Create Account</button>
+                  <button class="btn btn-go" id="console-user-create">Create account</button>
                 </div>
+                <p style="font-size: 11px; color: var(--faint); margin: 10px 0 0; line-height: 1.45;">Employees get full CRM access except user management. Pick <strong>Admin</strong> only for owners or IT who should add/remove logins.</p>
               </div>
               
-              <h3>Active Accounts</h3>
+              <h3>Active dashboard accounts</h3>
               <div id="console-users-list"></div>
             </div>
           </section>
@@ -734,13 +912,14 @@
           <!-- DIGEST VIEW -->
           <section id="v-digest" class="view">
             <div class="card">
-              <h2>Daily Digest Report</h2>
+              <h2>Morning digest preview</h2>
+              <p style="font-size:11px;color:var(--muted);margin:0 0 12px;line-height:1.5;">What lands in your inbox ~8am Eastern (when subscribed below): unassigned leads, AI-qualified follow-ups, open feedback, and pipeline approvals.</p>
               <pre id="digest">loading…</pre>
             </div>
 
             <div class="card">
-              <h2>📧 Digest Subscription Settings</h2>
-              <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">Manage daily/weekly report email subscriptions. Credentials are required to subscribe or view encrypted logs.</p>
+              <h2>📧 Email me this every morning</h2>
+              <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">Turn on the checkbox, enter your email, set a password (used to decrypt the preview above in the dashboard — not your email login). Saves to the server; digest sends once daily when the backend is running.</p>
               <div style="display:flex; flex-direction:column; gap:12px;">
                 <div style="display:flex; align-items:center; gap:8px;">
                   <input type="checkbox" id="digest-email-sub" style="width:auto; margin:0; cursor:pointer;">
@@ -805,7 +984,7 @@
     </div>
   </div>
 
-  <script src="dashboard.js"></script>
-  <script src="feedback.js"></script>
+  <script src="dashboard.js?v=14"></script>
+  <script src="feedback.js?v=2"></script>
 </body>
 </html>
