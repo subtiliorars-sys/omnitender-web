@@ -6,8 +6,9 @@ Verify: `python check_web_links.py` when HTML changes.
 ## Active queue
 
 ### Wave OTW-W1 — Phase A public site (MVP pages)
-**Status:** `completed` (PR pending)  
-**Branch:** `automation/work-phase-a-home`
+**Status:** `done`  
+**Branch:** `automation/work-phase-a-home`  
+**PR:** https://github.com/subtiliorars-sys/omnitender-web/pull/9
 
 - [x] Home — Phase A wireframe (hero, payment types, why OmniTender, how it works, calculator, CTA)
 - [x] Products, Savings, About, Contact pages + nav
@@ -16,11 +17,8 @@ Verify: `python check_web_links.py` when HTML changes.
 - [x] `python check_web_links.py` — 0 errors
 
 ### Wave OTW-W2 — Apply funnel clarity
-**Status:** `pending`  
+**Status:** `active`  
 **Branch:** `automation/wave-otw-w2-apply`
-
-- [ ] apply.html + dashboard copy clarity (no legal/rate promises)
-- [ ] Cross-link OmniTender docs where referenced
 
 ### Wave OTW-W3 — SEO hygiene
 **Status:** `pending`  
