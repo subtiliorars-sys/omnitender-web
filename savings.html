@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>Free Rate Analysis — OmniTender</title>
+  <meta name="description" content="Request a free payment processing rate analysis. See how transparent wholesale pricing compares to legacy tiered processors — no obligation.">
+  <meta name="theme-color" content="#F7792C">
+  <link rel="canonical" href="https://omnitender.us/savings.html">
+  <link rel="preconnect" href="https://omnitender-omniverse.fly.dev" crossorigin>
+  <link rel="stylesheet" href="style.css?v=6">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header>
+    <a class="brand" href="index.html" style="display: inline-flex; align-items: center; gap: 12px; justify-content: center; text-decoration: none;">
+      <img src="logo.svg" alt="OmniTender Crest Logo" style="height: 38px; width: auto;">
+      <span>Omni<span style="color: var(--brand);">Tender</span></span>
+    </a>
+    <p class="tagline">S Y S T E M S</p>
+    <nav class="topnav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="savings.html" aria-current="page">Savings</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="apply.html" class="topnav-cta">Get started</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <div class="page-hero">
+      <span class="eyebrow">Free rate analysis</span>
+      <h1>See what you're paying your processor — in plain English.</h1>
+      <p class="lead">Send us your business details. We'll review your situation and show how transparent wholesale pricing compares to typical tiered statements. <strong>No obligation.</strong></p>
+    </div>
+
+    <div class="form-card-container">
+      <div class="card">
+        <form id="rate-analysis" novalidate>
+          <label for="business">Business name</label>
+          <input type="text" id="business" name="business" autocomplete="organization" aria-required="true" aria-describedby="business-error">
+          <p class="field-error" id="business-error">Please enter your business name.</p>
+
+          <label for="name">Your name</label>
+          <input type="text" id="name" name="name" autocomplete="name" aria-required="true" aria-describedby="name-error">
+          <p class="field-error" id="name-error">Please enter your name.</p>
+
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" name="phone" autocomplete="tel" inputmode="tel" aria-required="true" aria-describedby="phone-error">
+          <p class="field-error" id="phone-error">Please enter a valid phone number.</p>
+
+          <label for="email">Email (optional)</label>
+          <input type="email" id="email" name="email" autocomplete="email">
+
+          <label for="volume">Rough monthly card volume (optional)</label>
+          <input type="text" id="volume" name="volume" placeholder="e.g. $25,000/month">
+
+          <label for="processor">Current processor (optional)</label>
+          <input type="text" id="processor" name="processor" placeholder="e.g. Square, Clover, legacy ISO">
+
+          <label for="notes">Anything else we should know? (optional)</label>
+          <input type="text" id="notes" name="notes" placeholder="EBT interest, crypto, multiple locations…">
+
+          <div class="consent" style="margin-top: 16px;">
+            <input type="checkbox" id="agree" aria-required="true" aria-describedby="agree-error">
+            <label for="agree" style="font-weight:400;margin:0;">
+              I agree to be contacted about this rate analysis. See
+              <a href="privacy.html">Privacy Policy</a>.
+            </label>
+          </div>
+          <p class="field-error" id="agree-error">Please check the box to continue.</p>
+
+          <button type="submit" id="submit" style="margin-top: 20px;">Request free rate analysis</button>
+        </form>
+
+        <div class="ok" id="ok" role="status" tabindex="-1">
+          Thanks — we received your request. A team member will reach out within one business day.
+          You can also email a recent processing statement to
+          <a href="mailto:support@omnitender.us">support@omnitender.us</a>.
+        </div>
+        <div class="err" id="err" role="alert" tabindex="-1">
+          Something went wrong. Please try again or call <a href="tel:+18284130859">(828) 413-0859</a>.
+        </div>
+
+        <p class="disclaimer-box" style="margin-top: 24px;">
+          Estimates are illustrative until we review your actual statement. OmniTender does not guarantee specific rates —
+          final pricing depends on your business type, volume, and partner program. We do not move money until you complete
+          merchant onboarding and partner approval.
+        </p>
+      </div>
+    </div>
+
+    <div class="content-prose">
+      <h2>Why merchants switch</h2>
+      <p>Legacy tiered processors often bundle interchange, assessments, and markup so the true cost is hard to see. OmniTender uses transparent wholesale-style pricing on licensed partner rails — cards, debit, crypto, and EBT/SNAP where eligible.</p>
+      <table class="compare-table">
+        <thead>
+          <tr><th></th><th>Typical legacy</th><th>OmniTender approach</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Pricing model</td><td>Opaque tiers</td><td>Transparent wholesale + clear margin</td></tr>
+          <tr><td>Payment types</td><td>Often cards only</td><td>Cards, debit, crypto, EBT/SNAP*</td></tr>
+          <tr><td>Support</td><td>Call center queue</td><td>Direct NC-based team</td></tr>
+        </tbody>
+      </table>
+      <p class="fine">* EBT/SNAP requires USDA FNS authorization for the merchant, not OmniTender.</p>
+      <p style="text-align: center; margin-top: 32px;">
+        <a class="btn-hero secondary" href="index.html#fee-calculator">Try the fee calculator on the home page →</a>
+      </p>
+    </div>
+  </main>
+
+  <footer>
+    <nav aria-label="Legal">
+      <a href="privacy.html">Privacy</a> ·
+      <a href="terms.html">Terms</a> ·
+      <a href="apply.html">Apply</a>
+    </nav>
+    &copy; 2026 OmniTender. All rights reserved.
+  </footer>
+
+  <script>
+    (function () {
+      var form = document.getElementById('rate-analysis');
+      var btn = document.getElementById('submit');
+      var ok = document.getElementById('ok');
+      var err = document.getElementById('err');
+
+      function fieldError(id, show) {
+        var input = document.getElementById(id);
+        var msg = document.getElementById(id + '-error');
+        if (input) input.setAttribute('aria-invalid', show ? 'true' : 'false');
+        if (msg) msg.classList.toggle('show', show);
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        err.style.display = 'none';
+        var business = document.getElementById('business').value.trim();
+        var name = document.getElementById('name').value.trim();
+        var phone = document.getElementById('phone').value.trim();
+        var agree = document.getElementById('agree').checked;
+        var phoneOk = (phone.match(/\d/g) || []).length >= 7;
+        fieldError('business', !business);
+        fieldError('name', !name);
+        fieldError('phone', !phoneOk);
+        fieldError('agree', !agree);
+        if (!business || !name || !phoneOk || !agree) return;
+
+        btn.disabled = true;
+        btn.textContent = 'Sending…';
+
+        var volume = document.getElementById('volume').value.trim();
+        var processor = document.getElementById('processor').value.trim();
+        var notes = document.getElementById('notes').value.trim();
+        var email = document.getElementById('email').value.trim();
+        var detail = [
+          volume ? 'Volume: ' + volume : '',
+          processor ? 'Processor: ' + processor : '',
+          notes ? 'Notes: ' + notes : '',
+          email ? 'Email: ' + email : ''
+        ].filter(Boolean).join(' | ');
+
+        fetch('https://omnitender-omniverse.fly.dev/lead-webhook', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name,
+            phone: phone,
+            consent: true,
+            source: 'rate-analysis',
+            notes: 'Business: ' + business + (detail ? ' | ' + detail : '')
+          })
+        }).then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          form.style.display = 'none';
+          ok.style.display = 'block';
+          ok.focus();
+        }).catch(function () {
+          btn.disabled = false;
+          btn.textContent = 'Request free rate analysis';
+          err.style.display = 'block';
+        });
+      });
+    })();
+  </script>
+  <script src="feedback.js?v=2"></script>
+</body>
+</html>
