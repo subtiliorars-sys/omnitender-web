@@ -5,14 +5,12 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
-### Wave OTW-W6 — Products page FAQ
-**Status:** `in_review`  
-**Branch:** `automation/wave-otw-w6-products-faq`
-
-- [x] Education-only FAQ on products.html
-- [x] `python check_web_links.py` — 0 errors
+_(Queue idle — add next content wave when ready.)_
 
 ## Completed
+
+### Wave OTW-W6 — Products page FAQ ✅
+**Branch:** `automation/wave-otw-w6-products-faq` · merged PR #15 (2026-06-14)
 
 ### Wave OTW-W5 — Savings page FAQ ✅
 **Branch:** `automation/wave-otw-w5-savings-faq` · merged PR #14 (2026-06-14)
