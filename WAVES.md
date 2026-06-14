@@ -5,41 +5,27 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
-### Wave OTW-W4 — Contact FAQ (education-only)
+### Wave OTW-W5 — Savings page FAQ
 **Status:** `in_review`  
-**Branch:** `automation/wave-otw-w4-contact-faq`
+**Branch:** `automation/wave-otw-w5-savings-faq`
 
-- [x] FAQ section on contact.html — no rate guarantees or approval promises
-- [x] Links to savings calculator + apply funnel
+- [x] Education-only FAQ on savings.html — no savings guarantees
+- [x] Cross-link apply + support email
 - [x] `python check_web_links.py` — 0 errors
 
 ## Completed
 
-### Wave OTW-W1 — Phase A public site (MVP pages)
-**Status:** `done`  
-**Branch:** `automation/work-phase-a-home`  
+### Wave OTW-W4 — Contact FAQ ✅
+**Branch:** `automation/wave-otw-w4-contact-faq` · merged 2026-06-13
+
+### Wave OTW-W1 — Phase A public site (MVP pages) ✅
 **PR:** https://github.com/subtiliorars-sys/omnitender-web/pull/9
 
-- [x] Home — Phase A wireframe (hero, payment types, why OmniTender, how it works, calculator, CTA)
-- [x] Products, Savings, About, Contact pages + nav
-- [x] sitemap.xml updated
-- [x] No procurement/RFP positioning; no rate guarantees
-- [x] `python check_web_links.py` — 0 errors
-
-### Wave OTW-W2 — Apply funnel clarity
-**Status:** `done`  
-**Branch:** `automation/wave-otw-w2-apply`  
+### Wave OTW-W2 — Apply funnel clarity ✅
 **PR:** https://github.com/subtiliorars-sys/omnitender-web/pull/10
 
-- [x] apply.html + dashboard copy clarity (no legal/rate promises)
-- [x] Cross-link savings/about where referenced
-
-### Wave OTW-W3 — SEO hygiene
-**Status:** `done`  
-**Branch:** `automation/wave-otw-w3-seo`  
+### Wave OTW-W3 — SEO hygiene ✅
 **PR:** https://github.com/subtiliorars-sys/omnitender-web/pull/11
-
-- [x] Title/meta/robots sane; CNAME unchanged
 
 ## Blocked
 - Deploy config, secrets, payment copy, processor rate claims — owner queue
