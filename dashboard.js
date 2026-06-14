@@ -710,10 +710,9 @@
     return 'Option ' + (pick.slot + 1);
   }
 
-  function acceptFixButtonLabel(pick, f) {
-    if (pick.source === 'custom' || pick.slot === null || pick.slot === undefined) return '✓ Accept custom fix';
-    if (pick.slot === feedbackRecommendedSlot(f)) return '✓ Accept recommended fix';
-    return '✓ Accept option ' + (pick.slot + 1) + ' only';
+  function cardApproveFixLabel(slot, f) {
+    if (slot === feedbackRecommendedSlot(f)) return '✓ Approve recommended fix';
+    return '✓ Approve option ' + (slot + 1);
   }
 
   function renderAcceptPreview(f, pick) {
@@ -777,6 +776,7 @@
       '<div class="fb-proposal-head"><span class="fb-proposal-label">' + label + '</span>' + badge + '</div>' +
       '<div class="fb-proposal-text">' + esc(text) + '</div>' +
       '<div class="fb-proposal-actions">' +
+        '<button type="button" class="btn btn-go fb-card-approve" data-fb-accept-card="' + esc(f.id) + '" data-fb-slot="' + slot + '">' + esc(cardApproveFixLabel(slot, f)) + '</button>' +
         '<button type="button" class="btn" data-fb-reroll="' + esc(f.id) + '" data-fb-slot="' + slot + '">↻ Reroll</button>' +
         '<button type="button" class="btn btn-no" data-fb-dismiss="' + esc(f.id) + '" data-fb-slot="' + slot + '">✕ Dismiss</button>' +
         '<button type="button" class="btn" data-fb-edit="' + esc(f.id) + '" data-fb-slot="' + slot + '">✎ Edit</button>' +
@@ -826,7 +826,7 @@
         '<span style="font-size:11px; color:var(--faint);">' + esc(when) + '</span>' +
       '</div>' +
       msgBlock + ctx + shot +
-      '<div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-top:14px;">Three proposed fixes — pick one (★ = recommended)</div>' +
+      '<div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-top:14px;">Three proposed fixes — approve on a card (★ = recommended)</div>' +
       '<div class="fb-proposals">' +
         renderProposalCard(f, 0) + renderProposalCard(f, 1) + renderProposalCard(f, 2) +
       '</div>' +
@@ -836,7 +836,7 @@
       '<input type="text" id="fb-note-' + esc(f.id) + '" placeholder="Review note (optional)" value="' + noteVal + '" style="width:100%; margin-bottom:8px; font-size:12px;">' +
       chosen +
       '<div class="fb-toolbar">' +
-        '<button type="button" class="btn btn-go" id="fb-accept-btn-' + esc(f.id) + '" data-fb-accept="' + esc(f.id) + '">' + acceptFixButtonLabel(pick, f) + '</button>' +
+        '<button type="button" class="btn btn-go" data-fb-accept-custom="' + esc(f.id) + '">✓ Apply custom fix</button>' +
         '<button type="button" class="btn" data-fb-reroll-all="' + esc(f.id) + '">↻ Reroll all three</button>' +
         '<button type="button" class="btn" data-fb-status="' + esc(f.id) + '" data-status="reviewing">Reviewing</button>' +
         '<button type="button" class="btn btn-no" data-fb-status="' + esc(f.id) + '" data-status="declined">Decline</button>' +
@@ -932,7 +932,6 @@
     feedbackPick[id] = { text: value, slot: slot, source: source };
     const pick = resolveFeedbackPick(item);
     const preview = document.getElementById('fb-accept-preview-' + id);
-    const btn = document.getElementById('fb-accept-btn-' + id);
     if (preview) {
       preview.querySelector('.text').innerHTML = trimmed
         ? esc(trimmed)
@@ -940,7 +939,6 @@
       const meta = preview.querySelector('.meta');
       if (meta) meta.textContent = feedbackPickLabel(pick, item);
     }
-    if (btn) btn.textContent = acceptFixButtonLabel(pick, item);
     document.querySelectorAll('[data-fb-pick="' + id + '"]').forEach(function (card) {
       const cardSlot = parseInt(card.getAttribute('data-fb-slot'), 10);
       const cardText = proposals[cardSlot] || '';
@@ -1031,9 +1029,35 @@
       return;
     }
 
-    const accept = e.target.closest('[data-fb-accept]');
-    if (accept) {
-      const id = accept.getAttribute('data-fb-accept');
+    const acceptCard = e.target.closest('[data-fb-accept-card]');
+    if (acceptCard) {
+      const id = acceptCard.getAttribute('data-fb-accept-card');
+      const slot = parseInt(acceptCard.getAttribute('data-fb-slot'), 10);
+      const item = cacheFeedback.find(function (f) { return f.id === id; });
+      const text = item && item.proposals ? (item.proposals[slot] || '').trim() : '';
+      if (!text) { toast('That card is empty — reroll first.', true); return; }
+      acceptCard.disabled = true;
+      try {
+        const noteEl = document.getElementById('fb-note-' + id);
+        const res = await api('/api/feedback/proposals/accept', {
+          method: 'POST',
+          body: {
+            id,
+            solution: text,
+            note: noteEl ? noteEl.value.trim() : '',
+            status: 'accepted',
+            acceptedSlot: slot
+          }
+        });
+        patchFeedbackItem(res.item);
+        toast('Approved one fix — not all three.');
+      } catch (err) { toast(err.message, true); acceptCard.disabled = false; }
+      return;
+    }
+
+    const acceptCustom = e.target.closest('[data-fb-accept-custom]');
+    if (acceptCustom) {
+      const id = acceptCustom.getAttribute('data-fb-accept-custom');
       const item = cacheFeedback.find(function (f) { return f.id === id; });
       const ta = document.getElementById('fb-custom-' + id);
       const noteEl = document.getElementById('fb-note-' + id);
@@ -1041,7 +1065,7 @@
       const solution = ((ta && ta.value) || pick.text || '').trim();
       if (!solution) { toast('Pick a card or write a custom fix first.', true); return; }
       const acceptedSlot = item ? resolveAcceptedSlot(item, solution, pick) : null;
-      accept.disabled = true;
+      acceptCustom.disabled = true;
       try {
         const res = await api('/api/feedback/proposals/accept', {
           method: 'POST',
@@ -1055,7 +1079,7 @@
         });
         patchFeedbackItem(res.item);
         toast('Accepted one fix — not all three.');
-      } catch (err) { toast(err.message, true); accept.disabled = false; }
+      } catch (err) { toast(err.message, true); acceptCustom.disabled = false; }
       return;
     }
 
