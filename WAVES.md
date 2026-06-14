@@ -27,6 +27,13 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## In review
 
+### Wave OTW-W6 — QA issue template (smoke reports)
+**Status:** `in_review`  
+**Branch:** `automation/wave-otw-w6-qa-template`
+
+- [x] GitHub issue template for website smoke reports
+- [ ] Link from `test.html` after merge
+
 ### Wave OTW-W7 — Post-submit funnel nudge (REV-01)
 **Status:** `in_review`  
 **Branch:** `automation/wave-otw-w7-funnel-nudge`
