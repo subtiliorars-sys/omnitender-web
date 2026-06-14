@@ -5,15 +5,17 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
-### Wave OTW-W5 — Savings page FAQ
+### Wave OTW-W6 — Products page FAQ
 **Status:** `in_review`  
-**Branch:** `automation/wave-otw-w5-savings-faq`
+**Branch:** `automation/wave-otw-w6-products-faq`
 
-- [x] Education-only FAQ on savings.html — no savings guarantees
-- [x] Cross-link apply + support email
+- [x] Education-only FAQ on products.html
 - [x] `python check_web_links.py` — 0 errors
 
 ## Completed
+
+### Wave OTW-W5 — Savings page FAQ ✅
+**Branch:** `automation/wave-otw-w5-savings-faq` · merged PR #14 (2026-06-14)
 
 ### Wave OTW-W4 — Contact FAQ ✅
 **Branch:** `automation/wave-otw-w4-contact-faq` · merged 2026-06-13
