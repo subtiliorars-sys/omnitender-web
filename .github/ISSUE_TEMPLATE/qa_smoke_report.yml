@@ -1,0 +1,36 @@
+name: Website QA report
+description: Report from omnitender.us/test.html smoke testing
+title: "[QA] "
+labels: ["qa"]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page URL
+      placeholder: "https://omnitender.us/apply.html"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser & viewport
+      placeholder: "Safari iOS, 390px wide"
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What went wrong?
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - blocker
+        - major
+        - minor
+        - nit
+    validations:
+      required: true
