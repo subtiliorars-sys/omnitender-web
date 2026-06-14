@@ -5,7 +5,34 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
-_(Queue idle — add next content wave when ready.)_
+### Wave OTW-W8 — Form UX polish (focus + aria-live)
+**Status:** `pending`  
+**Branch:** `automation/wave-otw-w8-form-ux`
+
+- [ ] Focus first invalid field on submit (`savings.html`, `apply.html`)
+- [ ] `aria-live` region for form errors
+
+### Wave OTW-W9 — NC local merchants landing page
+**Status:** `pending`  
+**Branch:** `automation/wave-otw-w9-nc-merchants`
+
+- [ ] `merchants-nc.html` — Burke County / Western NC positioning (no fake stats)
+- [ ] Sitemap + nav link
+
+### Wave OTW-W10 — Post-apply success next steps
+**Status:** `pending`  
+**Branch:** `automation/wave-otw-w10-apply-success`
+
+- [ ] Apply success panel: what happens next + rate-analysis cross-link
+
+## In review
+
+### Wave OTW-W7 — Post-submit funnel nudge (REV-01)
+**Status:** `in_review`  
+**Branch:** `automation/wave-otw-w7-funnel-nudge`
+
+- [x] Rate-analysis success → apply CTA with obligation copy
+- [x] Home hero dual CTA (analysis + apply) + tel prominence
 
 ## Completed
 
@@ -29,3 +56,6 @@ _(Queue idle — add next content wave when ready.)_
 
 ## Blocked
 - Deploy config, secrets, payment copy, processor rate claims — owner queue
+
+## Revenue sprint
+Fleet registry: AgentCorps `fleet/revenue-waves-2026-06.md`
