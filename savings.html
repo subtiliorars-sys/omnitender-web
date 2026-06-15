@@ -59,6 +59,7 @@
     <div class="form-card-container">
       <div class="card">
         <form id="rate-analysis" novalidate>
+          <div id="form-errors" class="sr-only" aria-live="polite" aria-atomic="true"></div>
           <label for="business">Business name</label>
           <input type="text" id="business" name="business" autocomplete="organization" aria-required="true" aria-describedby="business-error">
           <p class="field-error" id="business-error">Please enter your business name.</p>
@@ -151,6 +152,22 @@
       var btn = document.getElementById('submit');
       var ok = document.getElementById('ok');
       var err = document.getElementById('err');
+      var formErrorsLive = document.getElementById('form-errors');
+
+      function announceFormErrors(messages) {
+        if (!formErrorsLive) return;
+        formErrorsLive.textContent = messages.length ? messages.join(' ') : '';
+      }
+
+      function focusFirstInvalid(order) {
+        for (var i = 0; i < order.length; i++) {
+          var input = document.getElementById(order[i]);
+          if (input && input.getAttribute('aria-invalid') === 'true') {
+            input.focus();
+            return;
+          }
+        }
+      }
 
       function fieldError(id, show) {
         var input = document.getElementById(id);
@@ -171,7 +188,17 @@
         fieldError('name', !name);
         fieldError('phone', !phoneOk);
         fieldError('agree', !agree);
-        if (!business || !name || !phoneOk || !agree) return;
+        if (!business || !name || !phoneOk || !agree) {
+          var messages = [];
+          if (!business) messages.push('Please enter your business name.');
+          if (!name) messages.push('Please enter your name.');
+          if (!phoneOk) messages.push('Please enter a valid phone number.');
+          if (!agree) messages.push('Please check the box to continue.');
+          announceFormErrors(messages);
+          focusFirstInvalid(['business', 'name', 'phone', 'agree']);
+          return;
+        }
+        announceFormErrors([]);
 
         btn.disabled = true;
         btn.textContent = 'Sending…';

@@ -82,6 +82,7 @@
         </div>
 
         <form id="apply" novalidate>
+          <div id="form-errors" class="sr-only" aria-live="polite" aria-atomic="true"></div>
           <!-- Step 1: Business Details -->
           <div id="wizard-step-1" class="wizard-step">
             <label for="business">Business name</label>
@@ -156,6 +157,22 @@
       var btn = document.getElementById('submit');
       var ok = document.getElementById('ok');
       var err = document.getElementById('err');
+      var formErrorsLive = document.getElementById('form-errors');
+
+      function announceFormErrors(messages) {
+        if (!formErrorsLive) return;
+        formErrorsLive.textContent = messages.length ? messages.join(' ') : '';
+      }
+
+      function focusFirstInvalid(order) {
+        for (var i = 0; i < order.length; i++) {
+          var input = document.getElementById(order[i]);
+          if (input && input.getAttribute('aria-invalid') === 'true') {
+            input.focus();
+            return;
+          }
+        }
+      }
 
       var step1 = document.getElementById('wizard-step-1');
       var step2 = document.getElementById('wizard-step-2');
@@ -200,7 +217,13 @@
       function validateStep1() {
         var business = document.getElementById('business').value.trim();
         fieldError('business', !business);
-        return !!business;
+        if (!business) {
+          announceFormErrors(['Please enter your business name.']);
+          focusFirstInvalid(['business']);
+          return false;
+        }
+        announceFormErrors([]);
+        return true;
       }
 
       function validateStep2() {
@@ -211,8 +234,15 @@
         fieldError('name', !name);
         fieldError('phone', !phoneOk);
 
-        if (!name) return 'name';
-        if (!phoneOk) return 'phone';
+        var messages = [];
+        if (!name) messages.push('Please enter your name.');
+        if (!phoneOk) messages.push('Please enter a valid phone number.');
+        if (messages.length) {
+          announceFormErrors(messages);
+          focusFirstInvalid(['name', 'phone']);
+          return messages.length ? (!name ? 'name' : 'phone') : null;
+        }
+        announceFormErrors([]);
         return null;
       }
 
@@ -224,9 +254,6 @@
             updateProgress(2);
             var firstInp = document.getElementById('name');
             if (firstInp) firstInp.focus();
-          } else {
-            var input = document.getElementById('business');
-            if (input) input.focus();
           }
         });
       }
@@ -246,10 +273,7 @@
         err.style.display = 'none';
 
         var firstBad = validateStep2();
-        if (firstBad) {
-          document.getElementById(firstBad).focus();
-          return;
-        }
+        if (firstBad) return;
 
         btn.disabled = true;
         btn.textContent = 'Submitting…';
