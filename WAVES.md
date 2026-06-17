@@ -5,13 +5,6 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
-### Wave OTW-W9 — NC local merchants landing page
-**Status:** `pending`  
-**Branch:** `automation/wave-otw-w9-nc-merchants`
-
-- [ ] `merchants-nc.html` — Burke County / Western NC positioning (no fake stats)
-- [ ] Sitemap + nav link
-
 ### Wave OTW-W10 — Post-apply success next steps
 **Status:** `pending`  
 **Branch:** `automation/wave-otw-w10-apply-success`
@@ -19,6 +12,13 @@ Verify: `python check_web_links.py` when HTML changes.
 - [ ] Apply success panel: what happens next + rate-analysis cross-link
 
 ## In review
+
+### Wave OTW-W9 — NC local merchants landing page
+**Status:** `in_review`  
+**Branch:** `automation/wave-otw-w9-nc-merchants`
+
+- [x] `merchants-nc.html` — Burke County / Western NC positioning (no fake stats)
+- [x] Sitemap + nav link
 
 ### Wave OTW-W8 — Form UX polish (focus + aria-live)
 **Status:** `in_review`  
