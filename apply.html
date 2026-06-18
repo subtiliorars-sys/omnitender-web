@@ -75,7 +75,7 @@
         </aside>
 
         <!-- Progress Indicator Bar -->
-        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 24px;">
+        <div id="apply-wizard-progress" style="display: flex; gap: 8px; align-items: center; margin-bottom: 24px;">
           <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px;">Step <span id="wizard-step-num">1</span> of 2</div>
           <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 99px; overflow: hidden; position: relative;">
             <div id="wizard-progress-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: linear-gradient(90deg, var(--brand), var(--gold)); border-radius: 99px; transition: width 0.3s ease;"></div>
@@ -118,8 +118,18 @@
         </form>
 
         <div class="ok" id="ok" role="status" tabindex="-1">
-          ✅ Thanks — we received your information. A member of the OmniTender team will
-          reach out within about one business day to discuss next steps. This is not an approval or contract.
+          <p style="margin: 0;">✅ Thanks — we received your application. A member of the OmniTender team will reach out within about one business day. This is not an approval or contract.</p>
+          <h3 id="apply-success-next" style="font-size: 1rem; margin: 16px 0 10px; font-weight: 700;">What happens next</h3>
+          <ol style="margin: 0 0 12px 18px; padding: 0; font-size: 0.92rem; line-height: 1.55; font-weight: 400;">
+            <li>We review your submission (typically within one business day).</li>
+            <li>We call or email to learn about your business and current processing (if any).</li>
+            <li>If it's a fit, we guide you through partner onboarding — final pricing and terms depend on your volume and setup.</li>
+          </ol>
+          <p style="margin-top: 20px; margin-bottom: 0;">
+            <a class="btn-hero secondary" href="savings.html">Compare your current rates → Request free rate analysis</a>
+          </p>
+          <p class="fine" style="margin-top: 12px;">A rate analysis is separate from this application — still no obligation until you accept partner terms.</p>
+          <p class="fine" style="margin-top: 8px;">OmniTender does not guarantee rates, savings, or approval. See <a href="about.html">About</a> for how we work with processing partners.</p>
         </div>
 
         <div class="err" id="err" role="alert" tabindex="-1">
@@ -292,6 +302,10 @@
         .then(function (res) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
           form.style.display = 'none';
+          var expectations = document.querySelector('.expectations-box');
+          if (expectations) expectations.style.display = 'none';
+          var progress = document.getElementById('apply-wizard-progress');
+          if (progress) progress.style.display = 'none';
           ok.style.display = 'block';
           ok.focus();
           // Clear drafts on successful submit
