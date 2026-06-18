@@ -5,13 +5,15 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
-### Wave OTW-W10 — Post-apply success next steps
-**Status:** `pending`  
-**Branch:** `automation/wave-otw-w10-apply-success`
-
-- [ ] Apply success panel: what happens next + rate-analysis cross-link
+_(empty — next wave picks up after OTW-W10 merges)_
 
 ## In review
+
+### Wave OTW-W10 — Post-apply success next steps
+**Status:** `in_review`  
+**Branch:** `automation/wave-otw-w10-apply-success`
+
+- [x] Apply success panel: what happens next + rate-analysis cross-link
 
 ### Wave OTW-W9 — NC local merchants landing page
 **Status:** `in_review`  
