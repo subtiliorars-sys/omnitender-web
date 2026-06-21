@@ -36,6 +36,47 @@
     else sessionStorage.removeItem('omni_dash_pending_setup');
   }
 
+  /* ---- Demo / offline login (no backend required) ----
+   * These accounts sign in entirely in the browser so the CRM console can be
+   * demoed and tested while the live backend has no /api/login route. Username
+   * is matched case-insensitively; the PIN must match exactly. Live data panels
+   * (leads, pipeline, stats) stay empty in demo mode — there is no backend to
+   * read from. To remove a demo account, delete its line from DEMO_USERS.
+   */
+  var DEMO_USERS = {
+    simontest:  { username: 'SimonTest',  pin: '123456', role: 'Employee' },
+    aduratest:  { username: 'Aduratest',  pin: '123456', role: 'Employee' },
+    sylviatest: { username: 'Sylviatest', pin: '123456', role: 'Employee' }
+  };
+  var DEMO_TOKEN = 'demo-session';
+  function isDemoSession() { return getToken() === DEMO_TOKEN; }
+  function matchDemoUser(user, pass) {
+    var rec = DEMO_USERS[String(user || '').trim().toLowerCase()];
+    return (rec && String(pass) === rec.pin) ? rec : null;
+  }
+  function startDemoSession(rec) {
+    setToken(DEMO_TOKEN);
+    sessionStorage.setItem('omni_dash_role', rec.role);
+    sessionStorage.setItem('omni_dash_username', rec.username);
+    currentUserRole = rec.role;
+    markPendingSetup(false);
+  }
+  function renderDemoOverview() {
+    var set = function (id, html) { var el = document.getElementById(id); if (el) el.innerHTML = html; };
+    set('health', '<span class=down>● DEMO MODE</span> — live backend not connected');
+    set('stats', [['—', 'Leads'], ['—', 'Onboarding'], ['—', 'Tickets'], ['—', 'Calls']]
+      .map(function (p) { return '<div class=stat><div class=n>' + p[0] + '</div><div class=l>' + p[1] + '</div></div>'; }).join(''));
+    var q = document.getElementById('queue');
+    if (q) q.textContent = 'Demo mode — no live queue data.';
+    set('followup-queue', '<div class="empty">Demo mode — no live data.</div>');
+    set('pipeline-chart', '<div class="empty">Demo mode — connect the backend to see live pipeline data.</div>');
+    var banner = document.getElementById('alertbar');
+    if (banner) {
+      banner.style.display = 'block';
+      banner.textContent = '🧪 Demo mode — signed in without the live backend. Lead, pipeline and stats data are not loaded.';
+    }
+  }
+
   function applySetupQr(res) {
     const secret = res.secret || '';
     document.getElementById('mfa-secret-text').textContent = secret || '—';
@@ -1464,9 +1505,23 @@
     btn.textContent = 'Logging in…';
 
     try {
+      // Demo / offline accounts sign in directly in the browser — no backend call.
+      const demoUser = matchDemoUser(user, pass);
+      if (demoUser) {
+        startDemoSession(demoUser);
+        document.getElementById('token-input').value = '';
+        document.getElementById('username-input').value = '';
+        document.getElementById('login-mfa-input').value = '';
+        document.getElementById('unlock-err').style.display = 'none';
+        showDash();
+        renderDemoOverview();
+        toast('Welcome, ' + demoUser.username + ' — demo mode');
+        return;
+      }
+
       const payload = { username: user, password: pass };
       if (mfaCode) payload.mfaCode = mfaCode;
-      
+
       const res = await fetch(API + '/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2020,6 +2075,11 @@
 
     if (getToken()) {
       currentUserRole = sessionStorage.getItem('omni_dash_role') || 'Employee';
+      if (isDemoSession()) {
+        showDash();
+        renderDemoOverview();
+        return;
+      }
       if (sessionStorage.getItem('omni_dash_pending_setup') === '1') {
         await resumeSetupWizard(sessionStorage.getItem('omni_dash_username') || '');
         return;
