@@ -46,7 +46,8 @@
   var DEMO_USERS = {
     simontest:  { username: 'SimonTest',  pin: '123456', role: 'Employee' },
     aduratest:  { username: 'Aduratest',  pin: '123456', role: 'Employee' },
-    sylviatest: { username: 'Sylviatest', pin: '123456', role: 'Employee' }
+    sylviatest: { username: 'Sylviatest', pin: '123456', role: 'Employee' },
+    bilaltest:  { username: 'Bilaltest',  pin: '123456', role: 'Employee' }
   };
   var DEMO_TOKEN = 'demo-session';
   function isDemoSession() { return getToken() === DEMO_TOKEN; }
