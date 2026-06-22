@@ -141,6 +141,12 @@
   }
 
   async function api(path, opts) {
+    // Demo / offline accounts never call the live backend. Without this guard the
+    // demo token is sent to the server, rejected with 401, and the user is logged
+    // out with "Session expired". Throw a benign error instead (callers handle it).
+    if (isDemoSession()) {
+      throw new Error('Demo mode — live data is not connected.');
+    }
     const o = opts || {};
     const init = { method: o.method || 'GET', headers: authHeaders() };
     if (init.method !== 'GET') {
@@ -257,11 +263,12 @@
     const b = e.target.closest('button'); if (!b) return;
     document.querySelectorAll('nav button').forEach((x) => x.classList.toggle('on', x === b));
     document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === 'v-' + b.dataset.v));
-    loaders[b.dataset.v]();
+    if (loaders[b.dataset.v]) loaders[b.dataset.v]();
   });
 
   /* ---- Overview ---- */
   async function loadOverview() {
+    if (isDemoSession()) { renderDemoOverview(); return; }
     try {
       const h = await api('/health');
       document.getElementById('health').innerHTML = h.status === 'ok'
