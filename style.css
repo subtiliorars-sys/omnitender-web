@@ -919,4 +919,15 @@ footer a:hover { color: var(--brand); }
   background: rgba(212, 175, 55, 0.05);
 }
 
+/* Tactile visual jiggle micro-animation */
+.jiggle {
+  animation: tactile-jiggle 0.15s ease-out;
+}
+
+@keyframes tactile-jiggle {
+  0% { transform: scale(1); }
+  30% { transform: scale(0.96) translateY(1px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
 

@@ -277,3 +277,81 @@ if (document.readyState === "loading") {
 } else {
   FeedbackFab.init();
 }
+
+// --- Global Tactile Feedback System (Click Sound + Jiggle Animation) ---
+document.addEventListener('DOMContentLoaded', () => {
+  let audioCtx = null;
+
+  function playClickSound() {
+    try {
+      const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtxClass) return;
+      
+      if (!audioCtx) {
+        audioCtx = new AudioCtxClass();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      
+      const ctx = audioCtx;
+      
+      // 1. High-frequency mechanical click switch transient
+      const bufferSize = ctx.sampleRate * 0.005; // 5ms burst
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.value = 2400;
+      
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.04, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.005);
+      
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      noise.start();
+      
+      // 2. Low-frequency casing bottom-out pop
+      const osc = ctx.createOscillator();
+      const oscGain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(130, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(65, ctx.currentTime + 0.010);
+      
+      oscGain.gain.setValueAtTime(0.03, ctx.currentTime);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.010);
+      
+      osc.connect(oscGain);
+      oscGain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.012);
+    } catch (e) {
+      // Quiet fail to prevent console spam
+    }
+  }
+
+  function triggerTactile(el) {
+    playClickSound();
+    
+    el.classList.remove('jiggle');
+    void el.offsetWidth; // force browser layout recalculation
+    el.classList.add('jiggle');
+  }
+
+  const selector = 'button, .btn, input[type="submit"], input[type="button"], .tab-btn, .clickable';
+  document.body.addEventListener('click', (e) => {
+    const btn = e.target.closest(selector);
+    if (btn) {
+      triggerTactile(btn);
+    }
+  });
+});
