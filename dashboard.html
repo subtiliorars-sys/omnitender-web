@@ -194,6 +194,29 @@
       border-color: var(--card-edge);
       background: rgba(255, 255, 255, 0.02);
     }
+    .nav-portal-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .nav-portal-link:hover {
+      color: var(--accent);
+      border-color: var(--card-edge);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    html[data-theme="light"] .nav-portal-link:hover {
+      color: var(--accent);
+      background: rgba(0, 0, 0, 0.05);
+      border-color: var(--card-edge);
+    }
 
     .wrap {
       padding: 24px 16px;
@@ -605,7 +628,8 @@
 
   <!-- UNLOCK / LOGIN VIEW -->
   <div id="unlock-view">
-    <div class="card">
+    <!-- Login Panel -->
+    <div class="card" id="login-panel">
       <div style="text-align: center; margin-bottom: 24px;">
         <h1 style="margin: 0; font-size: 2rem; font-weight: 900; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 10px; justify-content: center;">
           <img src="logo.svg" alt="OmniTender Crest Logo" style="height: 38px; width: auto; vertical-align: middle;">
@@ -632,7 +656,42 @@
       </div>
 
       <button class="btn btn-go" id="unlock-btn" style="width: 100%; padding: 12px; font-size: 14px;">Log In</button>
+      <button class="btn btn-no" id="toggle-to-register" style="width: 100%; padding: 10px; font-size: 12px; margin-top: 8px;">Need an Account? Register</button>
       <div id="unlock-err" style="display: none; color: var(--down); background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); padding: 12px; border-radius: var(--radius-sm); font-size: 13px; margin-top: 14px; text-align: center;"></div>
+    </div>
+
+    <!-- Register Panel -->
+    <div class="card" id="register-panel" style="display: none;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h1 style="margin: 0; font-size: 2rem; font-weight: 900; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 10px; justify-content: center;">
+          <img src="logo.svg" alt="OmniTender Crest Logo" style="height: 38px; width: auto; vertical-align: middle;">
+          <span>Omni<span style="color: var(--accent);">Tender</span></span>
+        </h1>
+        <p style="margin: 4px 0 0; font-size: 0.75rem; letter-spacing: 2px; color: var(--muted); text-transform: uppercase;">Employee Registration</p>
+      </div>
+      <h2>Register Employee Account</h2>
+      <p style="color: var(--muted); font-size: 13px; margin-top: -8px; margin-bottom: 18px;">
+        Enter a temporary username and PIN, plus the employee registration passcode to commission your account. You will configure your MFA credentials upon first login.
+      </p>
+      
+      <div style="margin-bottom: 12px;">
+        <label for="reg-username-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--muted);">Temporary Username</label>
+        <input type="text" id="reg-username-input" placeholder="e.g. j_tester" autocomplete="username">
+      </div>
+      
+      <div style="margin-bottom: 12px;">
+        <label for="reg-token-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--muted);">Temporary PIN</label>
+        <input type="password" id="reg-token-input" placeholder="6–12 digit PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12">
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label for="reg-passcode-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--accent);">Employee Passcode</label>
+        <input type="password" id="reg-passcode-input" placeholder="Enter registration gate passcode">
+      </div>
+
+      <button class="btn btn-go" id="register-btn" style="width: 100%; padding: 12px; font-size: 14px;">Register Account</button>
+      <button class="btn btn-no" id="toggle-to-login" style="width: 100%; padding: 10px; font-size: 12px; margin-top: 8px;">Back to Log In</button>
+      <div id="register-err" style="display: none; color: var(--down); background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); padding: 12px; border-radius: var(--radius-sm); font-size: 13px; margin-top: 14px; text-align: center;"></div>
     </div>
   </div>
 
@@ -717,6 +776,12 @@
             <button data-v="access">🔑 Access &amp; Admins</button>
             <button data-v="savings">💰 Savings &amp; Pricing</button>
             <button data-v="digest">📰 Digest</button>
+            <button data-v="social">📣 Social Media</button>
+          </nav>
+          
+          <div style="margin: 20px 16px 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint);">Systems Portals</div>
+          <nav style="display: flex; flex-direction: column; gap: 4px;">
+            <a href="https://omnitender-omniverse.fly.dev/admin" target="_blank" class="nav-portal-link">⚙️ OmniVerse Admin</a>
           </nav>
         </div>
         
@@ -1074,6 +1139,65 @@
                 </div>
                 <div id="digest-sub-status" style="font-size:11px; font-weight:bold;"></div>
               </div>
+            </div>
+          </section>
+
+          <!-- SOCIAL MEDIA SCHEDULER VIEW -->
+          <section id="v-social" class="view">
+            <div class="card" style="border-color: var(--accent);">
+              <h2>📣 AI Social Media Drafts Generator</h2>
+              <p style="font-size: 12px; color: var(--muted); margin: -6px 0 12px; line-height: 1.5;">
+                Enter a brief topic below. The drafting agent will generate social media post drafts. 
+                You can review, edit, reject, or schedule them.
+              </p>
+              
+              <div style="background: var(--inset); border: 1px solid var(--card-edge); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+                <div style="margin-bottom: 12px;">
+                  <label for="social-brief" style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: var(--muted);">Brief / Prompt (Required)</label>
+                  <textarea id="social-brief" rows="3" placeholder="e.g. Announcing the launch of our new contactless credit/debit card processing terminals with zero hidden fees." style="width: 100%; border: 1px solid #444; background: #222; color: #fff; padding: 8px; border-radius: 4px; font-family: inherit; font-size: 13px;"></textarea>
+                </div>
+                
+                <div class="row" style="margin-bottom: 12px; display: flex; gap: 12px;">
+                  <div style="flex: 1;">
+                    <label for="social-count" style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: var(--muted);">Count</label>
+                    <select id="social-count" style="width: 100%;">
+                      <option value="1">1 draft</option>
+                      <option value="2">2 drafts</option>
+                      <option value="3" selected>3 drafts</option>
+                      <option value="4">4 drafts</option>
+                      <option value="5">5 drafts</option>
+                    </select>
+                  </div>
+                  
+                  <div style="flex: 1;">
+                    <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: var(--muted);">Platforms</label>
+                    <div style="display: flex; gap: 12px; align-items: center; height: 38px;" id="social-platforms-container">
+                      <label style="font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" value="facebook" checked style="width: auto; cursor: pointer;">FB</label>
+                      <label style="font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" value="instagram" checked style="width: auto; cursor: pointer;">IG</label>
+                    </div>
+                  </div>
+                </div>
+
+                <button class="btn btn-go" id="social-generate-btn" style="width: 100%;">Generate Drafts</button>
+              </div>
+
+              <div id="social-gen-status" style="margin-top: 10px; font-size: 12px; font-weight: bold; display: none;"></div>
+            </div>
+
+            <div class="card">
+              <h2>Connected Zernio Accounts</h2>
+              <div id="social-accounts-list" style="font-size: 12px; color: var(--muted); line-height: 1.5;">Loading Zernio accounts...</div>
+            </div>
+
+            <div class="card">
+              <h2>Drafts Queue</h2>
+              <div style="margin-bottom: 16px; display: flex; gap: 8px;">
+                <button class="btn filter-btn on" data-filter="pending" style="font-size:11px; padding:6px 12px; margin:0; width:auto; min-height:0;">Pending</button>
+                <button class="btn filter-btn" data-filter="scheduled" style="font-size:11px; padding:6px 12px; margin:0; width:auto; min-height:0;">Scheduled</button>
+                <button class="btn filter-btn" data-filter="rejected" style="font-size:11px; padding:6px 12px; margin:0; width:auto; min-height:0;">Rejected</button>
+                <button class="btn filter-btn" data-filter="publishing" style="font-size:11px; padding:6px 12px; margin:0; width:auto; min-height:0;">Published</button>
+              </div>
+              <div id="social-drafts-list"><div class="empty">Loading drafts...</div></div>
             </div>
           </section>
           

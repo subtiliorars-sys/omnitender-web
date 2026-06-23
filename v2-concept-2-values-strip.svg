@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" font-family="Montserrat, Arial, sans-serif">
+  <!-- V2 Concept 2: Values Strip — ad-footer lockup in brand black/orange -->
+  <rect width="800" height="300" fill="#070707"/>
+  <text x="400" y="100" text-anchor="end" font-size="54" font-weight="800"
+        letter-spacing="8" fill="#ffffff">OMNI</text>
+  <text x="400" y="100" text-anchor="start" font-size="54" font-weight="800"
+        letter-spacing="8" fill="#F7792C">TENDER</text>
+  <text x="400" y="142" text-anchor="middle" font-size="17" letter-spacing="6"
+        fill="#8c8c8c">FAITH &#183; PEACE &#183; EXCELLENCE &#183; LOVE</text>
+
+  <!-- cross -->
+  <g stroke="#F7792C" stroke-width="9" stroke-linecap="round">
+    <line x1="220" y1="185" x2="220" y2="257"/>
+    <line x1="194" y1="209" x2="246" y2="209"/>
+  </g>
+  <!-- peace -->
+  <g stroke="#F7792C" stroke-width="7" fill="none" stroke-linecap="round">
+    <circle cx="340" cy="221" r="34"/>
+    <line x1="340" y1="187" x2="340" y2="255"/>
+    <line x1="340" y1="221" x2="316" y2="245"/>
+    <line x1="340" y1="221" x2="364" y2="245"/>
+  </g>
+  <!-- crown (gold, ball tips) -->
+  <g fill="#d4af37">
+    <path d="M428 246 Q426 218 431 206 Q444 224 452 219 Q457 199 460 194 Q463 199 468 219 Q476 224 489 206 Q494 218 492 246 Z"/>
+    <circle cx="431" cy="201" r="6"/><circle cx="460" cy="189" r="6"/><circle cx="489" cy="201" r="6"/>
+    <rect x="426" y="251" width="68" height="9" rx="4"/>
+  </g>
+  <!-- heart -->
+  <path d="M580 257 C556 237 544 221 544 205 a18 18 0 0 1 36-4 a18 18 0 0 1 36 4 c0 16-12 32-36 52 z"
+        fill="#F7792C"/>
+  <!-- separator dots -->
+  <g fill="#3a3a3a">
+    <circle cx="282" cy="221" r="4"/>
+    <circle cx="402" cy="221" r="4"/>
+    <circle cx="520" cy="221" r="4"/>
+  </g>
+  <!-- brand tagline bar -->
+  <rect x="0" y="282" width="800" height="18" fill="#F7792C"/>
+  <text x="400" y="295" text-anchor="middle" font-size="11" font-weight="700"
+        letter-spacing="8" fill="#070707">POWERING LOCAL COMMERCE</text>
+</svg>

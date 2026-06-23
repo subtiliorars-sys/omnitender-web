@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 560" font-family="Montserrat, Arial, sans-serif">
+  <!-- V2 Concept 3: Unity Mark — crowned heart, brand black/orange, smaller refined crown -->
+  <rect width="512" height="560" fill="#070707"/>
+
+  <!-- crown above (gold, rounded + ball tips, scaled down) -->
+  <g fill="#d4af37">
+    <path d="M206 142 Q203 104 210 88 Q231 116 243 109 Q251 76 256 68 Q261 76 269 109 Q281 116 302 88 Q309 104 306 142 Z"/>
+    <circle cx="210" cy="80" r="9"/><circle cx="256" cy="60" r="9"/><circle cx="302" cy="80" r="9"/>
+    <rect x="202" y="148" width="108" height="14" rx="7"/>
+  </g>
+
+  <!-- heart outline -->
+  <path d="M256 484 C150 400 102 334 102 268 a78 78 0 0 1 154-18 a78 78 0 0 1 154 18 c0 66-48 132-154 216 z"
+        fill="none" stroke="#F7792C" stroke-width="14"/>
+
+  <!-- inside: cross + peace -->
+  <g stroke="#F7792C" stroke-width="11" stroke-linecap="round">
+    <line x1="196" y1="220" x2="196" y2="316"/>
+    <line x1="162" y1="252" x2="230" y2="252"/>
+  </g>
+  <g stroke="#F7792C" stroke-width="9" fill="none" stroke-linecap="round">
+    <circle cx="318" cy="268" r="42"/>
+    <line x1="318" y1="226" x2="318" y2="310"/>
+    <line x1="318" y1="268" x2="288" y2="298"/>
+    <line x1="318" y1="268" x2="348" y2="298"/>
+  </g>
+
+  <text x="256" y="528" text-anchor="end" font-size="30" font-weight="800"
+        letter-spacing="5" fill="#ffffff">OMNI</text>
+  <text x="256" y="528" text-anchor="start" font-size="30" font-weight="800"
+        letter-spacing="5" fill="#F7792C">TENDER</text>
+  <text x="256" y="550" text-anchor="middle" font-size="10" font-weight="500"
+        letter-spacing="2.5" fill="#8c8c8c">EVERY PAYMENT &#183; EVERY MERCHANT &#183; EVERY TIME</text>
+</svg>

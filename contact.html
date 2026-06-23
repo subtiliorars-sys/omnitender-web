@@ -143,7 +143,11 @@
         btn.disabled = true;
         btn.textContent = 'Sending…';
 
-        fetch('https://omnitender-omniverse.fly.dev/lead-webhook', {
+        var apiBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]'
+          ? 'http://' + window.location.hostname + ':3000'
+          : 'https://omnitender-omniverse.fly.dev';
+
+        fetch(apiBase + '/lead-webhook', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

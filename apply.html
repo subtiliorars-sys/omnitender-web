@@ -289,7 +289,11 @@
         btn.disabled = true;
         btn.textContent = 'Submitting…';
 
-        fetch('https://omnitender-omniverse.fly.dev/apply', {
+        var apiBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]'
+          ? 'http://' + window.location.hostname + ':3000'
+          : 'https://omnitender-omniverse.fly.dev';
+
+        fetch(apiBase + '/apply', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

@@ -9,7 +9,9 @@
   // Autodetect if we are running on the Fly backend directly or on the static site
   var API = window.location.hostname === 'omnitender-omniverse.fly.dev' || window.location.port === '3000'
     ? ''
-    : 'https://omnitender-omniverse.fly.dev';
+    : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]'
+      ? 'http://' + window.location.hostname + ':3000'
+      : 'https://omnitender-omniverse.fly.dev');
 
   var REFRESH_MS = 30000;
   var _refreshTimer = null;
@@ -257,7 +259,8 @@
     feedback: loadFeedback,
     access: loadAccess,
     savings: loadPricing,
-    digest: loadDigest
+    digest: loadDigest,
+    social: loadSocial
   };
 
   document.getElementById('nav').addEventListener('click', (e) => {
@@ -887,9 +890,7 @@
       '<div class="fb-toolbar">' +
         '<button type="button" class="btn btn-go" data-fb-accept-custom="' + esc(f.id) + '">✓ Apply custom fix</button>' +
         '<button type="button" class="btn" data-fb-reroll-all="' + esc(f.id) + '">↻ Reroll all three</button>' +
-        '<button type="button" class="btn" data-fb-status="' + esc(f.id) + '" data-status="reviewing">Reviewing</button>' +
         '<button type="button" class="btn btn-no" data-fb-status="' + esc(f.id) + '" data-status="declined">Decline</button>' +
-        '<button type="button" class="btn" data-fb-status="' + esc(f.id) + '" data-status="done">Mark done</button>' +
       '</div></div>';
   }
 
@@ -998,7 +999,7 @@
 
   document.getElementById('feedback-list').addEventListener('click', async function (e) {
     const pick = e.target.closest('[data-fb-pick]');
-    if (pick) {
+    if (pick && !e.target.closest('button')) {
       const id = pick.getAttribute('data-fb-pick');
       const slot = parseInt(pick.getAttribute('data-fb-slot'), 10);
       const item = cacheFeedback.find((f) => f.id === id);
@@ -1094,12 +1095,12 @@
             id,
             solution: text,
             note: noteEl ? noteEl.value.trim() : '',
-            status: 'accepted',
+            status: 'done',
             acceptedSlot: slot
           }
         });
         patchFeedbackItem(res.item);
-        toast('Approved one fix — not all three.');
+        toast('Approved/implemented fix and archived the report.');
       } catch (err) { toast(err.message, true); acceptCard.disabled = false; }
       return;
     }
@@ -1122,12 +1123,12 @@
             id,
             solution,
             note: noteEl ? noteEl.value.trim() : '',
-            status: 'accepted',
+            status: 'done',
             acceptedSlot: acceptedSlot
           }
         });
         patchFeedbackItem(res.item);
-        toast('Accepted one fix — not all three.');
+        toast('Approved/implemented fix and archived the report.');
       } catch (err) { toast(err.message, true); acceptCustom.disabled = false; }
       return;
     }
@@ -1570,6 +1571,68 @@
     } finally {
       btn.disabled = false;
       btn.textContent = 'Log In';
+    }
+  });
+
+  document.getElementById('toggle-to-register').addEventListener('click', function() {
+    document.getElementById('login-panel').style.display = 'none';
+    document.getElementById('register-panel').style.display = 'block';
+  });
+  document.getElementById('toggle-to-login').addEventListener('click', function() {
+    document.getElementById('register-panel').style.display = 'none';
+    document.getElementById('login-panel').style.display = 'block';
+  });
+
+  document.getElementById('register-btn').addEventListener('click', async function() {
+    var user = document.getElementById('reg-username-input').value.trim();
+    var pass = document.getElementById('reg-token-input').value.trim();
+    var passcode = document.getElementById('reg-passcode-input').value.trim();
+    var errEl = document.getElementById('register-err');
+    errEl.style.display = 'none';
+
+    if (!user || !pass || !passcode) {
+      errEl.textContent = 'All fields are required.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (!/^\d{6,12}$/.test(pass)) {
+      errEl.textContent = 'Temporary PIN must be a 6–12 digit numeric code.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    var btn = document.getElementById('register-btn');
+    btn.disabled = true;
+    btn.textContent = 'Registering…';
+
+    try {
+      const res = await fetch(API + '/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user, password: pass, registrationCode: passcode })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Registration failed.');
+
+      toast('Registration successful! Log in to configure MFA.');
+      
+      // Clear fields
+      document.getElementById('reg-username-input').value = '';
+      document.getElementById('reg-token-input').value = '';
+      document.getElementById('reg-passcode-input').value = '';
+
+      // Toggle back to login and populate username/password
+      document.getElementById('register-panel').style.display = 'none';
+      document.getElementById('login-panel').style.display = 'block';
+      document.getElementById('username-input').value = user;
+      document.getElementById('token-input').value = pass;
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+      toast(err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Register Account';
     }
   });
 
@@ -2075,6 +2138,202 @@
     link.click();
     document.body.removeChild(link);
     toast('CSV Export started.');
+  });
+
+  // --- Social Media Scheduler ---
+  var cacheSocialDrafts = [];
+  var activeSocialFilter = 'pending';
+
+  async function loadSocial() {
+    const listEl = document.getElementById('social-accounts-list');
+    listEl.innerHTML = 'Loading accounts...';
+    try {
+      const acc = await api('/api/social/accounts');
+      if (acc && acc.accounts && acc.accounts.length > 0) {
+        listEl.innerHTML = acc.accounts.map(a => 
+          '<span class="badge b-approved" style="margin-right: 8px; background: rgba(247, 121, 44, 0.1); color: var(--accent); border: 1px solid rgba(247, 121, 44, 0.2);">' + 
+          esc(a.platform.toUpperCase()) + ': ' + esc(a.id) + '</span>'
+        ).join('');
+      } else {
+        listEl.innerHTML = 'No connected Zernio accounts found. Add accounts in Zernio Console.';
+      }
+    } catch (e) {
+      listEl.innerHTML = 'Failed to load Zernio accounts: ' + esc(e.message);
+    }
+
+    await loadSocialDrafts();
+  }
+
+  async function loadSocialDrafts() {
+    const listEl = document.getElementById('social-drafts-list');
+    listEl.innerHTML = '<div class="empty">Loading drafts...</div>';
+    try {
+      const res = await api('/api/social/drafts');
+      cacheSocialDrafts = res.drafts || [];
+      renderSocialDrafts();
+    } catch (e) {
+      listEl.innerHTML = '<div class="empty" style="color: var(--down);">Failed to load drafts: ' + esc(e.message) + '</div>';
+    }
+  }
+
+  function renderSocialDrafts() {
+    const listEl = document.getElementById('social-drafts-list');
+    const filtered = cacheSocialDrafts.filter(d => {
+      if (activeSocialFilter === 'publishing') {
+        return d.status === 'publishing' || d.status === 'approved' || d.status === 'published';
+      }
+      return d.status === activeSocialFilter;
+    });
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = '<div class="empty">No ' + activeSocialFilter + ' drafts found.</div>';
+      return;
+    }
+
+    listEl.innerHTML = filtered.map(d => {
+      const platformsHtml = (d.platforms || []).map(p => '<span class="badge" style="background: #222; color: #fff; margin-right:4px;">' + esc(p) + '</span>').join('');
+      let actionsHtml = '';
+      let statusInfo = '';
+
+      if (d.status === 'pending') {
+        actionsHtml = 
+          '<div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">' +
+            '<button class="btn btn-go social-edit-btn" data-id="' + d.id + '" style="font-size:11px; padding:6px 12px; margin:0; width:auto; min-height:0;">💾 Save Edits</button>' +
+            '<button class="btn btn-no social-reject-btn" data-id="' + d.id + '" style="font-size:11px; padding:6px 12px; margin:0; width:auto; min-height:0;">🚫 Reject</button>' +
+            '<button class="btn social-approve-draft-btn" data-id="' + d.id + '" style="font-size:11px; padding:6px 12px; margin:0; width:auto; min-height:0; background: var(--inset); color: #fff; border: 1px solid var(--card-edge);">Push to Zernio Draft</button>' +
+            '<div style="display: inline-flex; align-items: center; gap: 4px;">' +
+              '<input type="datetime-local" class="social-sched-time" style="padding: 4px; font-size:11px; height:28px; width:160px; margin:0;" id="sched-time-' + d.id + '">' +
+              '<button class="btn btn-go social-sched-btn" data-id="' + d.id + '" style="font-size:11px; padding:6px 12px; margin:0; width:auto; min-height:0;">📅 Schedule</button>' +
+            '</div>' +
+          '</div>';
+      } else if (d.status === 'scheduled') {
+        statusInfo = '<p style="font-size: 12px; color: var(--accent); margin: 6px 0;">📅 Scheduled for: <strong>' + esc(d.scheduled_for || '') + '</strong></p>';
+        actionsHtml = 
+          '<div style="margin-top: 12px;">' +
+            '<button class="btn btn-no social-reject-btn" data-id="' + d.id + '" style="font-size:11px; padding:6px 12px; margin:0; width:auto; min-height:0;">🚫 Cancel &amp; Reject</button>' +
+          '</div>';
+      } else if (d.status === 'rejected') {
+        statusInfo = '<p style="font-size: 12px; color: var(--down); margin: 6px 0;">🚫 Rejected by: ' + esc(d.decided_by || 'unknown') + '</p>';
+      } else {
+        statusInfo = '<p style="font-size: 12px; color: var(--up); margin: 6px 0;">✅ Published/Approved (Zernio ID: ' + esc(d.zernio_id || 'N/A') + ')</p>';
+      }
+
+      return '<div class="card" style="margin-bottom: 16px; border: 1px solid var(--card-edge); background: var(--inset);">' +
+        '<div style="display:flex; justify-content:space-between; margin-bottom:8px;">' +
+          '<div>' + platformsHtml + ' <span style="font-size:11px; color:var(--faint);">ID: ' + esc(d.id) + '</span></div>' +
+          '<div style="font-size:11px; color:var(--faint);">' + esc(d.created_at || '') + ' by ' + esc(d.created_by || '') + '</div>' +
+        '</div>' +
+        '<textarea class="social-draft-text" data-id="' + d.id + '" style="width:100%; border:1px solid #444; background:#111; color:#fff; padding:8px; border-radius:4px; font-size:13px; font-family:inherit;" rows="4" ' + (d.status !== 'pending' ? 'readonly' : '') + '>' + esc(d.text) + '</textarea>' +
+        '<p style="font-size:12px; color:var(--muted); margin: 8px 0 0;">💡 <i>' + esc(d.rationale || '') + '</i></p>' +
+        statusInfo +
+        actionsHtml +
+      '</div>';
+    }).join('');
+
+    // Wire actions
+    document.querySelectorAll('.social-edit-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        const id = b.dataset.id;
+        const textEl = document.querySelector('.social-draft-text[data-id="' + id + '"]');
+        const text = textEl.value.trim();
+        try {
+          await api('/api/social/draft/edit', { method: 'POST', body: { id, text } });
+          toast('Draft edits saved successfully.');
+          loadSocialDrafts();
+        } catch (e) {
+          toast('Failed to edit draft: ' + e.message, true);
+        }
+      });
+    });
+
+    document.querySelectorAll('.social-reject-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!confirm('Are you sure you want to reject this draft?')) return;
+        const id = b.dataset.id;
+        try {
+          await api('/api/social/draft/reject', { method: 'POST', body: { id } });
+          toast('Draft rejected.');
+          loadSocialDrafts();
+        } catch (e) {
+          toast('Failed to reject draft: ' + e.message, true);
+        }
+      });
+    });
+
+    document.querySelectorAll('.social-approve-draft-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        const id = b.dataset.id;
+        const textEl = document.querySelector('.social-draft-text[data-id="' + id + '"]');
+        const text = textEl.value.trim();
+        try {
+          await api('/api/social/draft/approve', { method: 'POST', body: { id, mode: 'zernio_draft', expected_text: text } });
+          toast('Draft pushed to Zernio.');
+          loadSocialDrafts();
+        } catch (e) {
+          toast('Failed to approve draft: ' + e.message, true);
+        }
+      });
+    });
+
+    document.querySelectorAll('.social-sched-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        const id = b.dataset.id;
+        const textEl = document.querySelector('.social-draft-text[data-id="' + id + '"]');
+        const text = textEl.value.trim();
+        const timeVal = document.getElementById('sched-time-' + id).value;
+        if (!timeVal) {
+          toast('Please pick a schedule date & time.', true);
+          return;
+        }
+        const isoStr = new Date(timeVal).toISOString();
+        try {
+          await api('/api/social/draft/approve', { method: 'POST', body: { id, mode: 'schedule', expected_text: text, when: isoStr } });
+          toast('Post scheduled successfully.');
+          loadSocialDrafts();
+        } catch (e) {
+          toast('Scheduling failed: ' + e.message, true);
+        }
+      });
+    });
+  }
+
+  // --- Wire Generation & Tab Controls ---
+  document.getElementById('social-generate-btn').addEventListener('click', async () => {
+    const brief = document.getElementById('social-brief').value.trim();
+    const countVal = parseInt(document.getElementById('social-count').value, 10);
+    const checkedBoxes = document.querySelectorAll('#social-platforms-container input:checked');
+    const platforms = Array.from(checkedBoxes).map(cb => cb.value);
+
+    const statusEl = document.getElementById('social-gen-status');
+    statusEl.style.display = 'block';
+    statusEl.style.color = 'var(--muted)';
+    statusEl.textContent = 'Generating AI drafts... please wait...';
+
+    const btn = document.getElementById('social-generate-btn');
+    btn.disabled = true;
+
+    try {
+      await api('/api/social/brief', { method: 'POST', body: { brief, count: countVal, platforms } });
+      statusEl.style.color = 'var(--up)';
+      statusEl.textContent = 'Successfully generated AI drafts!';
+      document.getElementById('social-brief').value = '';
+      loadSocialDrafts();
+    } catch (e) {
+      statusEl.style.color = 'var(--down)';
+      statusEl.textContent = 'Failed to generate drafts: ' + e.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Wire filter buttons
+  document.querySelectorAll('#v-social .filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#v-social .filter-btn').forEach(x => x.classList.remove('on'));
+      btn.classList.add('on');
+      activeSocialFilter = btn.dataset.filter;
+      renderSocialDrafts();
+    });
   });
 
   /* ---- init ---- */

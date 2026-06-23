@@ -447,6 +447,9 @@
         <p class="fine">Your mobile information is never sold or shared with third parties for their marketing.</p>
       </div>
     </div>
+    <div style="text-align: center; margin-top: var(--space-2xl); margin-bottom: var(--space-md);">
+      <img src="v2-concept-2-values-strip.svg" alt="OmniTender Values: Faith, Peace, Excellence, Love" style="max-width: 100%; height: auto; border: 1px solid var(--border); border-radius: var(--radius);">
+    </div>
   </main>
 
   <footer>
@@ -535,7 +538,11 @@
         btn.disabled = true;
         btn.textContent = 'Submitting…';
 
-        fetch('https://omnitender-omniverse.fly.dev/lead-webhook', {
+        var apiBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]'
+          ? 'http://' + window.location.hostname + ':3000'
+          : 'https://omnitender-omniverse.fly.dev';
+
+        fetch(apiBase + '/lead-webhook', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

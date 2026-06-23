@@ -58,7 +58,17 @@ const FeedbackFab = {
   async _capture() {
     try {
       await this._loadH2C();
-      const canvas = await window.html2canvas(document.body, { logging: false });
+      const canvas = await window.html2canvas(document.body, {
+        logging: false,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        scrollX: window.scrollX,
+        scrollY: window.scrollY,
+        windowWidth: window.innerWidth,
+        windowHeight: window.innerHeight,
+        x: window.scrollX,
+        y: window.scrollY
+      });
       const MAX_W = 1280;  // downscale + JPEG keeps the payload well under the server cap
       let out = canvas;
       if (canvas.width > MAX_W) {
@@ -129,7 +139,7 @@ const FeedbackFab = {
         '<label class="text-[11px] text-slate-400 block" style="font-size: 11px; display: block;">What happened?' +
           '<textarea id="fb-message" rows="4" maxlength="4000" class="' + inp + ' mt-1" placeholder="Describe the problem or idea — be as specific as you like." style="width: 100%; margin-top: 4px; padding: 8px; font-size: 12px; background: #000; border: 1px solid var(--border); color: var(--ink); border-radius: 6px; outline: none; resize: vertical; min-height: 80px; font-family: inherit;"></textarea></label>' +
         '<button id="fb-send" class="w-full bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-medium py-2 rounded-lg text-xs transition" style="width: 100%; padding: 10px; border-radius: 8px; border: none; font-size: 13px; font-weight: bold; cursor: pointer; transition: opacity 0.2s;">Send report</button>' +
-        '<p id="fb-status" class="text-[11px] text-center hidden" style="margin: 0; font-size: 11px; text-align: center; display: none;"></p>' +
+        '<p id="fb-status" class="text-[11px] text-center hidden" style="margin: 0; font-size: 11px; text-align: center;"></p>' +
       '</div>';
     document.body.appendChild(wrap);
 
@@ -229,7 +239,9 @@ const FeedbackFab = {
 
     var apiBase = window.location.hostname === 'omnitender-omniverse.fly.dev' || window.location.port === '3000'
       ? ''
-      : 'https://omnitender-omniverse.fly.dev';
+      : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]'
+        ? 'http://' + window.location.hostname + ':3000'
+        : 'https://omnitender-omniverse.fly.dev');
 
     this._status("Sending…", "");
     try {
