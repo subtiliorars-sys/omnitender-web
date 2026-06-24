@@ -28,6 +28,10 @@ jobs:
             --exclude "LICENSE" \
             --exclude "CLAUDE.md"
 
+      - name: Remove orphaned pa/ pages from S3
+        run: |
+          aws s3 rm s3://subtiliorars-omnitender-web-380592535426/pa/ --recursive || true
+
       - name: Invalidate CloudFront Cache
         run: |
           aws cloudfront create-invalidation --distribution-id E2MXZUPT4Y6JYE --paths "/*"
