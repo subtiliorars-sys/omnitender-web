@@ -5,45 +5,35 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
-_(empty — next wave picks up after OTW-W10 merges)_
+_(empty — next wave picks up after OTW-W11 merges)_
 
 ## In review
 
-### Wave OTW-W10 — Post-apply success next steps
+### Wave OTW-W11 — Tester hub QA link + broken link fix
 **Status:** `in_review`  
-**Branch:** `automation/wave-otw-w10-apply-success`
+**Branch:** `automation/wave-otw-w11-tester-hub`
 
-- [x] Apply success panel: what happens next + rate-analysis cross-link
-
-### Wave OTW-W9 — NC local merchants landing page
-**Status:** `in_review`  
-**Branch:** `automation/wave-otw-w9-nc-merchants`
-
-- [x] `merchants-nc.html` — Burke County / Western NC positioning (no fake stats)
-- [x] Sitemap + nav link
-
-### Wave OTW-W8 — Form UX polish (focus + aria-live)
-**Status:** `in_review`  
-**Branch:** `automation/wave-otw-w8-form-ux`
-
-- [x] Focus first invalid field on submit (`savings.html`, `apply.html`)
-- [x] `aria-live` region for form errors
-
-### Wave OTW-W6 — QA issue template (smoke reports)
-**Status:** `in_review`  
-**Branch:** `automation/wave-otw-w6-qa-template`
-
-- [x] GitHub issue template for website smoke reports
-- [ ] Link from `test.html` after merge
-
-### Wave OTW-W7 — Post-submit funnel nudge (REV-01)
-**Status:** `in_review`  
-**Branch:** `automation/wave-otw-w7-funnel-nudge`
-
-- [x] Rate-analysis success → apply CTA with obligation copy
-- [x] Home hero dual CTA (analysis + apply) + tel prominence
+- [x] Remove broken `pa/index.html` link (internal ops page removed)
+- [x] Link GitHub QA smoke-report issue template from `test.html`
+- [x] Add `merchants-nc.html` to tester hub core pages
 
 ## Completed
+
+### Wave OTW-W10 — Post-apply success next steps ✅
+**Branch:** `automation/wave-otw-w10-apply-success` · merged PR #23 (2026-06-20)
+
+### Wave OTW-W9 — NC local merchants landing page ✅
+**Branch:** `automation/wave-otw-w9-nc-merchants` · merged PR #22 (2026-06-17)
+
+### Wave OTW-W8 — Form UX polish (focus + aria-live) ✅
+**Branch:** `automation/wave-otw-w8-form-ux` · merged PR #21 (2026-06-15)
+
+### Wave OTW-W7 — Post-submit funnel nudge (REV-01) ✅
+**Branch:** `automation/wave-otw-w7-funnel-nudge` · merged PR #20 (2026-06-14)
+
+### Wave OTW-W6 — QA issue template (smoke reports) ✅
+**Branch:** `automation/wave-otw-w6-qa-template` · merged PR #17 (2026-06-14)
+- QA template link wired from `test.html` in OTW-W11
 
 ### Wave OTW-W6 — Products page FAQ ✅
 **Branch:** `automation/wave-otw-w6-products-faq` · merged PR #15 (2026-06-14)
