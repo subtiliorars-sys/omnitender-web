@@ -1,3 +1,89 @@
+
+
+/* ============================================================
+   TAB SYSTEM SPECIFICITY OVERRIDES
+   Beat the global button / a styles from above
+   ============================================================ */
+
+/* Reset tab buttons so they don't look like .btn-go */
+.tab-nav .tab-btn,
+.tab-nav .tab-btn:hover,
+.tab-nav .tab-btn:focus {
+  background: none !important;
+  border: none !important;
+  border-bottom: 3px solid transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--muted) !important;
+  display: inline-block !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  padding: 14px 20px 12px !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+  width: auto !important;
+  margin-bottom: -2px !important;
+  transition: color 0.18s, border-color 0.18s !important;
+}
+
+.tab-nav .tab-btn:hover {
+  color: var(--ink) !important;
+}
+
+.tab-nav .tab-btn.active {
+  border-bottom-color: var(--brand) !important;
+  color: var(--brand) !important;
+}
+
+/* Force flex on tab-nav */
+.tab-nav {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+}
+
+/* Force flex on quick-actions */
+.quick-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  justify-content: center !important;
+  padding: 0 16px !important;
+  margin: 20px auto !important;
+  max-width: 960px !important;
+}
+
+/* Quick tiles use pill style */
+.quick-actions .quick-tile {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  color: var(--ink) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  gap: 6px !important;
+  padding: 10px 18px !important;
+  text-decoration: none !important;
+  transition: background 0.18s, border-color 0.18s !important;
+  width: auto !important;
+  box-shadow: none !important;
+  letter-spacing: 0.03em !important;
+}
+
+.quick-actions .quick-tile:hover {
+  background: var(--surface-2) !important;
+  border-color: var(--brand) !important;
+  color: var(--brand) !important;
+}
+
+/* Hide inactive tab panels */
+.tab-panel { display: none !important; }
+.tab-panel.active { display: block !important; }
 /* OmniTender — Brand Unification Redesign
    Aesthetic system: Premium dark mode with deep black (#070707), brand orange (#F7792C),
    and accents of crown gold (#D4AF37). Responsive, progressive enhancement. */
