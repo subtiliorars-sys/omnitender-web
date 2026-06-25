@@ -7,18 +7,15 @@ Verify: `python check_web_links.py` when HTML changes.
 
 _(empty — next wave picks up after OTW-W11 merges)_
 
-## In review
+## Completed
 
-### Wave OTW-W11 — Tester hub QA link + broken link fix
-**Status:** `in_review`  
-**Branch:** `automation/wave-otw-w11-tester-hub`
+### Wave OTW-W11 — Tester hub QA link + broken link fix ✅
+
+**Branch:** `automation/wave-otw-w11-tester-hub` · merged into main (2026-06-25 verified)
 
 - [x] Remove broken `pa/index.html` link (internal ops page removed)
 - [x] Link GitHub QA smoke-report issue template from `test.html`
 - [x] Add `merchants-nc.html` to tester hub core pages
-
-## Completed
-
 ### Wave OTW-W10 — Post-apply success next steps ✅
 **Branch:** `automation/wave-otw-w10-apply-success` · merged PR #23 (2026-06-20)
 
