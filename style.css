@@ -931,3 +931,108 @@ footer a:hover { color: var(--brand); }
 }
 
 
+
+/* ============================================================
+   TAB NAVIGATION SYSTEM
+   Used on index.html homepage to organize content into panels
+   ============================================================ */
+
+.tab-nav {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin: 0 0 var(--space-xl);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  max-width: var(--maxw);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 var(--space-md);
+}
+
+.tab-nav::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 14px 20px 12px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color 0.18s, border-color 0.18s;
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: var(--ink);
+}
+
+.tab-btn.active {
+  border-bottom-color: var(--brand);
+  color: var(--brand);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* Quick-action tiles row below hero */
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: center;
+  max-width: var(--maxw);
+  margin: var(--space-lg) auto;
+  padding: 0 var(--space-md);
+}
+
+.quick-tile {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  gap: var(--space-sm);
+  letter-spacing: 0.04em;
+  padding: 10px 18px;
+  text-decoration: none;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.quick-tile:hover {
+  background: var(--surface-2);
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.quick-tile .tile-icon {
+  font-size: 1.1em;
+}
+
+@media (max-width: 600px) {
+  .tab-btn {
+    font-size: 0.78rem;
+    padding: 12px 14px 10px;
+  }
+  .quick-tile {
+    font-size: 0.82rem;
+    padding: 8px 14px;
+  }
+}
