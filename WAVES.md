@@ -5,9 +5,23 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
-_(empty — next wave picks up after OTW-W11 merges)_
+### Wave OTW-W13 — About page FAQ
+
+**Branch:** `automation/wave-otw-w13-about-faq` _(next pickup)_
+
+- [ ] Add "Before you reach out" FAQ to `about.html` (processor role, funds, location, getting started)
+- [ ] Verify: `python3 check_web_links.py`
 
 ## Completed
+
+### Wave OTW-W12 — Legal/404 nav parity + CSS v7 cache bust ✅
+
+**Branch:** `automation/wave-otw-w12-legal-nav-css` · PR pending (2026-06-27)
+
+- [x] Align privacy, terms, and 404 topnav with site-wide nav
+- [x] Expand 404 helpful links (savings, contact)
+- [x] Bump `style.css?v=7` on all HTML pages for CloudFront cache consistency
+- [x] Dashboard login: clarify admin-provisioned credentials use Log In, not Activate New Account
 
 ### Wave OTW-W11 — Tester hub QA link + broken link fix ✅
 
