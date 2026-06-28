@@ -11,7 +11,7 @@ _(empty — next wave picks up after OTW-W12 merges)_
 
 ### Wave OTW-W12 — Hero trust strip + tel CTA prominence ✅
 
-**Branch:** `automation/wave-otw-w12-trust-strip` · PR pending (2026-06-28)
+**Branch:** `automation/wave-otw-w12-trust-strip` · PR #30 (2026-06-28)
 
 - [x] Visible education-only trust strip in home hero (no fake stats, no rate promises)
 - [x] Prominent `tel:` CTA on mobile and desktop
