@@ -5,9 +5,17 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
-_(empty — next wave picks up after OTW-W11 merges)_
+_(empty — next wave picks up after OTW-W12 merges)_
 
 ## Completed
+
+### Wave OTW-W12 — Hero trust strip + tel CTA prominence ✅
+
+**Branch:** `automation/wave-otw-w12-trust-strip` · PR #30 (2026-06-28)
+
+- [x] Visible education-only trust strip in home hero (no fake stats, no rate promises)
+- [x] Prominent `tel:` CTA on mobile and desktop
+- [x] `python check_web_links.py` passes
 
 ### Wave OTW-W11 — Tester hub QA link + broken link fix ✅
 
