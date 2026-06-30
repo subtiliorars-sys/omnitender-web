@@ -15,14 +15,15 @@ Verify: `python check_web_links.py` when HTML changes.
 - [ ] Owner: paste Pixel ID, merge, deploy
 - [ ] Verify: Meta Pixel Helper on `/savings.html`
 
-### Wave OTW-W13 — About page FAQ
-
-**Branch:** `automation/wave-otw-w13-about-faq` _(next pickup)_
-
-- [ ] Add "Before you reach out" FAQ to `about.html` (processor role, funds, location, getting started)
-- [ ] Verify: `python3 check_web_links.py`
-
 ## Completed
+
+### Wave OTW-W13 — About page FAQ ✅
+
+**Branch:** `automation/wave-otw-w13-about-faq` · PR #33 (2026-07-13)
+
+- [x] Add "Before you reach out" FAQ to `about.html` (processor role, funds, location, getting started)
+- [x] FAQ cards use `role="group"` + `aria-labelledby` for screen readers
+- [x] `python check_web_links.py` passes
 
 ### Wave OTW-W12 — Legal/404 nav parity + CSS cache bust ✅
 
