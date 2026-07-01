@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23070707'/><text x='16' y='23' font-size='22' font-family='Arial,Helvetica,sans-serif' font-weight='bold' text-anchor='middle' fill='%23F7792C'>O</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="index, follow">
+  <title>OmniSecure — Identity Security for OmniTender</title>
+  <meta name="description" content="Zero-knowledge password manager, secrets manager, and secure sharing built for the OmniTender ecosystem. Open source, self-hostable, Bitwarden-parity.">
+  <meta name="theme-color" content="#4f8cff">
+  <link rel="canonical" href="https://omnitender.us/omnisecure.html">
+  <link rel="stylesheet" href="style.css?v=8">
+  <style>
+    .omnisecure-hero { border: 1px solid rgba(79, 140, 255, 0.35); background: linear-gradient(135deg, rgba(79,140,255,0.12), rgba(124,92,255,0.08)); }
+    .omnisecure-mark { display:inline-grid;place-items:center;width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#4f8cff,#7c5cff);font-weight:700;color:#fff;margin-bottom:12px; }
+    .ecosystem-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-top:24px; }
+    .ecosystem-grid .card { border-color: rgba(79, 140, 255, 0.25); }
+    .cta-row { display:flex; flex-wrap:wrap; gap:12px; margin-top:20px; }
+    .cta-row a { text-decoration:none; }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header>
+    <a class="brand" href="index.html" style="display: inline-flex; align-items: center; gap: 12px; justify-content: center; text-decoration: none;">
+      <img src="logo.svg" alt="OmniTender Crest Logo" style="height: 38px; width: auto;">
+      <span>Omni<span style="color: var(--brand);">Tender</span></span>
+    </a>
+    <p class="tagline">S Y S T E M S</p>
+    <nav class="topnav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="omnisecure.html" aria-current="page">OmniSecure</a>
+      <a href="savings.html">Savings</a>
+      <a href="about.html">About</a>
+      <a href="merchants-nc.html">Western NC</a>
+      <a href="contact.html">Contact</a>
+      <a href="apply.html" class="topnav-cta">Get started</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <div class="page-hero omnisecure-hero">
+      <div class="omnisecure-mark" aria-hidden="true">OS</div>
+      <span class="eyebrow">OmniTender ecosystem · open source</span>
+      <h1>OmniSecure — identity security that stays yours.</h1>
+      <p class="lead">Zero-knowledge password manager, dev secrets, and encrypted sharing — built for OmniTender staff, partners, and developers. Self-host or run locally; your master password never leaves your device.</p>
+      <div class="cta-row">
+        <a class="btn btn-go" href="https://github.com/subtiliorars-sys/OmniSecure" rel="noopener noreferrer">View on GitHub</a>
+        <a class="btn btn-ghost" href="https://github.com/subtiliorars-sys/OmniAuth" rel="noopener noreferrer">OmniAuth (2FA app)</a>
+      </div>
+    </div>
+
+    <div class="cards" style="margin-bottom: var(--space-xl);">
+      <div class="card">
+        <h3>Password Manager</h3>
+        <p>Encrypted vault for logins, cards, identities, notes, and SSH keys. Sync across devices with end-to-end encryption.</p>
+      </div>
+      <div class="card">
+        <h3>Secrets Manager</h3>
+        <p>Projects, service accounts, and API keys for dev teams — same zero-knowledge model as infrastructure secrets in Bitwarden.</p>
+      </div>
+      <div class="card">
+        <h3>OmniSecure Send</h3>
+        <p>Share encrypted text via expiring links. Password-protected sends supported.</p>
+      </div>
+      <div class="card">
+        <h3>Browser extension</h3>
+        <p>Autofill logins from your vault on any site. Load the unpacked extension from the GitHub repo.</p>
+      </div>
+    </div>
+
+    <section aria-labelledby="ecosystem-heading">
+      <div class="sec-head">
+        <h2 id="ecosystem-heading">Works with the OmniTender stack</h2>
+        <p class="fine">Payment processing is OmniTender; credential hygiene is OmniSecure + OmniAuth.</p>
+      </div>
+      <div class="ecosystem-grid">
+        <div class="card">
+          <h3>OmniSecure</h3>
+          <p>Vaults, org sharing, dev secrets, CLI (<code>omsecure</code>).</p>
+        </div>
+        <div class="card">
+          <h3>OmniAuth</h3>
+          <p>TOTP authenticator for staff consoles and OmniSecure account 2FA.</p>
+        </div>
+        <div class="card">
+          <h3>Self-host</h3>
+          <p>Docker Compose for full data sovereignty — ideal for compliance-sensitive merchants.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="sec-head" style="margin-top: 48px;">
+      <h2>Quick start (developers)</h2>
+    </div>
+    <div class="card" style="font-family: ui-monospace, monospace; font-size: 0.9rem; line-height: 1.6;">
+      <p>git clone https://github.com/subtiliorars-sys/OmniSecure.git</p>
+      <p>cd OmniSecure &amp;&amp; pnpm install &amp;&amp; pnpm build</p>
+      <p>pnpm dev &nbsp;# API :8787 · Web vault :5173</p>
+      <p>pnpm build:extension &nbsp;# Load apps/browser-extension/dist in Chrome</p>
+    </div>
+  </main>
+
+  <footer>
+    <p>OmniSecure is open source (AGPL-3.0). OmniTender provides merchant payment services; OmniSecure provides identity tooling for the same ecosystem.</p>
+    <p><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="contact.html">Contact</a></p>
+  </footer>
+</body>
+</html>
