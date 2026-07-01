@@ -5,9 +5,16 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
-_(empty — next wave picks up after OTW-W12 merges)_
+_(empty — next wave picks up after OTW-W13 merges)_
 
 ## Completed
+
+### Wave OTW-W13 — About page FAQ ✅
+
+**Branch:** `automation/wave-otw-w13-about-faq` · PR pending (2026-06-30)
+
+- [x] Add "Before you reach out" FAQ to `about.html` (processor role, funds, location, getting started)
+- [x] `python check_web_links.py` passes
 
 ### Wave OTW-W12 — Hero trust strip + tel CTA prominence ✅
 
