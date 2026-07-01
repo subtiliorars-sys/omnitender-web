@@ -641,11 +641,20 @@
       <p style="color: var(--muted); font-size: 13px; margin-top: -8px; margin-bottom: 18px;">OmniTender staff console — passkey is your daily sign-in. Use PIN + backup code when you cannot use a passkey. Merchants start at <a href="apply.html">apply.html</a>.</p>
 
       <button type="button" class="btn btn-go" id="passkey-login-btn" style="width: 100%; padding: 14px; font-size: 14px;">Sign in with passkey</button>
-      <p id="passkey-hint" style="font-size: 11px; color: var(--muted); margin: 10px 0 16px; line-height: 1.45; text-align: center;">USB security key, Windows Hello, Touch ID, or your device passkey — register in Access &amp; Admins after account setup.</p>
+      <p id="passkey-hint" style="font-size: 11px; color: var(--muted); margin: 10px 0 12px; line-height: 1.45; text-align: center;">Passkeys work only after you register one inside the console. New here or no passkey yet? Use PIN + backup below.</p>
 
-      <button type="button" class="btn btn-no" id="toggle-backup-login" style="width: 100%; padding: 10px; font-size: 12px; margin-bottom: 8px;">Use PIN + backup code instead</button>
+      <div id="login-help" style="background: rgba(247,121,44,0.08); border: 1px solid rgba(247,121,44,0.25); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px; font-size: 12px; line-height: 1.55; color: var(--ink);">
+        <strong style="color: var(--accent);">How to sign in</strong>
+        <ol style="margin: 8px 0 0 18px; padding: 0;">
+          <li><strong>Already set up?</strong> Username + permanent PIN + OmniAuth code (or recovery code). Leave both code fields blank only on your very first login before MFA setup.</li>
+          <li><strong>First time / new employee?</strong> Click <em>Activate New Account</em> below (needs employee passcode from your admin).</li>
+          <li><strong>Passkey</strong> is for daily login <em>after</em> step 1 — register under Access &amp; Admins once you are in.</li>
+        </ol>
+      </div>
 
-      <div id="backup-login-panel" style="display: none; margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--border);">
+      <button type="button" class="btn btn-no" id="toggle-backup-login" style="width: 100%; padding: 10px; font-size: 12px; margin-bottom: 8px;" onclick="window.omniToggleBackupLogin && window.omniToggleBackupLogin()">Hide PIN + backup login</button>
+
+      <div id="backup-login-panel" style="display: block; margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--border);">
       <div style="margin-bottom: 12px;">
         <label for="username-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--muted);">Username</label>
         <input type="text" id="username-input" placeholder="Your console username" autocomplete="username">
@@ -1284,7 +1293,7 @@
   </div>
 
   <script src="webauthn-client.js?v=1"></script>
-  <script src="dashboard.js?v=19"></script>
+  <script src="dashboard.js?v=21"></script>
   <script src="feedback.js?v=2"></script>
 </body>
 </html>

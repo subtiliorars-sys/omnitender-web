@@ -1639,6 +1639,19 @@
   });
 
   /* ---- login flow ---- */
+  window.omniToggleBackupLogin = function () {
+    var panel = document.getElementById('backup-login-panel');
+    var btn = document.getElementById('toggle-backup-login');
+    if (!panel || !btn) return;
+    var open = panel.style.display !== 'none';
+    panel.style.display = open ? 'none' : 'block';
+    btn.textContent = open ? 'Use PIN + backup code instead' : 'Hide PIN + backup login';
+    if (!open) {
+      var userInput = document.getElementById('username-input');
+      if (userInput) userInput.focus();
+    }
+  };
+
   function showSetupModal(starterUsername) {
     document.getElementById('mfa-setup-step1').style.display = 'block';
     document.getElementById('mfa-setup-step2').style.display = 'none';
@@ -1744,13 +1757,7 @@
   document.getElementById('passkey-login-btn').addEventListener('click', passkeyLogin);
   document.getElementById('passkey-register-btn').addEventListener('click', passkeyRegister);
 
-  document.getElementById('toggle-backup-login').addEventListener('click', function () {
-    var panel = document.getElementById('backup-login-panel');
-    var open = panel.style.display !== 'none';
-    panel.style.display = open ? 'none' : 'block';
-    this.textContent = open ? 'Use PIN + backup code instead' : 'Hide PIN + backup login';
-    if (!open) document.getElementById('username-input').focus();
-  });
+  document.getElementById('toggle-backup-login').addEventListener('click', window.omniToggleBackupLogin);
 
   document.getElementById('toggle-to-register').addEventListener('click', function() {
     document.getElementById('login-panel').style.display = 'none';
