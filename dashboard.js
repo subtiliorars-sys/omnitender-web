@@ -1201,8 +1201,9 @@
         const cul = (uj.users || []).map((u) => {
           const pending = u.mustSetupMfa || !u.mfaEnabled;
           const pendingBadge = pending ? ' <span class="badge b-in_review">setup pending</span>' : '';
+          const pkBadge = u.passkeyCount ? ' <span class="badge b-approved">' + u.passkeyCount + ' key(s)</span>' : '';
           return '<div class="item"><div class="t">' + esc(u.username) +
-          '<span class="badge b-approved">' + esc(u.role) + '</span>' + pendingBadge + '</div>' +
+          '<span class="badge b-approved">' + esc(u.role) + '</span>' + pendingBadge + pkBadge + '</div>' +
           '<div class="m">Created ' + esc(u.createdAt.slice(0, 10)) + '</div>' +
           (u.bootstrap ? '' : '<div class="actions" style="margin-top:4px"><button class="btn btn-no" data-deluser="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">Delete</button></div>') +
           '</div>';
@@ -1212,9 +1213,126 @@
     } else {
       document.getElementById('admin-user-mgmt').style.display = 'none';
     }
+
+    await loadPasskeys();
   }
 
-  /* ---- Savings ---- */
+  async function loadPasskeys() {
+    var listEl = document.getElementById('passkeys-list');
+    var regBtn = document.getElementById('passkey-register-btn');
+    if (!listEl) return;
+    if (isDemoSession() || !getToken()) {
+      listEl.innerHTML = '<div class="empty">Sign in to manage security keys.</div>';
+      if (regBtn) regBtn.disabled = true;
+      return;
+    }
+    if (regBtn) regBtn.disabled = false;
+    try {
+      var data = await api('/api/passkeys');
+      var keys = data.passkeys || [];
+      if (!keys.length) {
+        listEl.innerHTML = '<div class="empty">No security keys registered yet.</div>';
+        return;
+      }
+      listEl.innerHTML = keys.map(function (k) {
+        return '<div class="item"><div class="t">' + esc(k.deviceName || 'Security key') +
+          '</div><div class="m">Added ' + esc((k.createdAt || '').slice(0, 10)) +
+          '</div><div class="actions" style="margin-top:4px"><button type="button" class="btn btn-no" data-passkey-del="' +
+          esc(k.credentialID) + '">Remove</button></div></div>';
+      }).join('');
+    } catch (e) {
+      listEl.innerHTML = '<div class="empty">Could not load keys: ' + esc(e.message) + '</div>';
+    }
+  }
+
+  async function passkeyLogin() {
+    if (!window.OmniWebAuthn || !OmniWebAuthn.supported()) {
+      toast('This browser does not support security keys or passkeys.', true);
+      return;
+    }
+    var user = document.getElementById('username-input').value.trim();
+    var btn = document.getElementById('passkey-login-btn');
+    btn.disabled = true;
+    btn.textContent = 'Waiting for key…';
+    try {
+      var optRes = await fetch(API + '/api/passkeys/login/options', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user || undefined, discoverable: !user }),
+      });
+      var optData = await optRes.json();
+      if (!optRes.ok) throw new Error(optData.error || 'Could not start passkey sign-in.');
+      var assertion = await OmniWebAuthn.authenticatePasskey(optData.options);
+      var verifyRes = await fetch(API + '/api/passkeys/login/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ response: assertion, challengeId: optData.challengeId }),
+      });
+      var verifyData = await verifyRes.json();
+      if (!verifyRes.ok) throw new Error(verifyData.error || 'Security key sign-in failed.');
+      setToken(verifyData.token);
+      sessionStorage.setItem('omni_dash_role', verifyData.role);
+      sessionStorage.setItem('omni_dash_username', verifyData.username);
+      currentUserRole = verifyData.role;
+      markPendingSetup(false);
+      document.getElementById('unlock-err').style.display = 'none';
+      showDash();
+      loadOverview();
+      startRefresh();
+      toast('Welcome back, ' + verifyData.username + ' (security key)');
+    } catch (err) {
+      var errEl = document.getElementById('unlock-err');
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+      toast(err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🔐 Sign in with security key / passkey';
+    }
+  }
+
+  async function passkeyRegister() {
+    if (!window.OmniWebAuthn || !OmniWebAuthn.supported()) {
+      toast('This browser does not support security keys or passkeys.', true);
+      return;
+    }
+    if (isDemoSession()) {
+      toast('Demo mode — connect the live backend to register keys.', true);
+      return;
+    }
+    var label = (document.getElementById('passkey-device-name').value || 'Security key').trim();
+    var btn = document.getElementById('passkey-register-btn');
+    btn.disabled = true;
+    btn.textContent = 'Waiting for key…';
+    try {
+      var optRes = await fetch(API + '/api/passkeys/register/options', {
+        method: 'POST',
+        headers: authHeaders(),
+      });
+      var optData = await optRes.json();
+      if (!optRes.ok) throw new Error(optData.error || 'Could not start registration.');
+      var attestation = await OmniWebAuthn.registerPasskey(optData.options);
+      var verifyRes = await fetch(API + '/api/passkeys/register/verify', {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json', 'X-OV-Console': '1' }, authHeaders()),
+        body: JSON.stringify({
+          response: attestation,
+          challengeId: optData.challengeId,
+          deviceName: label,
+        }),
+      });
+      var verifyData = await verifyRes.json();
+      if (!verifyRes.ok) throw new Error(verifyData.error || 'Registration failed.');
+      document.getElementById('passkey-device-name').value = '';
+      toast('Security key registered.');
+      loadPasskeys();
+    } catch (err) {
+      toast(err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Register key';
+    }
+  }
   async function loadPricing() {
     try {
       const p = await api('/api/pricing');
@@ -1416,6 +1534,19 @@
       loadAccess();
       return;
     }
+
+    const pkDel = e.target.closest('button[data-passkey-del]');
+    if (pkDel) {
+      var credId = pkDel.getAttribute('data-passkey-del');
+      if (!confirm('Remove this security key? You will not be able to sign in with it.')) return;
+      pkDel.disabled = true;
+      try {
+        await api('/api/passkeys/delete', { method: 'POST', body: { credentialID: credId } });
+        toast('Security key removed.');
+        loadPasskeys();
+      } catch (err) { toast(err.message, true); pkDel.disabled = false; }
+      return;
+    }
   });
 
   document.getElementById('invite-mint').addEventListener('click', async () => {
@@ -1573,6 +1704,9 @@
       btn.textContent = 'Log In';
     }
   });
+
+  document.getElementById('passkey-login-btn').addEventListener('click', passkeyLogin);
+  document.getElementById('passkey-register-btn').addEventListener('click', passkeyRegister);
 
   document.getElementById('toggle-to-register').addEventListener('click', function() {
     document.getElementById('login-panel').style.display = 'none';
