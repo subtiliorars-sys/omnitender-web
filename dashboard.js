@@ -1202,10 +1202,14 @@
           const pending = u.mustSetupMfa || !u.mfaEnabled;
           const pendingBadge = pending ? ' <span class="badge b-in_review">setup pending</span>' : '';
           const pkBadge = u.passkeyCount ? ' <span class="badge b-approved">' + u.passkeyCount + ' key(s)</span>' : '';
+          const rcBadge = u.recoveryCodesRemaining != null && u.mfaEnabled
+            ? ' <span class="badge">' + u.recoveryCodesRemaining + ' recovery</span>' : '';
           return '<div class="item"><div class="t">' + esc(u.username) +
-          '<span class="badge b-approved">' + esc(u.role) + '</span>' + pendingBadge + pkBadge + '</div>' +
+          '<span class="badge b-approved">' + esc(u.role) + '</span>' + pendingBadge + pkBadge + rcBadge + '</div>' +
           '<div class="m">Created ' + esc(u.createdAt.slice(0, 10)) + '</div>' +
-          (u.bootstrap ? '' : '<div class="actions" style="margin-top:4px"><button class="btn btn-no" data-deluser="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">Delete</button></div>') +
+          (u.bootstrap ? '' : '<div class="actions" style="margin-top:4px">' +
+            (u.mfaEnabled ? '<button class="btn btn-no" data-regen-rc="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">New recovery codes</button> ' : '') +
+            '<button class="btn btn-no" data-deluser="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">Delete</button></div>') +
           '</div>';
         });
         document.getElementById('console-users-list').innerHTML = cul.length ? cul.join('') : '<div class=empty>No custom accounts created yet.</div>';
@@ -1287,7 +1291,7 @@
       toast(err.message, true);
     } finally {
       btn.disabled = false;
-      btn.textContent = '🔐 Sign in with security key / passkey';
+      btn.textContent = 'Sign in with passkey';
     }
   }
 
@@ -1521,6 +1525,26 @@
       return;
     }
 
+    // Regenerate recovery codes (admin)
+    const regenBtn = e.target.closest('button[data-regen-rc]');
+    if (regenBtn) {
+      const { regenRc, uname } = regenBtn.dataset;
+      if (!confirm('Generate new recovery codes for ' + uname + '? Old unused codes will stop working.')) return;
+      regenBtn.disabled = true;
+      try {
+        const out = await api('/api/console_users/recovery-codes/regenerate', {
+          method: 'POST',
+          body: { userId: regenRc },
+        });
+        const codes = (out.recoveryCodes || []).join('\n');
+        prompt('New recovery codes for ' + uname + ' (copy now — shown once):', codes);
+        toast('Recovery codes regenerated for ' + uname);
+      } catch (err) { toast(err.message, true); }
+      regenBtn.disabled = false;
+      loadAccess();
+      return;
+    }
+
     // Delete Console User
     const delBtn = e.target.closest('button[data-deluser]');
     if (delBtn) {
@@ -1618,6 +1642,7 @@
   function showSetupModal(starterUsername) {
     document.getElementById('mfa-setup-step1').style.display = 'block';
     document.getElementById('mfa-setup-step2').style.display = 'none';
+    document.getElementById('mfa-setup-step3').style.display = 'none';
     document.getElementById('mfa-setup-err').style.display = 'none';
     document.getElementById('mfa-setup-username').value = starterUsername || '';
     document.getElementById('mfa-setup-password').value = '';
@@ -1638,6 +1663,7 @@
     var user = document.getElementById('username-input').value.trim();
     var pass = document.getElementById('token-input').value.trim();
     var mfaCode = document.getElementById('login-mfa-input').value.trim();
+    var recoveryCode = document.getElementById('login-recovery-input').value.trim();
     if (!user || !pass) { toast('Username and PIN are required.', true); return; }
 
     var btn = document.getElementById('unlock-btn');
@@ -1652,6 +1678,7 @@
         document.getElementById('token-input').value = '';
         document.getElementById('username-input').value = '';
         document.getElementById('login-mfa-input').value = '';
+      document.getElementById('login-recovery-input').value = '';
         document.getElementById('unlock-err').style.display = 'none';
         showDash();
         renderDemoOverview();
@@ -1661,6 +1688,7 @@
 
       const payload = { username: user, password: pass };
       if (mfaCode) payload.mfaCode = mfaCode;
+      if (recoveryCode) payload.recoveryCode = recoveryCode;
 
       const res = await fetch(API + '/api/login', {
         method: 'POST',
@@ -1669,6 +1697,13 @@
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed.');
+
+      if (data.mfaRequired) {
+        document.getElementById('backup-login-panel').style.display = 'block';
+        document.getElementById('login-mfa-input').focus();
+        toast('Enter your OmniAuth code or a recovery code.');
+        return;
+      }
 
       if (data.mustSetupMfa) {
         setToken(data.token);
@@ -1689,6 +1724,7 @@
       document.getElementById('token-input').value = '';
       document.getElementById('username-input').value = '';
       document.getElementById('login-mfa-input').value = '';
+      document.getElementById('login-recovery-input').value = '';
 
       showDash();
       loadOverview();
@@ -1701,12 +1737,20 @@
       toast(err.message, true);
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Log In';
+      btn.textContent = 'Sign in with PIN + backup';
     }
   });
 
   document.getElementById('passkey-login-btn').addEventListener('click', passkeyLogin);
   document.getElementById('passkey-register-btn').addEventListener('click', passkeyRegister);
+
+  document.getElementById('toggle-backup-login').addEventListener('click', function () {
+    var panel = document.getElementById('backup-login-panel');
+    var open = panel.style.display !== 'none';
+    panel.style.display = open ? 'none' : 'block';
+    this.textContent = open ? 'Use PIN + backup code instead' : 'Hide PIN + backup login';
+    if (!open) document.getElementById('username-input').focus();
+  });
 
   document.getElementById('toggle-to-register').addEventListener('click', function() {
     document.getElementById('login-panel').style.display = 'none';
@@ -1770,6 +1814,30 @@
     }
   });
 
+  document.getElementById('recovery-codes-copy').addEventListener('click', function () {
+    var codes = window._omniPendingRecoveryCodes || [];
+    if (!codes.length) { toast('No recovery codes to copy.', true); return; }
+    navigator.clipboard.writeText(codes.join('\n')).then(function () {
+      toast('Recovery codes copied.');
+    }).catch(function () {
+      toast('Could not copy — select and copy manually.', true);
+    });
+  });
+
+  document.getElementById('mfa-setup-finish').addEventListener('click', function () {
+    var username = sessionStorage.getItem('omni_dash_username') || '';
+    document.getElementById('mfa-setup-modal').style.display = 'none';
+    document.getElementById('token-input').value = '';
+    document.getElementById('username-input').value = '';
+    document.getElementById('mfa-setup-password').value = '';
+    document.getElementById('mfa-verification-code').value = '';
+    window._omniPendingRecoveryCodes = null;
+    showDash();
+    loadOverview();
+    startRefresh();
+    toast('Welcome, ' + username + ' — register a passkey in Access & Admins for daily sign-in.');
+  });
+
   document.getElementById('mfa-secret-copy').addEventListener('click', copyMfaSecret);
 
   document.getElementById('mfa-setup-prepare').addEventListener('click', async function() {
@@ -1812,7 +1880,7 @@
       toast(err.message || 'Setup failed — try again.', true);
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Continue → Scan QR Code';
+      btn.textContent = 'Continue → Set Up OmniAuth';
     }
   });
 
@@ -1835,25 +1903,24 @@
         method: 'POST',
         body: { mfaCode }
       });
-      
+
       sessionStorage.setItem('omni_dash_username', res.username);
       markPendingSetup(false);
-      toast('Account activated — welcome, ' + res.username);
-      document.getElementById('mfa-setup-modal').style.display = 'none';
-      document.getElementById('token-input').value = '';
-      document.getElementById('username-input').value = '';
-      document.getElementById('mfa-setup-password').value = '';
-      document.getElementById('mfa-verification-code').value = '';
 
-      showDash();
-      loadOverview();
-      startRefresh();
+      var codes = res.recoveryCodes || [];
+      var listEl = document.getElementById('recovery-codes-list');
+      listEl.innerHTML = codes.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('');
+      window._omniPendingRecoveryCodes = codes.slice();
+
+      document.getElementById('mfa-setup-step2').style.display = 'none';
+      document.getElementById('mfa-setup-step3').style.display = 'block';
+      toast('Account verified — save your recovery codes before continuing.');
     } catch (err) {
       errDiv.textContent = err.message;
       errDiv.style.display = 'block';
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Verify Code & Activate Account';
+      btn.textContent = 'Verify & Save Recovery Codes';
     }
   });
 
