@@ -81,10 +81,29 @@
 
   async function registerPasskey(options) {
     if (!supported()) throw new Error('This browser does not support security keys or passkeys.');
-    var cred = await global.navigator.credentials.create({
-      publicKey: decodeCreationOptions(options),
-    });
-    return serializeCredential(cred);
+    try {
+      var cred = await global.navigator.credentials.create({
+        publicKey: decodeCreationOptions(options),
+      });
+      return serializeCredential(cred);
+    } catch (err) {
+      var name = err && err.name ? err.name : '';
+      if (name === 'InvalidStateError') {
+        throw new Error(
+          'This passkey is already saved for omnitender.us (often Google Password Manager). Use it to sign in, or remove the old passkey in Chrome → Settings → Password Manager before registering again.'
+        );
+      }
+      if (name === 'NotAllowedError') {
+        throw new Error('Passkey registration was cancelled or timed out.');
+      }
+      var msg = String(err && err.message ? err.message : err);
+      if (/verify user/i.test(msg)) {
+        throw new Error(
+          'Google Password Manager could not complete verification. USB security keys are recommended for OmniTender. If you already saved a Google passkey for this site, use Sign in with passkey (with your username filled in) instead of registering again.'
+        );
+      }
+      throw err;
+    }
   }
 
   async function authenticatePasskey(options) {

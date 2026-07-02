@@ -157,7 +157,12 @@
       init.headers['X-OV-Console'] = '1';
       init.body = JSON.stringify(o.body || {});
     }
-    const r = await fetch(API + path, init);
+    let r;
+    try {
+      r = await fetch(API + path, init);
+    } catch (networkErr) {
+      throw new Error('Could not reach the OmniVerse backend (' + (API || 'same origin') + '). Check your connection or wait a moment if a deploy is in progress.');
+    }
     const ct = r.headers.get('content-type') || '';
     const data = ct.includes('json') ? await r.json() : await r.text();
     if (r.status === 401) {
@@ -1255,6 +1260,18 @@
       return;
     }
     var user = document.getElementById('username-input').value.trim();
+    var mfaCode = document.getElementById('login-mfa-input').value.trim();
+    var recoveryCode = document.getElementById('login-recovery-input').value.trim();
+    if (!user) {
+      toast('Enter your username first.', true);
+      document.getElementById('username-input').focus();
+      return;
+    }
+    if (!mfaCode && !recoveryCode) {
+      toast('Enter your authenticator code (or a recovery code) for passkey sign-in.', true);
+      document.getElementById('login-mfa-input').focus();
+      return;
+    }
     var btn = document.getElementById('passkey-login-btn');
     btn.disabled = true;
     btn.textContent = 'Waiting for key…';
@@ -1270,10 +1287,20 @@
       var verifyRes = await fetch(API + '/api/passkeys/login/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ response: assertion, challengeId: optData.challengeId }),
+        body: JSON.stringify({
+          response: assertion,
+          challengeId: optData.challengeId,
+          mfaCode: mfaCode || undefined,
+          recoveryCode: recoveryCode || undefined,
+        }),
       });
       var verifyData = await verifyRes.json();
       if (!verifyRes.ok) throw new Error(verifyData.error || 'Security key sign-in failed.');
+      if (verifyData.mfaRequired) {
+        toast('Enter your authenticator code or a recovery code.', true);
+        document.getElementById('login-mfa-input').focus();
+        return;
+      }
       setToken(verifyData.token);
       sessionStorage.setItem('omni_dash_role', verifyData.role);
       sessionStorage.setItem('omni_dash_username', verifyData.username);
@@ -1639,19 +1666,6 @@
   });
 
   /* ---- login flow ---- */
-  window.omniToggleBackupLogin = function () {
-    var panel = document.getElementById('backup-login-panel');
-    var btn = document.getElementById('toggle-backup-login');
-    if (!panel || !btn) return;
-    var open = panel.style.display !== 'none';
-    panel.style.display = open ? 'none' : 'block';
-    btn.textContent = open ? 'Use PIN + backup code instead' : 'Hide PIN + backup login';
-    if (!open) {
-      var userInput = document.getElementById('username-input');
-      if (userInput) userInput.focus();
-    }
-  };
-
   function showSetupModal(starterUsername) {
     document.getElementById('mfa-setup-step1').style.display = 'block';
     document.getElementById('mfa-setup-step2').style.display = 'none';
@@ -1712,9 +1726,8 @@
       if (!res.ok) throw new Error(data.error || 'Login failed.');
 
       if (data.mfaRequired) {
-        document.getElementById('backup-login-panel').style.display = 'block';
         document.getElementById('login-mfa-input').focus();
-        toast('Enter your OmniAuth code or a recovery code.');
+        toast('Enter your authenticator code or a recovery code.');
         return;
       }
 
@@ -1756,8 +1769,6 @@
 
   document.getElementById('passkey-login-btn').addEventListener('click', passkeyLogin);
   document.getElementById('passkey-register-btn').addEventListener('click', passkeyRegister);
-
-  document.getElementById('toggle-backup-login').addEventListener('click', window.omniToggleBackupLogin);
 
   document.getElementById('toggle-to-register').addEventListener('click', function() {
     document.getElementById('login-panel').style.display = 'none';
@@ -1887,7 +1898,7 @@
       toast(err.message || 'Setup failed — try again.', true);
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Continue → Set Up OmniAuth';
+      btn.textContent = 'Continue → Set up authenticator';
     }
   });
 
