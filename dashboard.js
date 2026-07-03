@@ -335,6 +335,40 @@
     if (window.OmniTenderEducation) window.OmniTenderEducation.init();
   }
 
+  async function loadTrainingOverview() {
+    var el = document.getElementById('training-overview');
+    if (!el) return;
+    if (isDemoSession()) {
+      el.innerHTML = '<span style="color:var(--faint);">Demo mode — sign in with a live account to track lesson progress.</span>';
+      return;
+    }
+    try {
+      var cat = await api('/api/education/catalog');
+      var prog = await api('/api/education/progress');
+      var lessons = cat.lessons || [];
+      var core = lessons.filter(function (l) { return (l.tags || []).indexOf('required') >= 0 || l.sectionTitle === 'Core onboarding'; });
+      if (!core.length) core = lessons.slice(0, 6);
+      var completed = (prog.progress && prog.progress.completed) || {};
+      var done = core.filter(function (l) { return completed[l.id]; }).length;
+      var total = core.length;
+      var next = core.find(function (l) { return !completed[l.id]; });
+      var html = '<strong>' + done + ' of ' + total + '</strong> required lessons complete.';
+      if (next) {
+        html += ' Next up: <em>' + esc(next.title) + '</em>.';
+      } else if (total > 0) {
+        html += ' <span style="color:var(--accent);">All required lessons done.</span>';
+      }
+      el.innerHTML = html;
+      updateNavBadge('training', total - done);
+    } catch (_) {
+      el.innerHTML = 'Open <strong>Training</strong> in the sidebar to read lesson scripts and mark progress.';
+    }
+  }
+
+  document.getElementById('training-open-btn')?.addEventListener('click', function () {
+    openTab('training');
+  });
+
   /* ---- Overview ---- */
   async function loadOverview() {
     if (isDemoSession()) { renderDemoOverview(); return; }
@@ -371,6 +405,7 @@
       document.getElementById('pipeline-chart').innerHTML = '<div class=empty>Failed to render chart: ' + esc(err.message) + '</div>';
     }
     refreshNavBadges();
+    loadTrainingOverview();
   }
 
   function renderSVGChart(counts) {

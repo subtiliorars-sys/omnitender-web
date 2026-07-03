@@ -995,11 +995,11 @@
           
           <nav id="nav">
             <button data-v="overview" class="on">📋 Overview</button>
+            <button data-v="training">🎬 Training</button>
             <button data-v="aihub">🤖 AI Hub</button>
             <button data-v="ledger">💵 Ledger <span class="nav-preview-tag">Example</span></button>
             <button data-v="pipeline">📈 Pipeline</button>
             <button data-v="mail">✉️ Your mail</button>
-            <button data-v="training">🎬 Training</button>
             <button data-v="leads">👥 Leads</button>
             <button data-v="feedback">💬 Feedback</button>
             <button data-v="access">🔑 Access &amp; Admins</button>
@@ -1044,6 +1044,17 @@
               <div id="health" style="font-size: 14px; padding: 4px 0; margin-top:12px;">checking…</div>
             </div>
             
+            <div class="card" style="border-color: var(--accent);">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                <div>
+                  <h2 style="margin:0 0 6px;">🎬 Staff training</h2>
+                  <p style="font-size:12px;color:var(--muted);margin:0;line-height:1.5;">Required onboarding for every employee — same dashboard login, no separate site. Scripts and videos live under <strong>Training</strong> in the left nav.</p>
+                </div>
+                <button type="button" class="btn" id="training-open-btn" style="width:auto;min-height:36px;padding:0 14px;margin:0;white-space:nowrap;">Open Training →</button>
+              </div>
+              <div id="training-overview" style="margin-top:12px;font-size:13px;color:var(--muted);">Loading training progress…</div>
+            </div>
+
             <div class="card" style="border-color: var(--accent);">
               <h2>📞 Follow-up queue — for your sales team</h2>
               <p style="font-size:12px;color:var(--muted);margin:-6px 0 12px;line-height:1.5;">Any employee logged into this console can <strong>call and text</strong> everyone below. You do <em>not</em> need the owner to approve outreach. New form submissions land here automatically.</p>
