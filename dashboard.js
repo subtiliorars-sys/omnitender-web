@@ -260,6 +260,7 @@
     overview: loadOverview,
     ledger: loadLedger,
     pipeline: loadPipeline,
+    mail: loadMail,
     leads: loadLeads,
     feedback: loadFeedback,
     access: loadAccess,
@@ -274,6 +275,10 @@
     document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === 'v-' + b.dataset.v));
     if (loaders[b.dataset.v]) loaders[b.dataset.v]();
   });
+
+  function loadMail() {
+    if (window.OmniTenderMail) window.OmniTenderMail.init();
+  }
 
   /* ---- Overview ---- */
   async function loadOverview() {
