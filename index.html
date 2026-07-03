@@ -26,7 +26,7 @@
   <link rel="preconnect" href="https://omnitender-omniverse.fly.dev" crossorigin>
   <link rel="dns-prefetch" href="https://omnitender-omniverse.fly.dev">
 
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
 
   <script type="application/ld+json">
   {
@@ -58,6 +58,7 @@
     <nav class="topnav" aria-label="Primary">
       <a href="index.html" aria-current="page">Home</a>
       <a href="products.html">Products</a>
+      <a href="omnisecure.html">OmniSecure</a>
       <a href="savings.html">Savings</a>
       <a href="about.html">About</a>
       <a href="merchants-nc.html">Western NC</a>
@@ -72,14 +73,24 @@
       <h1>Every Payment.<span> Every Merchant. Every Time.</span></h1>
       <p class="hero-sub">Accept credit, debit, stablecoin, and EBT/SNAP on one platform — transparent pricing, target same-day/next-day settlement (subject to processor and bank timing). Get a free rate analysis, then onboard when you're ready.</p>
 
+      <div class="hero-trust-strip" role="region" aria-label="What OmniTender is">
+        <span class="hero-trust-item">NC-based merchant support</span>
+        <span class="hero-trust-sep" aria-hidden="true">·</span>
+        <span class="hero-trust-item">Payment processing — not bid/RFP software</span>
+        <span class="hero-trust-sep" aria-hidden="true">·</span>
+        <span class="hero-trust-item">Licensed partner payment rails</span>
+        <span class="hero-trust-sep" aria-hidden="true">·</span>
+        <span class="hero-trust-item">EBT/SNAP requires USDA FNS authorization*</span>
+      </div>
+
       <div class="hero-cta">
         <a class="btn-hero primary" href="savings.html">Get free rate analysis</a>
         <a class="btn-hero secondary" href="apply.html">Start application</a>
+        <a class="btn-hero tel" href="tel:+18284130859" aria-label="Call OmniTender at 828-413-0859">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Call (828) 413-0859
+        </a>
       </div>
-      <p class="fine" style="text-align: center; margin-top: 12px; max-width: 42rem; margin-left: auto; margin-right: auto;">
-        NC-based team · Transparent pricing on partner rails ·
-        <a href="tel:+18284130859">(828) 413-0859</a>
-      </p>
 
       <div class="hero-stats">
         <div class="hstat">
@@ -92,7 +103,7 @@
         </div>
         <div class="hstat">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          Human support: <b>(828) 413-0859</b>
+          Human support: <a href="tel:+18284130859"><b>(828) 413-0859</b></a>
         </div>
       </div>
     </div>
@@ -116,13 +127,20 @@
       <h2>One platform. Every payment your customers expect.</h2>
       <p>Licensed partner rails handle settlement; OmniTender handles onboarding, POS, and support.</p>
     </div>
-    <div class="cards">
+    <div class="cards cards-payment-types">
       <div class="card">
         <div class="card-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
         </div>
-        <h3>Credit &amp; debit</h3>
-        <p>Transparent wholesale-style pricing on licensed card rails — see interchange pass-through instead of opaque tiered buckets.</p>
+        <h3>Credit</h3>
+        <p>Visa, Mastercard, Amex, and the rest — wholesale-style visibility on licensed rails instead of mystery tiered buckets.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 16h2"/><path d="M10 16h4"/></svg>
+        </div>
+        <h3>Debit</h3>
+        <p>PIN and signature debit on the same terminal as credit — one counter, one relationship, one statement that makes sense.</p>
       </div>
       <div class="card">
         <div class="card-icon gold">
@@ -135,15 +153,41 @@
         <div class="card-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/></svg>
         </div>
-        <h3>EBT / SNAP</h3>
-        <p>Expand to SNAP households when your store is FNS-authorized. We help with enrollment — authorization is granted to the merchant.</p>
+        <h3>EBT</h3>
+        <p>Electronic Benefits Transfer for FNS-authorized retailers. We help with enrollment — authorization is granted to the merchant, not OmniTender.</p>
       </div>
       <div class="card">
         <div class="card-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
         </div>
-        <h3>POS hardware</h3>
+        <h3>SNAP</h3>
+        <p>Reach SNAP households at the same register as cards. Separate tender type, same checkout flow — when your store is FNS-ready.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+        </div>
+        <h3>Point of sale</h3>
+        <p>Checkout flows matched to how you actually sell — counter, mobile, or line-busting without a six-month rip-and-replace project.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8"/><path d="M8 10h8"/><path d="M8 14h4"/></svg>
+        </div>
+        <h3>Hardware</h3>
         <p>Cloud-connected terminals matched to your counter. Hardware typically ships within 48 hours of partner approval.</p>
+      </div>
+      <div class="card card-quip">
+        <span class="card-quip-label">Not a rail · on purpose</span>
+        <div class="card-icon card-icon-muted">💵</div>
+        <h3>Cash (still king)</h3>
+        <p>We don't process it — your drawer still does. We're everything that beeps, taps, and settles to your bank.</p>
+      </div>
+      <div class="card card-quip">
+        <span class="card-quip-label">Wrong website · we fixed the gap</span>
+        <div class="card-icon card-icon-muted">📋</div>
+        <h3>Bid / RFP software</h3>
+        <p>Also not a payment type. We sell payment processing for merchants — not procurement portals for people who say "circle back."</p>
       </div>
     </div>
 

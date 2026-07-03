@@ -14,14 +14,22 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Completed
 
-### Wave OTW-W12 — Legal/404 nav parity + CSS v7 cache bust ✅
+### Wave OTW-W12 — Legal/404 nav parity + CSS cache bust ✅
 
-**Branch:** `automation/wave-otw-w12-legal-nav-css` · PR pending (2026-06-27)
+**Branch:** `cursor/site-wave-processing-4d66` · PR #29 (2026-07-03)
 
 - [x] Align privacy, terms, and 404 topnav with site-wide nav
 - [x] Expand 404 helpful links (savings, contact)
-- [x] Bump `style.css?v=7` on all HTML pages for CloudFront cache consistency
-- [x] Dashboard login: clarify admin-provisioned credentials use Log In, not Activate New Account
+- [x] CSS cache-bust aligned with main (`style.css?v=9` on public pages)
+- [x] Merged with main passkey dashboard login (no duplicate PIN-only UI)
+
+### Wave OTW-W12 — Hero trust strip + tel CTA prominence ✅
+
+**Branch:** `automation/wave-otw-w12-trust-strip` · PR #30 (2026-06-28)
+
+- [x] Visible education-only trust strip in home hero (no fake stats, no rate promises)
+- [x] Prominent `tel:` CTA on mobile and desktop
+- [x] `python check_web_links.py` passes
 
 ### Wave OTW-W11 — Tester hub QA link + broken link fix ✅
 

@@ -7,7 +7,9 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="description" content="Internal OmniTender CRM dashboard — staff use only.">
   <title>OmniTender — CRM Dashboard (staff)</title>
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="mail.css?v=3">
+  <link rel="stylesheet" href="education.css?v=2">
   <style>
     :root {
       --radius-card: 16px;
@@ -119,6 +121,18 @@
       flex: 1;
       display: flex;
       flex-direction: column;
+      min-width: 0;
+    }
+
+    .dashboard-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .desktop-splash {
+      display: none;
     }
 
     /* sidebar brand — contained panel so logo/title/tagline don't bleed into nav bg */
@@ -244,7 +258,102 @@
         justify-content: space-between;
       }
       .main-content {
+        margin-left: 0;
+      }
+      .dashboard-body {
         margin-left: 260px;
+        flex-direction: row;
+        align-items: stretch;
+        min-height: 100vh;
+      }
+      .desktop-splash {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: clamp(220px, 22vw, 360px);
+        flex-shrink: 0;
+        padding: 48px 28px;
+        border-left: 1px solid var(--card-edge);
+        background: linear-gradient(165deg, var(--inset) 0%, var(--bg) 42%, #0c0806 100%);
+        position: relative;
+        overflow: hidden;
+      }
+      .desktop-splash::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          92deg,
+          transparent,
+          transparent 18px,
+          rgba(247, 121, 44, 0.035) 18px,
+          rgba(247, 121, 44, 0.035) 22px
+        );
+        pointer-events: none;
+      }
+      .desktop-splash-glow {
+        position: absolute;
+        top: 18%;
+        left: -10%;
+        width: 120%;
+        height: 45%;
+        background: radial-gradient(ellipse at 40% 50%, rgba(247, 121, 44, 0.14) 0%, transparent 68%);
+        pointer-events: none;
+      }
+      .desktop-splash-inner {
+        position: relative;
+        z-index: 1;
+      }
+      .desktop-splash-logo {
+        display: block;
+        width: 64px;
+        height: auto;
+        opacity: 0.2;
+        margin-bottom: 28px;
+        filter: drop-shadow(0 0 24px rgba(247, 121, 44, 0.25));
+      }
+      .desktop-splash-eyebrow {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: 0 0 14px;
+      }
+      .desktop-splash-quote {
+        font-size: clamp(1.05rem, 1.35vw, 1.4rem);
+        font-weight: 600;
+        line-height: 1.5;
+        color: var(--text);
+        font-style: italic;
+        border-left: 3px solid var(--accent);
+        padding-left: 16px;
+        margin: 0 0 18px;
+      }
+      .desktop-splash-quote em {
+        font-style: normal;
+        color: var(--accent);
+      }
+      .desktop-splash-attr {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: var(--faint);
+        margin: 0 0 28px;
+        line-height: 1.5;
+      }
+      .desktop-splash-tag {
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 700;
+        margin: 0;
+      }
+      html[data-theme="light"] .desktop-splash {
+        background: linear-gradient(165deg, #F0F0F0 0%, #FAFAFA 50%, #FFF6F0 100%);
+      }
+      html[data-theme="light"] .desktop-splash-logo {
+        opacity: 0.35;
       }
       .sidebar header {
         padding: 24px 16px 12px;
@@ -402,10 +511,89 @@
       padding: 16px;
     }
     #unlock-view .card {
-      max-width: 420px;
+      max-width: 440px;
       width: 100%;
       margin: 0;
     }
+    .login-intro {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: -8px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .login-field {
+      margin-bottom: 14px;
+    }
+    .login-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--muted);
+    }
+    .login-field label.accent {
+      color: var(--accent);
+    }
+    .login-field-hint {
+      font-size: 11px;
+      color: var(--faint);
+      margin: 8px 0 0;
+      line-height: 1.45;
+    }
+    .login-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px 0 18px;
+      color: var(--faint);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .login-divider::before,
+    .login-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--card-edge);
+    }
+    .login-passkey-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin: 10px 0 0;
+      line-height: 1.45;
+      text-align: center;
+    }
+    .login-footer-link {
+      width: 100%;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--card-edge);
+      text-align: center;
+    }
+    .login-help {
+      margin-top: 14px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+    .login-help summary {
+      cursor: pointer;
+      color: var(--accent);
+      font-weight: 700;
+      list-style: none;
+    }
+    .login-help summary::-webkit-details-marker { display: none; }
+    .login-help summary::before { content: '▸ '; }
+    .login-help[open] summary::before { content: '▾ '; }
+    .login-help ol {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--text);
+    }
+    .login-help li { margin-bottom: 6px; }
 
     /* ---- modal overlay ---- */
     .modal-overlay {
@@ -638,25 +826,54 @@
         <p style="margin: 4px 0 0; font-size: 0.75rem; letter-spacing: 2px; color: var(--muted); text-transform: uppercase;">CRM &amp; Ops Console</p>
       </div>
       <h2>Console Login</h2>
-      <p style="color: var(--muted); font-size: 13px; margin-top: -8px; margin-bottom: 18px;">Internal staff console — not a public merchant signup page. Merchants start at <a href="apply.html">apply.html</a>. Username + PIN + authenticator. <strong>Provisioned by your admin?</strong> Use <strong>Log In</strong> with the username and starter PIN they gave you — not Activate New Account. <strong>First login:</strong> leave authenticator blank. <strong>After setup step 1:</strong> use the permanent PIN you chose — the starter PIN stops working once you click Continue.</p>
-      
-      <div style="margin-bottom: 12px;">
-        <label for="username-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--muted);">Username</label>
-        <input type="text" id="username-input" placeholder="Your console username" autocomplete="username">
-      </div>
-      
-      <div style="margin-bottom: 12px;">
-        <label for="token-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--muted);">User PIN</label>
-        <input type="password" id="token-input" placeholder="6–12 digit PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="current-password">
+      <p class="login-intro">Staff console for OmniTender CRM. Enter your username and authenticator code, then sign in with your passkey or PIN. Merchants: <a href="apply.html">apply here</a>. <strong>Admin-provisioned?</strong> Use Sign in with PIN — not Activate New Account.</p>
+
+      <div class="login-field">
+        <label for="username-input">Username</label>
+        <input type="text" id="username-input" placeholder="e.g. j.smith" autocomplete="username" autofocus>
+        <p class="login-field-hint">Required for all sign-in methods.</p>
       </div>
 
-      <div style="margin-bottom: 20px;">
-        <label for="login-mfa-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--accent);">Authenticator Code (TOTP)</label>
-        <input type="text" id="login-mfa-input" placeholder="6-digit code — blank on first login" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
+      <div class="login-field">
+        <label for="login-mfa-input" class="accent">Authenticator code</label>
+        <input type="text" id="login-mfa-input" placeholder="6-digit code from your app" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
+        <p class="login-field-hint">Required for passkey sign-in. For PIN sign-in, leave blank only on first login before MFA setup.</p>
       </div>
 
-      <button class="btn btn-go" id="unlock-btn" style="width: 100%; padding: 12px; font-size: 14px;">Log In</button>
-      <button class="btn btn-no" id="toggle-to-register" style="width: 100%; padding: 10px; font-size: 12px; margin-top: 8px;">Activate New Account</button>
+      <div class="login-field">
+        <label for="login-recovery-input">Recovery code</label>
+        <input type="text" id="login-recovery-input" placeholder="XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false">
+        <p class="login-field-hint">Optional alternative to the authenticator code.</p>
+      </div>
+
+      <button type="button" class="btn btn-go" id="passkey-login-btn" style="width: 100%; padding: 14px; font-size: 14px;">Sign in with passkey</button>
+      <p class="login-passkey-hint">Username + authenticator (or recovery) + your registered security key.</p>
+
+      <div class="login-divider" aria-hidden="true">Or PIN + backup</div>
+
+      <div id="pin-login-panel">
+        <div class="login-field">
+          <label for="token-input">User PIN</label>
+          <input type="password" id="token-input" placeholder="6–12 digit PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="current-password">
+        </div>
+
+        <button class="btn btn-go" id="unlock-btn" style="width: 100%; padding: 12px; font-size: 14px;">Sign in with PIN + backup</button>
+      </div>
+
+      <div class="login-footer-link">
+        <button type="button" class="btn btn-no" id="toggle-to-register" style="width: 100%; padding: 10px; font-size: 12px;">Activate New Account</button>
+      </div>
+
+      <details class="login-help">
+        <summary>Need help signing in?</summary>
+        <ol>
+          <li><strong>Daily login:</strong> Username + authenticator code + passkey.</li>
+          <li><strong>No passkey handy:</strong> Username + PIN + authenticator code, or a recovery code.</li>
+          <li><strong>First login:</strong> Username + temporary PIN only — you will set up MFA on the next screen.</li>
+          <li><strong>New employee:</strong> Use Activate New Account with your admin passcode.</li>
+        </ol>
+      </details>
+
       <div id="unlock-err" style="display: none; color: var(--down); background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); padding: 12px; border-radius: var(--radius-sm); font-size: 13px; margin-top: 14px; text-align: center;"></div>
     </div>
 
@@ -699,12 +916,12 @@
   <div id="mfa-setup-modal" class="modal-overlay" style="display: none;">
     <div class="card" style="max-width: 460px; width: 100%; margin: 0; box-shadow: 0 10px 40px rgba(0,0,0,0.8); text-align: left;">
       <h2 style="border-left: 3px solid var(--accent); padding-left: 10px; margin-bottom: 12px; color: var(--accent);">Activate Your Console Account</h2>
-      <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;">Choose your permanent username and PIN, then connect Google Authenticator, Authy, or any TOTP app — scan the QR on another device, or copy the setup key on this phone.</p>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;">Choose your permanent username and PIN, then scan the QR in your authenticator app. The account will appear as <strong>OmniTender</strong>. Scan on another device, or copy the setup key.</p>
       
       <div id="mfa-setup-step1">
         <div style="margin-bottom: 12px;">
           <label for="mfa-setup-username" style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: var(--muted);">Permanent Username (Required)</label>
-          <input type="text" id="mfa-setup-username" placeholder="e.g. subtilior.ars">
+          <input type="text" id="mfa-setup-username" placeholder="e.g. j.smith">
         </div>
 
         <div style="margin-bottom: 16px;">
@@ -712,13 +929,13 @@
           <input type="password" id="mfa-setup-password" placeholder="6–12 digit numeric PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12">
         </div>
 
-        <button type="button" class="btn btn-go" id="mfa-setup-prepare" style="width: 100%; padding: 12px;">Continue → Set Up Authenticator</button>
+        <button type="button" class="btn btn-go" id="mfa-setup-prepare" style="width: 100%; padding: 12px;">Continue → Set up authenticator</button>
       </div>
 
       <div id="mfa-setup-step2" style="display: none;">
         <div class="mfa-setup-panel">
-          <h4 style="margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #fff;">Connect Your Authenticator</h4>
-          <p class="mfa-setup-hint">On a computer? Scan the QR code. On this phone only? Copy the setup key below and paste it into your authenticator app.</p>
+          <h4 style="margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #fff;">Add to your authenticator app</h4>
+          <p class="mfa-setup-hint">On a computer? Scan the QR with your authenticator app on your phone. On this phone only? Copy the setup key below into the app.</p>
           <div id="mfa-qr-container">
             <img id="mfa-qr-image" width="220" height="220" alt="Authenticator QR code">
             <div id="mfa-qr-placeholder" style="width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #333; font-weight: bold; line-height: 1.3;">QR loading…</div>
@@ -731,16 +948,26 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
               </button>
             </div>
-            <p class="mfa-secret-help">In Google Authenticator: tap <strong>+</strong> → <strong>Enter a setup key</strong> → paste this key. Name it OmniTender.</p>
+            <p class="mfa-secret-help">In your authenticator app: add a new account with this setup key. Name it <strong>OmniTender</strong> if the app asks for a label.</p>
           </div>
         </div>
 
         <div style="margin-bottom: 20px;">
-          <label for="mfa-verification-code" style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 6px; color: var(--accent);">Enter Authenticator Verification Code</label>
+          <label for="mfa-verification-code" style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 6px; color: var(--accent);">Enter verification code from your app</label>
           <input type="text" id="mfa-verification-code" placeholder="6-digit code from app" inputmode="numeric" pattern="[0-9]*" maxlength="6">
         </div>
 
-        <button type="button" class="btn btn-go" id="mfa-setup-submit" style="width: 100%; padding: 12px;">Verify Code &amp; Activate Account</button>
+        <button type="button" class="btn btn-go" id="mfa-setup-submit" style="width: 100%; padding: 12px;">Verify &amp; Save Recovery Codes</button>
+      </div>
+
+      <div id="mfa-setup-step3" style="display: none;">
+        <div class="mfa-setup-panel">
+          <h4 style="margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #fff;">Save your recovery codes</h4>
+          <p class="mfa-setup-hint">Each code works once if you lose your passkey or phone. Store them in a password manager or print and lock them up.</p>
+          <ul id="recovery-codes-list" style="font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.8; padding-left: 20px; margin: 12px 0;"></ul>
+          <button type="button" class="btn btn-no" id="recovery-codes-copy" style="width: 100%; margin-bottom: 8px;">Copy all codes</button>
+        </div>
+        <button type="button" class="btn btn-go" id="mfa-setup-finish" style="width: 100%; padding: 12px;">I saved my codes — open console</button>
       </div>
 
       <div id="mfa-setup-err" style="display: none; color: var(--down); background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); padding: 10px; border-radius: var(--radius-sm); font-size: 12px; margin-top: 10px; text-align: center;"></div>
@@ -768,9 +995,11 @@
           
           <nav id="nav">
             <button data-v="overview" class="on">📋 Overview</button>
+            <button data-v="training">🎬 Training</button>
             <button data-v="aihub">🤖 AI Hub</button>
             <button data-v="ledger">💵 Ledger <span class="nav-preview-tag">Example</span></button>
             <button data-v="pipeline">📈 Pipeline</button>
+            <button data-v="mail">✉️ Your mail</button>
             <button data-v="leads">👥 Leads</button>
             <button data-v="feedback">💬 Feedback</button>
             <button data-v="access">🔑 Access &amp; Admins</button>
@@ -779,10 +1008,11 @@
             <button data-v="social">📣 Social Media</button>
           </nav>
           
-          <div style="margin: 20px 16px 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint);">Systems Portals</div>
-          <nav style="display: flex; flex-direction: column; gap: 4px;">
-            <a href="https://omnitender-omniverse.fly.dev/admin" target="_blank" class="nav-portal-link">⚙️ OmniVerse Admin</a>
-          </nav>
+          <div id="systems-portals-wrap" style="display:none;">
+            <div style="margin: 20px 16px 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint);">Systems Portals</div>
+            <p style="margin: 0 16px 8px; font-size: 10px; color: var(--muted); line-height: 1.4;">OmniTender operations — founders &amp; admins only.</p>
+            <nav id="systems-portals-nav" style="display: flex; flex-direction: column; gap: 4px;"></nav>
+          </div>
         </div>
         
         <div class="sidebar-footer">
@@ -797,7 +1027,8 @@
         </div>
       </aside>
 
-      <!-- MAIN CONTENT -->
+      <!-- MAIN + DESKTOP SPLASH -->
+      <div class="dashboard-body">
       <div class="main-content">
         <div id="alertbar" class="alertbar" style="display:none"></div>
         
@@ -813,6 +1044,17 @@
               <div id="health" style="font-size: 14px; padding: 4px 0; margin-top:12px;">checking…</div>
             </div>
             
+            <div class="card" style="border-color: var(--accent);">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                <div>
+                  <h2 style="margin:0 0 6px;">🎬 Staff training</h2>
+                  <p style="font-size:12px;color:var(--muted);margin:0;line-height:1.5;">Required onboarding for every employee — same dashboard login, no separate site. Scripts and videos live under <strong>Training</strong> in the left nav.</p>
+                </div>
+                <button type="button" class="btn" id="training-open-btn" style="width:auto;min-height:36px;padding:0 14px;margin:0;white-space:nowrap;">Open Training →</button>
+              </div>
+              <div id="training-overview" style="margin-top:12px;font-size:13px;color:var(--muted);">Loading training progress…</div>
+            </div>
+
             <div class="card" style="border-color: var(--accent);">
               <h2>📞 Follow-up queue — for your sales team</h2>
               <p style="font-size:12px;color:var(--muted);margin:-6px 0 12px;line-height:1.5;">Any employee logged into this console can <strong>call and text</strong> everyone below. You do <em>not</em> need the owner to approve outreach. New form submissions land here automatically.</p>
@@ -973,6 +1215,24 @@
             </div>
           </section>
 
+          <!-- MAIL VIEW — per-employee OmniTender inbox -->
+          <section id="v-mail" class="view">
+            <div class="card" style="border-color: var(--accent); margin-bottom: 12px;">
+              <h2 style="margin: 0 0 6px; border-left: 3px solid var(--accent); padding-left: 10px;">✉️ Your mail</h2>
+              <p id="mail-view-intro" style="font-size: 12px; color: var(--muted); margin: 0; line-height: 1.5;">Your OmniTender inbox — same login as the rest of this console. Splits, shortcuts, and read state are saved to your employee account.</p>
+            </div>
+            <div id="section-mail"></div>
+          </section>
+
+          <!-- TRAINING VIEW (VLC-authored video + OmniVerse catalog) -->
+          <section id="v-training" class="view">
+            <div class="card" style="border-color: var(--accent); margin-bottom: 12px;">
+              <h2 style="margin: 0 0 6px; border-left: 3px solid var(--accent); padding-left: 10px;">🎬 Staff training</h2>
+              <p style="font-size: 12px; color: var(--muted); margin: 0; line-height: 1.5;">Educational videos and onboarding lessons. Record &amp; transcode with <strong>VLC</strong> on your PC; playback here uses VLC-style shortcuts. Progress syncs to OmniVerse.</p>
+            </div>
+            <div id="section-training"></div>
+          </section>
+
           <!-- LEADS VIEW -->
           <section id="v-leads" class="view">
             <div class="card" style="border-color: var(--card-edge); background: var(--inset);">
@@ -1056,6 +1316,17 @@
             <div class="card">
               <h2>Registered SMS Users</h2>
               <div id="users"></div>
+            </div>
+
+            <div class="card" id="passkey-mgmt" style="border-color: var(--accent);">
+              <h2>Your security keys</h2>
+              <p style="color: var(--muted); font-size: 12px; margin-top: -6px; margin-bottom: 12px;">Register a USB security key, Windows Hello, Touch ID, or device passkey for daily sign-in. Your authenticator app and recovery codes are backup when a passkey is unavailable.</p>
+              <div id="passkeys-list" style="font-size: 13px; margin-bottom: 12px;">Sign in to manage keys.</div>
+              <div class="row" style="margin-bottom: 8px;">
+                <input type="text" id="passkey-device-name" placeholder="Label (e.g. YubiKey, Windows Hello)" maxlength="80" aria-label="Security key label">
+                <button type="button" class="btn btn-go" id="passkey-register-btn" style="width: auto; min-width: 160px;">Register key</button>
+              </div>
+              <p style="font-size: 11px; color: var(--faint); margin: 0; line-height: 1.45;">Tip: USB security keys are the most reliable daily login. Google Password Manager sometimes shows &ldquo;could not verify user&rdquo; &mdash; that usually means a passkey already exists for omnitender.us or Windows/Google verification was cancelled. Use your USB keys, or remove the old passkey in Chrome &rarr; Password Manager before trying again.</p>
             </div>
 
             <!-- ADMIN SECTION: Console User Accounts -->
@@ -1209,6 +1480,18 @@
         </footer>
       </div>
 
+      <aside class="desktop-splash" aria-hidden="true">
+        <div class="desktop-splash-glow" aria-hidden="true"></div>
+        <div class="desktop-splash-inner">
+          <img src="logo.svg" alt="" class="desktop-splash-logo" width="64" height="64">
+          <p class="desktop-splash-eyebrow">Staff console</p>
+          <p class="desktop-splash-quote">Pay no attention to the man <em>behind the curtain.</em></p>
+          <p class="desktop-splash-attr">The Wonderful Wizard of Oz · L. Frank Baum, 1900</p>
+          <p class="desktop-splash-tag">OmniTender Systems</p>
+        </div>
+      </aside>
+      </div>
+
     </div>
   </div>
 
@@ -1250,7 +1533,10 @@
     </div>
   </div>
 
-  <script src="dashboard.js?v=18"></script>
+  <script src="webauthn-client.js?v=2"></script>
+  <script src="mail.js?v=4"></script>
+  <script src="education.js?v=2"></script>
+  <script src="dashboard.js?v=30"></script>
   <script src="feedback.js?v=2"></script>
 </body>
 </html>

@@ -136,6 +136,47 @@
   function showDash() {
     document.getElementById('unlock-view').style.display = 'none';
     document.getElementById('dash-view').style.display = 'block';
+    loadSystemsPortals();
+    resetInactivityTimer();
+    openTabFromHash();
+  }
+
+  function openTab(tab) {
+    var btn = document.querySelector('nav button[data-v="' + tab + '"]');
+    if (!btn) return;
+    btn.click();
+    try {
+      if (tab && tab !== 'overview') history.replaceState(null, '', '#/' + tab);
+      else history.replaceState(null, '', window.location.pathname + window.location.search);
+    } catch (_) { /* ignore */ }
+  }
+
+  function openTabFromHash() {
+    var raw = (window.location.hash || '').replace(/^#\/?/, '').toLowerCase();
+    if (raw && loaders[raw]) openTab(raw);
+  }
+
+  async function loadSystemsPortals() {
+    var wrap = document.getElementById('systems-portals-wrap');
+    var nav = document.getElementById('systems-portals-nav');
+    if (!wrap || !nav) return;
+    if (currentUserRole !== 'Admin') {
+      wrap.style.display = 'none';
+      nav.innerHTML = '';
+      return;
+    }
+    wrap.style.display = 'block';
+    try {
+      var r = await fetch('systems-portal.json?v=1');
+      if (!r.ok) throw new Error('load failed');
+      var data = await r.json();
+      nav.innerHTML = (data.portals || []).map(function (p) {
+        return '<a href="' + esc(p.url) + '" target="_blank" rel="noopener" class="nav-portal-link" title="' + esc(p.description || '') + '">' +
+          esc(p.icon || '•') + ' ' + esc(p.label) + '</a>';
+      }).join('');
+    } catch (_) {
+      nav.innerHTML = '<a href="https://omnitender-omniverse.fly.dev/admin" target="_blank" rel="noopener" class="nav-portal-link">⚙️ OmniVerse Admin</a>';
+    }
   }
 
   /* ---- fetch helpers ---- */
@@ -157,7 +198,12 @@
       init.headers['X-OV-Console'] = '1';
       init.body = JSON.stringify(o.body || {});
     }
-    const r = await fetch(API + path, init);
+    let r;
+    try {
+      r = await fetch(API + path, init);
+    } catch (networkErr) {
+      throw new Error('Could not reach the OmniVerse backend (' + (API || 'same origin') + '). Check your connection or wait a moment if a deploy is in progress.');
+    }
     const ct = r.headers.get('content-type') || '';
     const data = ct.includes('json') ? await r.json() : await r.text();
     if (r.status === 401) {
@@ -255,6 +301,8 @@
     overview: loadOverview,
     ledger: loadLedger,
     pipeline: loadPipeline,
+    mail: loadMail,
+    training: loadTraining,
     leads: loadLeads,
     feedback: loadFeedback,
     access: loadAccess,
@@ -268,6 +316,57 @@
     document.querySelectorAll('nav button').forEach((x) => x.classList.toggle('on', x === b));
     document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === 'v-' + b.dataset.v));
     if (loaders[b.dataset.v]) loaders[b.dataset.v]();
+    try {
+      var tab = b.dataset.v;
+      if (tab && tab !== 'overview') history.replaceState(null, '', '#/' + tab);
+      else history.replaceState(null, '', window.location.pathname + window.location.search);
+    } catch (_) { /* ignore */ }
+  });
+
+  window.addEventListener('hashchange', function () {
+    if (document.getElementById('dash-view')?.style.display === 'block') openTabFromHash();
+  });
+
+  function loadMail() {
+    if (window.OmniTenderMail) window.OmniTenderMail.init();
+  }
+
+  function loadTraining() {
+    if (window.OmniTenderEducation) window.OmniTenderEducation.init();
+  }
+
+  async function loadTrainingOverview() {
+    var el = document.getElementById('training-overview');
+    if (!el) return;
+    if (isDemoSession()) {
+      el.innerHTML = '<span style="color:var(--faint);">Demo mode — sign in with a live account to track lesson progress.</span>';
+      return;
+    }
+    try {
+      var cat = await api('/api/education/catalog');
+      var prog = await api('/api/education/progress');
+      var lessons = cat.lessons || [];
+      var core = lessons.filter(function (l) { return (l.tags || []).indexOf('required') >= 0 || l.sectionTitle === 'Core onboarding'; });
+      if (!core.length) core = lessons.slice(0, 6);
+      var completed = (prog.progress && prog.progress.completed) || {};
+      var done = core.filter(function (l) { return completed[l.id]; }).length;
+      var total = core.length;
+      var next = core.find(function (l) { return !completed[l.id]; });
+      var html = '<strong>' + done + ' of ' + total + '</strong> required lessons complete.';
+      if (next) {
+        html += ' Next up: <em>' + esc(next.title) + '</em>.';
+      } else if (total > 0) {
+        html += ' <span style="color:var(--accent);">All required lessons done.</span>';
+      }
+      el.innerHTML = html;
+      updateNavBadge('training', total - done);
+    } catch (_) {
+      el.innerHTML = 'Open <strong>Training</strong> in the sidebar to read lesson scripts and mark progress.';
+    }
+  }
+
+  document.getElementById('training-open-btn')?.addEventListener('click', function () {
+    openTab('training');
   });
 
   /* ---- Overview ---- */
@@ -306,6 +405,7 @@
       document.getElementById('pipeline-chart').innerHTML = '<div class=empty>Failed to render chart: ' + esc(err.message) + '</div>';
     }
     refreshNavBadges();
+    loadTrainingOverview();
   }
 
   function renderSVGChart(counts) {
@@ -1201,10 +1301,15 @@
         const cul = (uj.users || []).map((u) => {
           const pending = u.mustSetupMfa || !u.mfaEnabled;
           const pendingBadge = pending ? ' <span class="badge b-in_review">setup pending</span>' : '';
+          const pkBadge = u.passkeyCount ? ' <span class="badge b-approved">' + u.passkeyCount + ' key(s)</span>' : '';
+          const rcBadge = u.recoveryCodesRemaining != null && u.mfaEnabled
+            ? ' <span class="badge">' + u.recoveryCodesRemaining + ' recovery</span>' : '';
           return '<div class="item"><div class="t">' + esc(u.username) +
-          '<span class="badge b-approved">' + esc(u.role) + '</span>' + pendingBadge + '</div>' +
+          '<span class="badge b-approved">' + esc(u.role) + '</span>' + pendingBadge + pkBadge + rcBadge + '</div>' +
           '<div class="m">Created ' + esc(u.createdAt.slice(0, 10)) + '</div>' +
-          (u.bootstrap ? '' : '<div class="actions" style="margin-top:4px"><button class="btn btn-no" data-deluser="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">Delete</button></div>') +
+          (u.bootstrap ? '' : '<div class="actions" style="margin-top:4px">' +
+            (u.mfaEnabled ? '<button class="btn btn-no" data-regen-rc="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">New recovery codes</button> ' : '') +
+            '<button class="btn btn-no" data-deluser="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">Delete</button></div>') +
           '</div>';
         });
         document.getElementById('console-users-list').innerHTML = cul.length ? cul.join('') : '<div class=empty>No custom accounts created yet.</div>';
@@ -1212,9 +1317,148 @@
     } else {
       document.getElementById('admin-user-mgmt').style.display = 'none';
     }
+
+    await loadPasskeys();
   }
 
-  /* ---- Savings ---- */
+  async function loadPasskeys() {
+    var listEl = document.getElementById('passkeys-list');
+    var regBtn = document.getElementById('passkey-register-btn');
+    if (!listEl) return;
+    if (isDemoSession() || !getToken()) {
+      listEl.innerHTML = '<div class="empty">Sign in to manage security keys.</div>';
+      if (regBtn) regBtn.disabled = true;
+      return;
+    }
+    if (regBtn) regBtn.disabled = false;
+    try {
+      var data = await api('/api/passkeys');
+      var keys = data.passkeys || [];
+      if (!keys.length) {
+        listEl.innerHTML = '<div class="empty">No security keys registered yet.</div>';
+        return;
+      }
+      listEl.innerHTML = keys.map(function (k) {
+        return '<div class="item"><div class="t">' + esc(k.deviceName || 'Security key') +
+          '</div><div class="m">Added ' + esc((k.createdAt || '').slice(0, 10)) +
+          '</div><div class="actions" style="margin-top:4px"><button type="button" class="btn btn-no" data-passkey-del="' +
+          esc(k.credentialID) + '">Remove</button></div></div>';
+      }).join('');
+    } catch (e) {
+      listEl.innerHTML = '<div class="empty">Could not load keys: ' + esc(e.message) + '</div>';
+    }
+  }
+
+  async function passkeyLogin() {
+    if (!window.OmniWebAuthn || !OmniWebAuthn.supported()) {
+      toast('This browser does not support security keys or passkeys.', true);
+      return;
+    }
+    var user = document.getElementById('username-input').value.trim();
+    var mfaCode = document.getElementById('login-mfa-input').value.trim();
+    var recoveryCode = document.getElementById('login-recovery-input').value.trim();
+    if (!user) {
+      toast('Enter your username first.', true);
+      document.getElementById('username-input').focus();
+      return;
+    }
+    if (!mfaCode && !recoveryCode) {
+      toast('Enter your authenticator code (or a recovery code) for passkey sign-in.', true);
+      document.getElementById('login-mfa-input').focus();
+      return;
+    }
+    var btn = document.getElementById('passkey-login-btn');
+    btn.disabled = true;
+    btn.textContent = 'Waiting for key…';
+    try {
+      var optRes = await fetch(API + '/api/passkeys/login/options', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user || undefined, discoverable: !user }),
+      });
+      var optData = await optRes.json();
+      if (!optRes.ok) throw new Error(optData.error || 'Could not start passkey sign-in.');
+      var assertion = await OmniWebAuthn.authenticatePasskey(optData.options);
+      var verifyRes = await fetch(API + '/api/passkeys/login/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          response: assertion,
+          challengeId: optData.challengeId,
+          mfaCode: mfaCode || undefined,
+          recoveryCode: recoveryCode || undefined,
+        }),
+      });
+      var verifyData = await verifyRes.json();
+      if (!verifyRes.ok) throw new Error(verifyData.error || 'Security key sign-in failed.');
+      if (verifyData.mfaRequired) {
+        toast('Enter your authenticator code or a recovery code.', true);
+        document.getElementById('login-mfa-input').focus();
+        return;
+      }
+      setToken(verifyData.token);
+      sessionStorage.setItem('omni_dash_role', verifyData.role);
+      sessionStorage.setItem('omni_dash_username', verifyData.username);
+      currentUserRole = verifyData.role;
+      markPendingSetup(false);
+      document.getElementById('unlock-err').style.display = 'none';
+      showDash();
+      loadOverview();
+      startRefresh();
+      toast('Welcome back, ' + verifyData.username + ' (security key)');
+    } catch (err) {
+      var errEl = document.getElementById('unlock-err');
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+      toast(err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Sign in with passkey';
+    }
+  }
+
+  async function passkeyRegister() {
+    if (!window.OmniWebAuthn || !OmniWebAuthn.supported()) {
+      toast('This browser does not support security keys or passkeys.', true);
+      return;
+    }
+    if (isDemoSession()) {
+      toast('Demo mode — connect the live backend to register keys.', true);
+      return;
+    }
+    var label = (document.getElementById('passkey-device-name').value || 'Security key').trim();
+    var btn = document.getElementById('passkey-register-btn');
+    btn.disabled = true;
+    btn.textContent = 'Waiting for key…';
+    try {
+      var optRes = await fetch(API + '/api/passkeys/register/options', {
+        method: 'POST',
+        headers: authHeaders(),
+      });
+      var optData = await optRes.json();
+      if (!optRes.ok) throw new Error(optData.error || 'Could not start registration.');
+      var attestation = await OmniWebAuthn.registerPasskey(optData.options);
+      var verifyRes = await fetch(API + '/api/passkeys/register/verify', {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json', 'X-OV-Console': '1' }, authHeaders()),
+        body: JSON.stringify({
+          response: attestation,
+          challengeId: optData.challengeId,
+          deviceName: label,
+        }),
+      });
+      var verifyData = await verifyRes.json();
+      if (!verifyRes.ok) throw new Error(verifyData.error || 'Registration failed.');
+      document.getElementById('passkey-device-name').value = '';
+      toast('Security key registered.');
+      loadPasskeys();
+    } catch (err) {
+      toast(err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Register key';
+    }
+  }
   async function loadPricing() {
     try {
       const p = await api('/api/pricing');
@@ -1403,6 +1647,26 @@
       return;
     }
 
+    // Regenerate recovery codes (admin)
+    const regenBtn = e.target.closest('button[data-regen-rc]');
+    if (regenBtn) {
+      const { regenRc, uname } = regenBtn.dataset;
+      if (!confirm('Generate new recovery codes for ' + uname + '? Old unused codes will stop working.')) return;
+      regenBtn.disabled = true;
+      try {
+        const out = await api('/api/console_users/recovery-codes/regenerate', {
+          method: 'POST',
+          body: { userId: regenRc },
+        });
+        const codes = (out.recoveryCodes || []).join('\n');
+        prompt('New recovery codes for ' + uname + ' (copy now — shown once):', codes);
+        toast('Recovery codes regenerated for ' + uname);
+      } catch (err) { toast(err.message, true); }
+      regenBtn.disabled = false;
+      loadAccess();
+      return;
+    }
+
     // Delete Console User
     const delBtn = e.target.closest('button[data-deluser]');
     if (delBtn) {
@@ -1414,6 +1678,19 @@
         toast('Account deleted.');
       } catch (err) { toast(err.message, true); }
       loadAccess();
+      return;
+    }
+
+    const pkDel = e.target.closest('button[data-passkey-del]');
+    if (pkDel) {
+      var credId = pkDel.getAttribute('data-passkey-del');
+      if (!confirm('Remove this security key? You will not be able to sign in with it.')) return;
+      pkDel.disabled = true;
+      try {
+        await api('/api/passkeys/delete', { method: 'POST', body: { credentialID: credId } });
+        toast('Security key removed.');
+        loadPasskeys();
+      } catch (err) { toast(err.message, true); pkDel.disabled = false; }
       return;
     }
   });
@@ -1487,6 +1764,7 @@
   function showSetupModal(starterUsername) {
     document.getElementById('mfa-setup-step1').style.display = 'block';
     document.getElementById('mfa-setup-step2').style.display = 'none';
+    document.getElementById('mfa-setup-step3').style.display = 'none';
     document.getElementById('mfa-setup-err').style.display = 'none';
     document.getElementById('mfa-setup-username').value = starterUsername || '';
     document.getElementById('mfa-setup-password').value = '';
@@ -1507,6 +1785,7 @@
     var user = document.getElementById('username-input').value.trim();
     var pass = document.getElementById('token-input').value.trim();
     var mfaCode = document.getElementById('login-mfa-input').value.trim();
+    var recoveryCode = document.getElementById('login-recovery-input').value.trim();
     if (!user || !pass) { toast('Username and PIN are required.', true); return; }
 
     var btn = document.getElementById('unlock-btn');
@@ -1521,6 +1800,7 @@
         document.getElementById('token-input').value = '';
         document.getElementById('username-input').value = '';
         document.getElementById('login-mfa-input').value = '';
+      document.getElementById('login-recovery-input').value = '';
         document.getElementById('unlock-err').style.display = 'none';
         showDash();
         renderDemoOverview();
@@ -1530,6 +1810,7 @@
 
       const payload = { username: user, password: pass };
       if (mfaCode) payload.mfaCode = mfaCode;
+      if (recoveryCode) payload.recoveryCode = recoveryCode;
 
       const res = await fetch(API + '/api/login', {
         method: 'POST',
@@ -1538,6 +1819,12 @@
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed.');
+
+      if (data.mfaRequired) {
+        document.getElementById('login-mfa-input').focus();
+        toast('Enter your authenticator code or a recovery code.');
+        return;
+      }
 
       if (data.mustSetupMfa) {
         setToken(data.token);
@@ -1558,6 +1845,7 @@
       document.getElementById('token-input').value = '';
       document.getElementById('username-input').value = '';
       document.getElementById('login-mfa-input').value = '';
+      document.getElementById('login-recovery-input').value = '';
 
       showDash();
       loadOverview();
@@ -1570,9 +1858,12 @@
       toast(err.message, true);
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Log In';
+      btn.textContent = 'Sign in with PIN + backup';
     }
   });
+
+  document.getElementById('passkey-login-btn').addEventListener('click', passkeyLogin);
+  document.getElementById('passkey-register-btn').addEventListener('click', passkeyRegister);
 
   document.getElementById('toggle-to-register').addEventListener('click', function() {
     document.getElementById('login-panel').style.display = 'none';
@@ -1636,6 +1927,30 @@
     }
   });
 
+  document.getElementById('recovery-codes-copy').addEventListener('click', function () {
+    var codes = window._omniPendingRecoveryCodes || [];
+    if (!codes.length) { toast('No recovery codes to copy.', true); return; }
+    navigator.clipboard.writeText(codes.join('\n')).then(function () {
+      toast('Recovery codes copied.');
+    }).catch(function () {
+      toast('Could not copy — select and copy manually.', true);
+    });
+  });
+
+  document.getElementById('mfa-setup-finish').addEventListener('click', function () {
+    var username = sessionStorage.getItem('omni_dash_username') || '';
+    document.getElementById('mfa-setup-modal').style.display = 'none';
+    document.getElementById('token-input').value = '';
+    document.getElementById('username-input').value = '';
+    document.getElementById('mfa-setup-password').value = '';
+    document.getElementById('mfa-verification-code').value = '';
+    window._omniPendingRecoveryCodes = null;
+    showDash();
+    loadOverview();
+    startRefresh();
+    toast('Welcome, ' + username + ' — register a passkey in Access & Admins for daily sign-in.');
+  });
+
   document.getElementById('mfa-secret-copy').addEventListener('click', copyMfaSecret);
 
   document.getElementById('mfa-setup-prepare').addEventListener('click', async function() {
@@ -1678,7 +1993,7 @@
       toast(err.message || 'Setup failed — try again.', true);
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Continue → Scan QR Code';
+      btn.textContent = 'Continue → Set up authenticator';
     }
   });
 
@@ -1701,25 +2016,24 @@
         method: 'POST',
         body: { mfaCode }
       });
-      
+
       sessionStorage.setItem('omni_dash_username', res.username);
       markPendingSetup(false);
-      toast('Account activated — welcome, ' + res.username);
-      document.getElementById('mfa-setup-modal').style.display = 'none';
-      document.getElementById('token-input').value = '';
-      document.getElementById('username-input').value = '';
-      document.getElementById('mfa-setup-password').value = '';
-      document.getElementById('mfa-verification-code').value = '';
 
-      showDash();
-      loadOverview();
-      startRefresh();
+      var codes = res.recoveryCodes || [];
+      var listEl = document.getElementById('recovery-codes-list');
+      listEl.innerHTML = codes.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('');
+      window._omniPendingRecoveryCodes = codes.slice();
+
+      document.getElementById('mfa-setup-step2').style.display = 'none';
+      document.getElementById('mfa-setup-step3').style.display = 'block';
+      toast('Account verified — save your recovery codes before continuing.');
     } catch (err) {
       errDiv.textContent = err.message;
       errDiv.style.display = 'block';
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Verify Code & Activate Account';
+      btn.textContent = 'Verify & Save Recovery Codes';
     }
   });
 
@@ -1732,25 +2046,36 @@
     if (_refreshTimer !== null) { clearInterval(_refreshTimer); _refreshTimer = null; }
   }
 
-  // Inactivity tracking (15 minutes) with 1 minute warning
-  var INACTIVITY_TIMEOUT = 15 * 60 * 1000;
-  var WARNING_TIME = 14 * 60 * 1000;
+  // Inactivity lock: employees only (7 min idle); admins stay signed in until they lock or close the tab.
+  var EMPLOYEE_INACTIVITY_MS = 7 * 60 * 1000;
+  var EMPLOYEE_WARNING_MS = 6 * 60 * 1000; // warn 1 minute before lock
   var _inactivityTimer = null;
   var _warningTimer = null;
   var _countdownInterval = null;
 
+  function inactivityLockEnabled() {
+    return !!getToken() && !isDemoSession() && currentUserRole !== 'Admin';
+  }
+
+  function clearInactivityTimers() {
+    clearTimeout(_inactivityTimer);
+    clearTimeout(_warningTimer);
+    clearInterval(_countdownInterval);
+    _inactivityTimer = null;
+    _warningTimer = null;
+    _countdownInterval = null;
+    var banner = document.getElementById('session-warning-banner');
+    if (banner) banner.style.display = 'none';
+  }
+
   function resetInactivityTimer() {
-    if (getToken()) {
-      clearTimeout(_inactivityTimer);
-      clearTimeout(_warningTimer);
-      clearInterval(_countdownInterval);
-      
-      const banner = document.getElementById('session-warning-banner');
-      if (banner) banner.style.display = 'none';
-      
-      _warningTimer = setTimeout(showSessionWarning, WARNING_TIME);
-      _inactivityTimer = setTimeout(autoLock, INACTIVITY_TIMEOUT);
+    if (!inactivityLockEnabled()) {
+      clearInactivityTimers();
+      return;
     }
+    clearInactivityTimers();
+    _warningTimer = setTimeout(showSessionWarning, EMPLOYEE_WARNING_MS);
+    _inactivityTimer = setTimeout(autoLock, EMPLOYEE_INACTIVITY_MS);
   }
 
   function showSessionWarning() {

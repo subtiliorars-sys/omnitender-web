@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23070707'/><text x='16' y='23' font-size='22' font-family='Arial,Helvetica,sans-serif' font-weight='bold' text-anchor='middle' fill='%23F7792C'>O</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="index, follow">
+  <title>OmniSecure — Identity Security for OmniTender</title>
+  <meta name="description" content="OmniSecure and OmniAuth — identity tooling for the OmniTender ecosystem. Employees only today; coming soon for partners and merchants.">
+  <meta name="theme-color" content="#F7792C">
+  <link rel="canonical" href="https://omnitender.us/omnisecure.html">
+  <link rel="stylesheet" href="style.css?v=9">
+  <style>
+    .omnisecure-hero {
+      border: 1px solid rgba(247, 121, 44, 0.35);
+      background: linear-gradient(135deg, rgba(247, 121, 44, 0.12), rgba(212, 175, 55, 0.08));
+    }
+    .omnisecure-mark {
+      display: inline-grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--brand), var(--gold));
+      font-weight: 700;
+      color: #0a0a0a;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 16px rgba(247, 121, 44, 0.25);
+    }
+    .ecosystem-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-top:24px; }
+    .ecosystem-grid .card { border-color: rgba(247, 121, 44, 0.25); }
+    .cta-row { display:flex; flex-wrap:wrap; gap:12px; margin-top:20px; }
+    .cta-row a { text-decoration:none; }
+    .status-pill {
+      display:inline-block;
+      margin-left:8px;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:0.65rem;
+      font-weight:700;
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+      vertical-align:middle;
+      color: var(--brand-hover);
+      border: 1px solid rgba(247, 121, 44, 0.4);
+      background: rgba(247, 121, 44, 0.12);
+    }
+    .status-pill--staff { color:#fbbf24; border-color:rgba(251,191,36,0.35); background:rgba(251,191,36,0.08); }
+    .staff-banner { margin: 0 auto var(--space-lg); max-width: var(--maxw); padding: 14px 18px; border-radius: var(--radius); border: 1px solid rgba(251,191,36,0.35); background: rgba(251,191,36,0.08); color: var(--ink); font-size: 0.95rem; line-height: 1.5; text-align: center; }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header>
+    <a class="brand" href="index.html" style="display: inline-flex; align-items: center; gap: 12px; justify-content: center; text-decoration: none;">
+      <img src="logo.svg" alt="OmniTender Crest Logo" style="height: 38px; width: auto;">
+      <span>Omni<span style="color: var(--brand);">Tender</span></span>
+    </a>
+    <p class="tagline">S Y S T E M S</p>
+    <nav class="topnav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="omnisecure.html" aria-current="page">OmniSecure</a>
+      <a href="savings.html">Savings</a>
+      <a href="about.html">About</a>
+      <a href="merchants-nc.html">Western NC</a>
+      <a href="contact.html">Contact</a>
+      <a href="apply.html" class="topnav-cta">Get started</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <p class="staff-banner" role="note"><strong>Employees only today.</strong> OmniSecure and OmniAuth are in active rollout for OmniTender staff — coming soon for partners and merchant clients. Payment processing on the rest of this site is live now.</p>
+
+    <div class="page-hero omnisecure-hero">
+      <div class="omnisecure-mark" aria-hidden="true">OS</div>
+      <span class="eyebrow">OmniTender ecosystem · in development</span>
+      <h1>OmniSecure — identity security that stays yours.</h1>
+      <p class="lead">Zero-knowledge password manager, dev secrets, and encrypted sharing for the OmniTender stack. Internal staff use today; a wider client release is coming soon.</p>
+      <div class="cta-row">
+        <a class="btn btn-go" href="contact.html">Request early access</a>
+        <a class="btn btn-ghost" href="index.html">Back to payment services</a>
+      </div>
+      <p class="fine" style="margin-top: 16px; max-width: 56ch;"><strong>OmniAuth</strong> is coming soon and is in limited use by OmniTender employees today. <strong>OmniSecure</strong> is still in active development. There is no public self-serve install path yet.</p>
+    </div>
+
+    <div class="cards" style="margin-bottom: var(--space-xl);">
+      <div class="card">
+        <h3>Password Manager</h3>
+        <p>Encrypted vault for logins, cards, identities, notes, and SSH keys. Sync across devices with end-to-end encryption — when we open access beyond staff.</p>
+      </div>
+      <div class="card">
+        <h3>Secrets Manager</h3>
+        <p>Projects, service accounts, and API keys for dev teams — same zero-knowledge model as infrastructure secrets in Bitwarden.</p>
+      </div>
+      <div class="card">
+        <h3>OmniSecure Send</h3>
+        <p>Share encrypted text via expiring links. Password-protected sends supported.</p>
+      </div>
+      <div class="card">
+        <h3>Browser extension</h3>
+        <p>Autofill logins from your vault on any site — browser extension planned for a later release.</p>
+      </div>
+    </div>
+
+    <section aria-labelledby="ecosystem-heading">
+      <div class="sec-head">
+        <h2 id="ecosystem-heading">Works with the OmniTender stack</h2>
+        <p class="fine">Payment processing is OmniTender; credential hygiene is OmniSecure + OmniAuth (employees only today, public release coming soon).</p>
+      </div>
+      <div class="ecosystem-grid">
+        <div class="card">
+          <h3>OmniSecure <span class="status-pill">In development</span> <span class="status-pill status-pill--staff">Employees only</span></h3>
+          <p>Vaults, org sharing, dev secrets, CLI (<code>omsecure</code>). Dogfooded internally first — not offered to merchants or the public yet.</p>
+        </div>
+        <div class="card">
+          <h3>OmniAuth <span class="status-pill">Coming soon</span> <span class="status-pill status-pill--staff">Employees only</span></h3>
+          <p>OmniTender's authenticator app for staff sign-in and OmniSecure 2FA. In limited internal use today — not available to merchants or the public yet. Staff console setup works with any standard authenticator app until OmniAuth ships widely.</p>
+        </div>
+        <div class="card">
+          <h3>Self-host</h3>
+          <p>Docker Compose for full data sovereignty — on the roadmap after the employee rollout; not a supported public install path today.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="sec-head" style="margin-top: 48px;">
+      <span class="eyebrow">Status</span>
+      <h2>Building in the open — not ready for self-serve setup</h2>
+      <p class="fine">OmniAuth is coming soon for partners and merchants; it is employees-only while we finish the rollout. OmniSecure remains in development with no public install path yet.</p>
+    </div>
+    <div class="card">
+      <h3>Interested in the stack?</h3>
+      <p><a href="contact.html">Contact us</a> if you are staff, a partner, or evaluating credential tooling for your team. For payment processing, start with <a href="apply.html">merchant application</a> or a <a href="savings.html">free rate analysis</a>.</p>
+      <div class="cta-row">
+        <a class="btn btn-go" href="contact.html">Request early access</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>OmniSecure is open source (AGPL-3.0). OmniTender provides merchant payment services; OmniSecure provides identity tooling for the same ecosystem.</p>
+    <p><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="contact.html">Contact</a></p>
+  </footer>
+</body>
+</html>
