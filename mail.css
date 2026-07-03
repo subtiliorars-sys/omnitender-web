@@ -1,4 +1,4 @@
-/* OmniTender Mail — Superhuman-inspired workflow + customizable shortcuts + mobile touch */
+/* OmniTender Mail — per-employee inbox, customizable shortcuts + mobile touch */
 
 #v-mail {
   --border-color: var(--card-edge);
@@ -100,6 +100,21 @@
 .mail-mailboxes {
   padding: 12px;
   border-top: 1px solid var(--border-color);
+}
+
+.mail-mailbox-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.mail-mailbox-you {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
 }
 
 .mail-mailbox-chip {

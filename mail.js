@@ -1,12 +1,25 @@
 /**
- * OmniTender Mail — Superhuman-style workflow with customizable shortcuts + mobile touch
+ * OmniTender Mail — per-employee inbox with customizable shortcuts + mobile touch
  */
 (function () {
   function getDashToken() {
     try { return sessionStorage.getItem('omni_dash_token') || ''; } catch (_) { return ''; }
   }
   function getDashUsername() {
-    try { return sessionStorage.getItem('omni_dash_username') || 'default'; } catch (_) { return 'default'; }
+    try { return sessionStorage.getItem('omni_dash_username') || ''; } catch (_) { return ''; }
+  }
+  function employeeMailAddress() {
+    const user = String(getDashUsername() || '').trim();
+    if (!user || user === 'admin') return 'you@omnitender.us';
+    if (user.includes('@')) return user;
+    return user + '@omnitender.us';
+  }
+  function personalizeMailIntro() {
+    const intro = document.getElementById('mail-view-intro');
+    if (!intro) return;
+    const addr = employeeMailAddress();
+    const who = getDashUsername() || 'you';
+    intro.textContent = 'Your OmniTender inbox at ' + addr + ' — signed in as ' + who + '. Same session as the rest of this console; splits and shortcuts are saved to your account.';
   }
 
   function defaultApiBase() {
@@ -536,10 +549,12 @@
     if (!pane) return;
     const t = state.threadDetail;
     if (!t) {
+      const addr = employeeMailAddress();
       pane.innerHTML = `<div class="mail-reading-empty">
         <div>
-          <strong>OmniTender Mail</strong><br>
-          Inbox is your to-do list — not unread count.<br><br>
+          <strong>Your OmniTender inbox</strong><br>
+          <span style="color:var(--muted);font-size:13px;">${escapeHtml(addr)}</span><br><br>
+          Work from what needs action — not unread count.<br><br>
           ${isTouchDevice()
             ? 'Tap a thread to read. Swipe right to archive, left to remind.'
             : `<kbd>${escapeHtml(formatKeysDisplay(keysFor('markDone')))}</kbd> mark done &nbsp; <kbd>${escapeHtml(formatKeysDisplay(keysFor('remind')))}</kbd> remind &nbsp; <kbd>${escapeHtml(formatKeysDisplay(keysFor('nextThread')))}</kbd>/<kbd>${escapeHtml(formatKeysDisplay(keysFor('prevThread')))}</kbd> move`}
@@ -655,7 +670,7 @@
       const k = keysFor(a.id);
       return k ? `${formatKeysDisplay(k)} — ${a.label}` : null;
     }).filter(Boolean);
-    alert('OmniTender Mail shortcuts\n\n' + lines.join('\n') + '\n\nCustomize any shortcut in Settings (gear icon). Defaults mimic Superhuman; you can change them anytime.');
+    alert('Your mail shortcuts\n\n' + lines.join('\n') + '\n\nCustomize any shortcut in Settings (gear icon). Bindings are saved to your employee account.');
   }
 
   function moveSelection(delta) {
@@ -833,7 +848,7 @@
         <aside class="mail-splits" id="mail-splits-panel">
           <div class="mail-splits-header">
             <button type="button" class="mail-splits-close-btn" id="mail-splits-close" aria-label="Close splits">×</button>
-            <h3>Inbox</h3>
+            <h3>Your inbox</h3>
             <div class="mail-inbox-count" id="mail-inbox-count">—</div>
           </div>
           <div class="mail-split-list" id="mail-split-list">
@@ -844,9 +859,8 @@
               </button>`).join('')}
           </div>
           <div class="mail-mailboxes">
-            <div class="mail-mailbox-chip">omnitender@omnitender.us</div>
-            <div class="mail-mailbox-chip">sales@omnitender.us</div>
-            <div class="mail-mailbox-chip">support@omnitender.us</div>
+            <div class="mail-mailbox-label">Your address</div>
+            <div class="mail-mailbox-chip mail-mailbox-you" id="mail-your-address" title="Your OmniTender mailbox">${escapeHtml(employeeMailAddress())}</div>
           </div>
         </aside>
         <div class="mail-thread-list">
@@ -866,7 +880,7 @@
         <button type="button" id="mail-touch-remind">Remind</button>
         <button type="button" id="mail-touch-cmd">Commands</button>
       </div>
-      <div class="mail-status-bar" id="mail-status">Uses your dashboard login — one backend at omnitender-omniverse.fly.dev</div>
+      <div class="mail-status-bar" id="mail-status">Your OmniTender mail — same session as this console</div>
       <div class="mail-cmd-overlay hidden" id="mail-cmd-overlay">
         <div class="mail-cmd-panel">
           <input class="mail-cmd-input" id="mail-cmd-input" placeholder="Type a command…" autocomplete="off" enterkeyhint="go">
@@ -894,7 +908,7 @@
             <h3>Mail shortcuts & touch</h3>
             <button type="button" class="mail-sheet-close" id="mail-settings-close">×</button>
           </div>
-          <p class="mail-settings-intro">Defaults mimic Superhuman — click any binding to change it. Saved to your account on the server.</p>
+          <p class="mail-settings-intro">Click any binding to change it. Shortcuts are saved to your employee account on the server.</p>
           <div class="mail-settings-list" id="mail-settings-list"></div>
           <div class="mail-settings-touch">
             <h4>Touch / mobile</h4>
@@ -918,6 +932,9 @@
 
   window.OmniTenderMail = {
     async init() {
+      personalizeMailIntro();
+      const addrEl = document.getElementById('mail-your-address');
+      if (addrEl) addrEl.textContent = employeeMailAddress();
       state.apiBase = localStorage.getItem('omnitender_mail_api') || defaultApiBase();
       state.apiToken = getDashToken()
         || localStorage.getItem('omnitender_mail_token')
