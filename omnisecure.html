@@ -8,17 +8,44 @@
   <meta name="robots" content="index, follow">
   <title>OmniSecure — Identity Security for OmniTender</title>
   <meta name="description" content="OmniSecure and OmniAuth — identity tooling for the OmniTender ecosystem. Employees only today; coming soon for partners and merchants.">
-  <meta name="theme-color" content="#4f8cff">
+  <meta name="theme-color" content="#F7792C">
   <link rel="canonical" href="https://omnitender.us/omnisecure.html">
   <link rel="stylesheet" href="style.css?v=9">
   <style>
-    .omnisecure-hero { border: 1px solid rgba(79, 140, 255, 0.35); background: linear-gradient(135deg, rgba(79,140,255,0.12), rgba(124,92,255,0.08)); }
-    .omnisecure-mark { display:inline-grid;place-items:center;width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#4f8cff,#7c5cff);font-weight:700;color:#fff;margin-bottom:12px; }
+    .omnisecure-hero {
+      border: 1px solid rgba(247, 121, 44, 0.35);
+      background: linear-gradient(135deg, rgba(247, 121, 44, 0.12), rgba(212, 175, 55, 0.08));
+    }
+    .omnisecure-mark {
+      display: inline-grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--brand), var(--gold));
+      font-weight: 700;
+      color: #0a0a0a;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 16px rgba(247, 121, 44, 0.25);
+    }
     .ecosystem-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-top:24px; }
-    .ecosystem-grid .card { border-color: rgba(79, 140, 255, 0.25); }
+    .ecosystem-grid .card { border-color: rgba(247, 121, 44, 0.25); }
     .cta-row { display:flex; flex-wrap:wrap; gap:12px; margin-top:20px; }
     .cta-row a { text-decoration:none; }
-    .status-pill { display:inline-block; margin-left:8px; padding:2px 8px; border-radius:999px; font-size:0.65rem; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; vertical-align:middle; color:#94b8ff; border:1px solid rgba(79,140,255,0.35); background:rgba(79,140,255,0.1); }
+    .status-pill {
+      display:inline-block;
+      margin-left:8px;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:0.65rem;
+      font-weight:700;
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+      vertical-align:middle;
+      color: var(--brand-hover);
+      border: 1px solid rgba(247, 121, 44, 0.4);
+      background: rgba(247, 121, 44, 0.12);
+    }
     .status-pill--staff { color:#fbbf24; border-color:rgba(251,191,36,0.35); background:rgba(251,191,36,0.08); }
     .staff-banner { margin: 0 auto var(--space-lg); max-width: var(--maxw); padding: 14px 18px; border-radius: var(--radius); border: 1px solid rgba(251,191,36,0.35); background: rgba(251,191,36,0.08); color: var(--ink); font-size: 0.95rem; line-height: 1.5; text-align: center; }
   </style>
