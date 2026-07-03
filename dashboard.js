@@ -137,6 +137,7 @@
     document.getElementById('unlock-view').style.display = 'none';
     document.getElementById('dash-view').style.display = 'block';
     loadSystemsPortals();
+    resetInactivityTimer();
   }
 
   async function loadSystemsPortals() {
@@ -1985,25 +1986,36 @@
     if (_refreshTimer !== null) { clearInterval(_refreshTimer); _refreshTimer = null; }
   }
 
-  // Inactivity tracking (15 minutes) with 1 minute warning
-  var INACTIVITY_TIMEOUT = 15 * 60 * 1000;
-  var WARNING_TIME = 14 * 60 * 1000;
+  // Inactivity lock: employees only (7 min idle); admins stay signed in until they lock or close the tab.
+  var EMPLOYEE_INACTIVITY_MS = 7 * 60 * 1000;
+  var EMPLOYEE_WARNING_MS = 6 * 60 * 1000; // warn 1 minute before lock
   var _inactivityTimer = null;
   var _warningTimer = null;
   var _countdownInterval = null;
 
+  function inactivityLockEnabled() {
+    return !!getToken() && !isDemoSession() && currentUserRole !== 'Admin';
+  }
+
+  function clearInactivityTimers() {
+    clearTimeout(_inactivityTimer);
+    clearTimeout(_warningTimer);
+    clearInterval(_countdownInterval);
+    _inactivityTimer = null;
+    _warningTimer = null;
+    _countdownInterval = null;
+    var banner = document.getElementById('session-warning-banner');
+    if (banner) banner.style.display = 'none';
+  }
+
   function resetInactivityTimer() {
-    if (getToken()) {
-      clearTimeout(_inactivityTimer);
-      clearTimeout(_warningTimer);
-      clearInterval(_countdownInterval);
-      
-      const banner = document.getElementById('session-warning-banner');
-      if (banner) banner.style.display = 'none';
-      
-      _warningTimer = setTimeout(showSessionWarning, WARNING_TIME);
-      _inactivityTimer = setTimeout(autoLock, INACTIVITY_TIMEOUT);
+    if (!inactivityLockEnabled()) {
+      clearInactivityTimers();
+      return;
     }
+    clearInactivityTimers();
+    _warningTimer = setTimeout(showSessionWarning, EMPLOYEE_WARNING_MS);
+    _inactivityTimer = setTimeout(autoLock, EMPLOYEE_INACTIVITY_MS);
   }
 
   function showSessionWarning() {
