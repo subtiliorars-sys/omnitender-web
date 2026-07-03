@@ -901,10 +901,11 @@
             <button data-v="social">📣 Social Media</button>
           </nav>
           
-          <div style="margin: 20px 16px 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint);">Systems Portals</div>
-          <nav style="display: flex; flex-direction: column; gap: 4px;">
-            <a href="https://omnitender-omniverse.fly.dev/admin" target="_blank" class="nav-portal-link">⚙️ OmniVerse Admin</a>
-          </nav>
+          <div id="systems-portals-wrap" style="display:none;">
+            <div style="margin: 20px 16px 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint);">Systems Portals</div>
+            <p style="margin: 0 16px 8px; font-size: 10px; color: var(--muted); line-height: 1.4;">OmniTender operations — founders &amp; admins only.</p>
+            <nav id="systems-portals-nav" style="display: flex; flex-direction: column; gap: 4px;"></nav>
+          </div>
         </div>
         
         <div class="sidebar-footer">
@@ -1404,7 +1405,7 @@
   <script src="webauthn-client.js?v=2"></script>
   <script src="mail.js?v=4"></script>
   <script src="education.js?v=2"></script>
-  <script src="dashboard.js?v=28"></script>
+  <script src="dashboard.js?v=29"></script>
   <script src="feedback.js?v=2"></script>
 </body>
 </html>

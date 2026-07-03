@@ -136,6 +136,30 @@
   function showDash() {
     document.getElementById('unlock-view').style.display = 'none';
     document.getElementById('dash-view').style.display = 'block';
+    loadSystemsPortals();
+  }
+
+  async function loadSystemsPortals() {
+    var wrap = document.getElementById('systems-portals-wrap');
+    var nav = document.getElementById('systems-portals-nav');
+    if (!wrap || !nav) return;
+    if (currentUserRole !== 'Admin') {
+      wrap.style.display = 'none';
+      nav.innerHTML = '';
+      return;
+    }
+    wrap.style.display = 'block';
+    try {
+      var r = await fetch('systems-portal.json?v=1');
+      if (!r.ok) throw new Error('load failed');
+      var data = await r.json();
+      nav.innerHTML = (data.portals || []).map(function (p) {
+        return '<a href="' + esc(p.url) + '" target="_blank" rel="noopener" class="nav-portal-link" title="' + esc(p.description || '') + '">' +
+          esc(p.icon || '•') + ' ' + esc(p.label) + '</a>';
+      }).join('');
+    } catch (_) {
+      nav.innerHTML = '<a href="https://omnitender-omniverse.fly.dev/admin" target="_blank" rel="noopener" class="nav-portal-link">⚙️ OmniVerse Admin</a>';
+    }
   }
 
   /* ---- fetch helpers ---- */

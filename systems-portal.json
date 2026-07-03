@@ -1,0 +1,70 @@
+{
+  "legal_entity": "OmniTender Systems LLC",
+  "updated_at": "2026-07-03",
+  "admin_only": true,
+  "portals": [
+    {
+      "id": "omniverse-admin",
+      "label": "OmniVerse Admin",
+      "icon": "⚙️",
+      "url": "https://omnitender-omniverse.fly.dev/admin",
+      "description": "Ops break-glass, backend health, messaging hub"
+    },
+    {
+      "id": "omniherald",
+      "label": "OmniHerald",
+      "icon": "📣",
+      "url": "https://omni-herald.fly.dev",
+      "description": "Social drafts — human approve before publish"
+    },
+    {
+      "id": "ai-hub",
+      "label": "AI Hub",
+      "icon": "🤖",
+      "url": "https://omnitender-ai-hub.onrender.com",
+      "description": "Merchant ops assistant and bulk commands"
+    },
+    {
+      "id": "public-site",
+      "label": "Public site",
+      "icon": "🌐",
+      "url": "https://omnitender.us",
+      "description": "Marketing site and lead funnel"
+    },
+    {
+      "id": "company-brain",
+      "label": "Company docs",
+      "icon": "📚",
+      "url": "https://github.com/subtiliorars-sys/OmniTender",
+      "description": "Brand, sales, compliance, SOPs (GitHub)"
+    },
+    {
+      "id": "omniverse-repo",
+      "label": "OmniVerse repo",
+      "icon": "🔧",
+      "url": "https://github.com/subtiliorars-sys/OmniVerse",
+      "description": "Staff backend source (GitHub)"
+    },
+    {
+      "id": "omnisecure",
+      "label": "OmniSecure",
+      "icon": "🔐",
+      "url": "https://github.com/subtiliorars-sys/OmniSecure",
+      "description": "Password and secrets vault"
+    },
+    {
+      "id": "omniauth",
+      "label": "OmniAuth",
+      "icon": "🔑",
+      "url": "https://github.com/subtiliorars-sys/OmniAuth",
+      "description": "Staff TOTP authenticator"
+    },
+    {
+      "id": "omnidesk",
+      "label": "OmniDesk",
+      "icon": "💬",
+      "url": "https://github.com/subtiliorars-sys/OmniDesk",
+      "description": "AI website widget product (in development)"
+    }
+  ]
+}
