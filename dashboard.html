@@ -121,6 +121,18 @@
       flex: 1;
       display: flex;
       flex-direction: column;
+      min-width: 0;
+    }
+
+    .dashboard-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .desktop-splash {
+      display: none;
     }
 
     /* sidebar brand — contained panel so logo/title/tagline don't bleed into nav bg */
@@ -246,7 +258,102 @@
         justify-content: space-between;
       }
       .main-content {
+        margin-left: 0;
+      }
+      .dashboard-body {
         margin-left: 260px;
+        flex-direction: row;
+        align-items: stretch;
+        min-height: 100vh;
+      }
+      .desktop-splash {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: clamp(220px, 22vw, 360px);
+        flex-shrink: 0;
+        padding: 48px 28px;
+        border-left: 1px solid var(--card-edge);
+        background: linear-gradient(165deg, var(--inset) 0%, var(--bg) 42%, #0c0806 100%);
+        position: relative;
+        overflow: hidden;
+      }
+      .desktop-splash::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          92deg,
+          transparent,
+          transparent 18px,
+          rgba(247, 121, 44, 0.035) 18px,
+          rgba(247, 121, 44, 0.035) 22px
+        );
+        pointer-events: none;
+      }
+      .desktop-splash-glow {
+        position: absolute;
+        top: 18%;
+        left: -10%;
+        width: 120%;
+        height: 45%;
+        background: radial-gradient(ellipse at 40% 50%, rgba(247, 121, 44, 0.14) 0%, transparent 68%);
+        pointer-events: none;
+      }
+      .desktop-splash-inner {
+        position: relative;
+        z-index: 1;
+      }
+      .desktop-splash-logo {
+        display: block;
+        width: 64px;
+        height: auto;
+        opacity: 0.2;
+        margin-bottom: 28px;
+        filter: drop-shadow(0 0 24px rgba(247, 121, 44, 0.25));
+      }
+      .desktop-splash-eyebrow {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: 0 0 14px;
+      }
+      .desktop-splash-quote {
+        font-size: clamp(1.05rem, 1.35vw, 1.4rem);
+        font-weight: 600;
+        line-height: 1.5;
+        color: var(--text);
+        font-style: italic;
+        border-left: 3px solid var(--accent);
+        padding-left: 16px;
+        margin: 0 0 18px;
+      }
+      .desktop-splash-quote em {
+        font-style: normal;
+        color: var(--accent);
+      }
+      .desktop-splash-attr {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: var(--faint);
+        margin: 0 0 28px;
+        line-height: 1.5;
+      }
+      .desktop-splash-tag {
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 700;
+        margin: 0;
+      }
+      html[data-theme="light"] .desktop-splash {
+        background: linear-gradient(165deg, #F0F0F0 0%, #FAFAFA 50%, #FFF6F0 100%);
+      }
+      html[data-theme="light"] .desktop-splash-logo {
+        opacity: 0.35;
       }
       .sidebar header {
         padding: 24px 16px 12px;
@@ -920,7 +1027,8 @@
         </div>
       </aside>
 
-      <!-- MAIN CONTENT -->
+      <!-- MAIN + DESKTOP SPLASH -->
+      <div class="dashboard-body">
       <div class="main-content">
         <div id="alertbar" class="alertbar" style="display:none"></div>
         
@@ -1359,6 +1467,18 @@
           OmniVerse — <strong>OmniTender Systems</strong> CRM Portal.<br>
           Proprietary &amp; confidential. All rights reserved. Authorized employee use only.
         </footer>
+      </div>
+
+      <aside class="desktop-splash" aria-hidden="true">
+        <div class="desktop-splash-glow" aria-hidden="true"></div>
+        <div class="desktop-splash-inner">
+          <img src="logo.svg" alt="" class="desktop-splash-logo" width="64" height="64">
+          <p class="desktop-splash-eyebrow">Staff console</p>
+          <p class="desktop-splash-quote">Pay no attention to the man <em>behind the curtain.</em></p>
+          <p class="desktop-splash-attr">The Wonderful Wizard of Oz · L. Frank Baum, 1900</p>
+          <p class="desktop-splash-tag">OmniTender Systems</p>
+        </div>
+      </aside>
       </div>
 
     </div>
