@@ -138,6 +138,22 @@
     document.getElementById('dash-view').style.display = 'block';
     loadSystemsPortals();
     resetInactivityTimer();
+    openTabFromHash();
+  }
+
+  function openTab(tab) {
+    var btn = document.querySelector('nav button[data-v="' + tab + '"]');
+    if (!btn) return;
+    btn.click();
+    try {
+      if (tab && tab !== 'overview') history.replaceState(null, '', '#/' + tab);
+      else history.replaceState(null, '', window.location.pathname + window.location.search);
+    } catch (_) { /* ignore */ }
+  }
+
+  function openTabFromHash() {
+    var raw = (window.location.hash || '').replace(/^#\/?/, '').toLowerCase();
+    if (raw && loaders[raw]) openTab(raw);
   }
 
   async function loadSystemsPortals() {
@@ -300,6 +316,15 @@
     document.querySelectorAll('nav button').forEach((x) => x.classList.toggle('on', x === b));
     document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === 'v-' + b.dataset.v));
     if (loaders[b.dataset.v]) loaders[b.dataset.v]();
+    try {
+      var tab = b.dataset.v;
+      if (tab && tab !== 'overview') history.replaceState(null, '', '#/' + tab);
+      else history.replaceState(null, '', window.location.pathname + window.location.search);
+    } catch (_) { /* ignore */ }
+  });
+
+  window.addEventListener('hashchange', function () {
+    if (document.getElementById('dash-view')?.style.display === 'block') openTabFromHash();
   });
 
   function loadMail() {
