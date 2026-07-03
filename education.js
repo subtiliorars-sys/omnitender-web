@@ -228,9 +228,59 @@
       else if (lesson.botLesson) bot.textContent = `Pairs with bot lesson ${lesson.botLesson} — text "train" then "lesson ${lesson.botLesson}"`;
       else bot.textContent = '';
     }
+
+    const instructorEl = document.getElementById('edu-instructor-banner');
+    const instr = state.catalog?.instructor || {};
+    if (instructorEl) {
+      const poster = lesson.posterUrl || instr.posterUrl;
+      instructorEl.innerHTML = poster ? `
+        <img class="edu-instructor-photo" src="${esc(poster)}" alt="" loading="lazy">
+        <div>
+          <div class="edu-instructor-name">${esc(instr.name || 'Training host')}</div>
+          <div class="edu-instructor-tag">${esc(instr.tagline || '')}</div>
+        </div>` : '';
+      instructorEl.classList.toggle('hidden', !poster && !instr.name);
+    }
+
+    const scriptEl = document.getElementById('edu-lesson-script');
+    if (scriptEl) {
+      let html = '';
+      if (lesson.keyPoints?.length) {
+        html += '<h4 class="edu-script-heading">Key points</h4><ul class="edu-key-points">'
+          + lesson.keyPoints.map((p) => `<li>${esc(p)}</li>`).join('') + '</ul>';
+      }
+      if (lesson.script) {
+        html += '<h4 class="edu-script-heading">Lesson script</h4><div class="edu-script">'
+          + lesson.script.split('\n\n').map((p) => {
+            const t = p.trim();
+            if (t.startsWith('[') && t.endsWith(']')) {
+              return `<p class="edu-script-cue">${esc(t)}</p>`;
+            }
+            return `<p>${esc(t)}</p>`;
+          }).join('') + '</div>';
+      }
+      scriptEl.innerHTML = html || '<p class="edu-desc">No script yet for this lesson.</p>';
+    }
+
     if (lesson.videoUrl) loadVideoSrc(lesson.videoUrl, lesson.title);
-    else loadVideoSrc('', lesson.title);
-    if (lesson.posterUrl) getVideo()?.setAttribute('poster', lesson.posterUrl);
+    else {
+      loadVideoSrc('', lesson.title);
+      if (lesson.posterUrl) {
+        const nv = document.getElementById('edu-no-video');
+        if (nv && !lesson.videoUrl) {
+          nv.innerHTML = `
+            <img src="${esc(lesson.posterUrl)}" alt="" class="edu-lesson-poster" loading="lazy">
+            <p><strong>Script ready — video recording pending</strong></p>
+            <p>Read the script below or record in VLC with Morgan's persona guide.</p>
+            <label class="edu-file-label">
+              Load local recording (draft)
+              <input type="file" id="edu-pick-local" accept="video/*,audio/*" hidden>
+            </label>`;
+          document.getElementById('edu-pick-local')?.addEventListener('change', onLocalFilePicked);
+        }
+      }
+    }
+    if (lesson.posterUrl && lesson.videoUrl) getVideo()?.setAttribute('poster', lesson.posterUrl);
   }
 
   function renderLessonList() {
@@ -331,6 +381,8 @@
             </div>
           </div>
           <p id="edu-lesson-desc" class="edu-desc"></p>
+          <div id="edu-instructor-banner" class="edu-instructor-banner hidden"></div>
+          <div id="edu-lesson-script" class="edu-lesson-script"></div>
           <div id="edu-lesson-tags" class="edu-tags"></div>
           <div class="edu-actions">
             <button type="button" class="mail-btn-sm primary" id="edu-mark-done">Mark lesson complete</button>

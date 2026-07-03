@@ -245,6 +245,79 @@
   margin: 0;
 }
 
+.edu-instructor-banner {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--inset);
+  border: 1px solid var(--card-edge);
+}
+
+.edu-instructor-banner.hidden {
+  display: none;
+}
+
+.edu-instructor-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+}
+
+.edu-instructor-name {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.edu-instructor-tag {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.edu-lesson-script {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.edu-script-heading {
+  margin: 20px 0 10px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+
+.edu-key-points {
+  margin: 0 0 16px;
+  padding-left: 20px;
+}
+
+.edu-key-points li {
+  margin-bottom: 8px;
+}
+
+.edu-script p {
+  margin: 0 0 12px;
+}
+
+.edu-script-cue {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.edu-lesson-poster {
+  max-width: 200px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
 .edu-tags {
   display: flex;
   flex-wrap: wrap;
