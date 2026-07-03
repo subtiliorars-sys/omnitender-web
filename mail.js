@@ -3,18 +3,29 @@
  * Methodology: inbox = todo list, E = done, H = remind, J/K navigate, Ctrl+K command palette
  */
 (function () {
+  function getDashToken() {
+    try {
+      return sessionStorage.getItem('omni_dash_token') || '';
+    } catch (_) {
+      return '';
+    }
+  }
+
   function defaultApiBase() {
     if (window.location.protocol === "file:") {
       return localStorage.getItem("omnitender_mail_api") || "http://localhost:8090";
     }
     const host = window.location.hostname;
-    if (host.includes("omnitender-crm") && host.includes("fly.dev")) {
+    if (host === "omnitender-omniverse.fly.dev" || window.location.port === "3000") {
       return window.location.origin;
     }
     if (host.endsWith("omnitender.us") || host === "localhost" || host === "127.0.0.1") {
-      return localStorage.getItem("omnitender_mail_api") || "https://omnitender-crm.fly.dev";
+      return localStorage.getItem("omnitender_mail_api") || "https://omnitender-omniverse.fly.dev";
     }
-    if (host.includes("fly.dev") || window.location.port === "8090") {
+    if (host.includes("omnitender-crm") && host.includes("fly.dev")) {
+      return window.location.origin;
+    }
+    if (window.location.port === "8090") {
       return window.location.origin;
     }
     return localStorage.getItem("omnitender_mail_api") || "http://localhost:8090";
@@ -61,13 +72,20 @@
   ];
 
   async function api(path, opts = {}) {
+    const method = opts.method || "GET";
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${state.apiToken}`,
+      ...(opts.headers || {}),
+    };
+    if (method !== "GET") {
+      headers["X-OV-Console"] = "1";
+    }
     const res = await fetch(`${state.apiBase}/api${path}`, {
       ...opts,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${state.apiToken}`,
-        ...(opts.headers || {}),
-      },
+      method,
+      headers,
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -173,7 +191,7 @@
     if (!state.selectedId) return;
     await api(`/threads/${state.selectedId}/remind`, {
       method: "POST",
-      body: JSON.stringify({ when }),
+      body: { when },
     });
     state.selectedId = null;
     state.threadDetail = null;
@@ -206,14 +224,14 @@
     try {
       await api("/send", {
         method: "POST",
-        body: JSON.stringify({
+        body: {
           mailboxId: t.mailbox_id,
           to: t.from_email,
           subject: t.subject.startsWith("Re:") ? t.subject : `Re: ${t.subject}`,
           body,
           threadId: t.id,
           inReplyTo: lastMsg?.message_id,
-        }),
+        },
       });
       document.getElementById("mail-reply-body").value = "";
       setStatus("Sent");
@@ -454,7 +472,7 @@
         </div>
         <div class="mail-reading-pane" id="mail-reading-pane"></div>
       </div>
-      <div class="mail-status-bar" id="mail-status">Connect mail-service on port 8090 or deploy to Fly.io</div>
+      <div class="mail-status-bar" id="mail-status">Uses your dashboard login — one backend at omnitender-omniverse.fly.dev</div>
       <div class="mail-cmd-overlay hidden" id="mail-cmd-overlay">
         <div class="mail-cmd-panel">
           <input class="mail-cmd-input" id="mail-cmd-input" placeholder="Type a command… (done, remind, sync, search)" autocomplete="off">
@@ -473,9 +491,13 @@
   window.OmniTenderMail = {
     init() {
       state.apiBase = localStorage.getItem("omnitender_mail_api") || defaultApiBase();
-      state.apiToken = localStorage.getItem("omnitender_mail_token")
+      state.apiToken = localStorage.getItem("omnitender_mail_token") || getDashToken()
         || ((window.location.hostname.includes("fly.dev") || window.location.hostname.endsWith("omnitender.us"))
           ? "omnitender-preview-2026" : "dev-local-token");
+      if (!state.apiToken) {
+        const bar = document.getElementById("mail-status");
+        if (bar) bar.textContent = "Sign in to the dashboard first — mail uses the same session token.";
+      }
       renderShell();
       refreshCounts().then(loadThreads).catch((err) => {
         const bar = document.getElementById("mail-status");
