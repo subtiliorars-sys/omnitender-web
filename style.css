@@ -501,6 +501,22 @@ main { max-width: var(--maxw); margin: 0 auto; padding: var(--space-xl) 20px 80p
   color: var(--muted);
   margin-bottom: 12px;
 }
+.card-quip-action {
+  margin-top: 16px;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+.card-quip-action a {
+  color: var(--brand);
+  font-weight: 700;
+  text-decoration: none;
+}
+.card-quip-action a:hover {
+  text-decoration: underline;
+}
+.card-quip-cta:hover {
+  border-color: var(--brand);
+}
 .card-icon-muted {
   background: rgba(140, 140, 140, 0.12);
   color: var(--muted);
