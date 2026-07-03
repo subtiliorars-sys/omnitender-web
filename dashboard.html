@@ -9,6 +9,7 @@
   <title>OmniTender — CRM Dashboard (staff)</title>
   <link rel="stylesheet" href="style.css?v=3">
   <link rel="stylesheet" href="mail.css?v=2">
+  <link rel="stylesheet" href="education.css?v=1">
   <style>
     :root {
       --radius-card: 16px;
@@ -891,6 +892,7 @@
             <button data-v="ledger">💵 Ledger <span class="nav-preview-tag">Example</span></button>
             <button data-v="pipeline">📈 Pipeline</button>
             <button data-v="mail">✉️ Mail</button>
+            <button data-v="training">🎬 Training</button>
             <button data-v="leads">👥 Leads</button>
             <button data-v="feedback">💬 Feedback</button>
             <button data-v="access">🔑 Access &amp; Admins</button>
@@ -1100,6 +1102,15 @@
               <p style="font-size: 12px; color: var(--muted); margin: 0; line-height: 1.5;">Superhuman-style inbox for <strong>omnitender@</strong>, <strong>sales@</strong>, and <strong>support@omnitender.us</strong>. Uses the same login and backend as the rest of this console (<code style="font-size:11px;">omnitender-omniverse.fly.dev</code>).</p>
             </div>
             <div id="section-mail"></div>
+          </section>
+
+          <!-- TRAINING VIEW (VLC-authored video + OmniVerse catalog) -->
+          <section id="v-training" class="view">
+            <div class="card" style="border-color: var(--accent); margin-bottom: 12px;">
+              <h2 style="margin: 0 0 6px; border-left: 3px solid var(--accent); padding-left: 10px;">🎬 Staff training</h2>
+              <p style="font-size: 12px; color: var(--muted); margin: 0; line-height: 1.5;">Educational videos and onboarding lessons. Record &amp; transcode with <strong>VLC</strong> on your PC; playback here uses VLC-style shortcuts. Progress syncs to OmniVerse.</p>
+            </div>
+            <div id="section-training"></div>
           </section>
 
           <!-- LEADS VIEW -->
@@ -1392,6 +1403,7 @@
 
   <script src="webauthn-client.js?v=2"></script>
   <script src="mail.js?v=3"></script>
+  <script src="education.js?v=1"></script>
   <script src="dashboard.js?v=28"></script>
   <script src="feedback.js?v=2"></script>
 </body>

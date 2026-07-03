@@ -261,6 +261,7 @@
     ledger: loadLedger,
     pipeline: loadPipeline,
     mail: loadMail,
+    training: loadTraining,
     leads: loadLeads,
     feedback: loadFeedback,
     access: loadAccess,
@@ -278,6 +279,10 @@
 
   function loadMail() {
     if (window.OmniTenderMail) window.OmniTenderMail.init();
+  }
+
+  function loadTraining() {
+    if (window.OmniTenderEducation) window.OmniTenderEducation.init();
   }
 
   /* ---- Overview ---- */
