@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23070707'/><text x='16' y='23' font-size='22' font-family='Arial,Helvetica,sans-serif' font-weight='bold' text-anchor='middle' fill='%23F7792C'>O</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="index, follow">
+  <title>Check Gift Card Balance | OmniTender</title>
+  <meta name="description" content="Check the balance on an OmniTender-powered merchant gift card using your card ID and PIN.">
+  <meta name="theme-color" content="#F7792C">
+  <link rel="canonical" href="https://omnitender.us/gift-card-balance.html">
+  <link rel="stylesheet" href="style.css?v=9">
+  <style>
+    .balance-panel {
+      max-width: 28rem;
+      margin: 0 auto;
+      padding: 28px;
+      border-radius: 16px;
+      border: 1px solid var(--border, rgba(255,255,255,0.12));
+      background: rgba(255,255,255,0.03);
+    }
+    .balance-panel label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .balance-panel input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.35);
+      color: inherit;
+      font-size: 1rem;
+      font-family: ui-monospace, monospace;
+      letter-spacing: 0.04em;
+    }
+    .balance-panel input:focus {
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+    }
+    .balance-result {
+      margin-top: 20px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      display: none;
+    }
+    .balance-result.is-visible { display: block; }
+    .balance-result.ok {
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      background: rgba(34, 197, 94, 0.08);
+    }
+    .balance-result.err {
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      background: rgba(248, 113, 113, 0.08);
+    }
+    .balance-result.info {
+      border: 1px solid rgba(247, 121, 44, 0.4);
+      background: rgba(247, 121, 44, 0.08);
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header>
+    <a class="brand" href="index.html" style="display: inline-flex; align-items: center; gap: 12px; justify-content: center; text-decoration: none;">
+      <img src="logo.svg" alt="OmniTender Crest Logo" style="height: 38px; width: auto;">
+      <span>Omni<span style="color: var(--brand);">Tender</span></span>
+    </a>
+    <p class="tagline">S Y S T E M S</p>
+    <nav class="topnav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="merchant-perks.html">Perks</a>
+      <a href="omnisecure.html">OmniSecure</a>
+      <a href="savings.html">Savings</a>
+      <a href="about.html">About</a>
+      <a href="merchants-nc.html">Western NC</a>
+      <a href="contact.html">Contact</a>
+      <a href="apply.html" class="topnav-cta">Get started</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <div class="page-hero">
+      <span class="eyebrow">Customers</span>
+      <h1>Check gift card balance</h1>
+      <p class="lead">Enter the card ID and PIN from the back of your gift card. Both are required — the ID alone is not enough to view a balance.</p>
+    </div>
+
+    <div class="balance-panel">
+      <form id="balance-form" novalidate>
+        <label for="card-id">Card ID</label>
+        <input id="card-id" name="card_id" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="OT-XX-XXXX-XXXX" required>
+
+        <label for="card-pin">PIN (under scratch-off)</label>
+        <input id="card-pin" name="pin" type="password" autocomplete="off" inputmode="text" placeholder="••••-••••-••••" required>
+
+        <button type="submit" class="btn btn-go" style="width:100%;">Check balance</button>
+      </form>
+
+      <div id="balance-result" class="balance-result info" role="status" aria-live="polite"></div>
+    </div>
+
+    <p class="fine" style="text-align: center; max-width: 40rem; margin: 28px auto 0;">
+      Only merchants with an active OmniTender gift card program appear here. Lost your PIN? Visit the store that issued the card.
+      Merchants: see <a href="merchant-perks.html">Merchant Perks</a> for how to unlock gift cards.
+    </p>
+  </main>
+
+  <footer>
+    <nav aria-label="Legal">
+      <a href="privacy.html">Privacy</a> ·
+      <a href="terms.html">Terms</a> ·
+      <a href="merchant-perks.html">Merchant perks</a>
+    </nav>
+    &copy; 2026 OmniTender. All rights reserved.
+  </footer>
+  <script src="feedback.js?v=2"></script>
+  <script>
+    (function () {
+      var form = document.getElementById('balance-form');
+      var result = document.getElementById('balance-result');
+      var API_BASE = 'https://omnitender-omniverse.fly.dev';
+
+      function showResult(kind, html) {
+        result.className = 'balance-result is-visible ' + kind;
+        result.innerHTML = html;
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var cardId = (document.getElementById('card-id').value || '').trim();
+        var pin = (document.getElementById('card-pin').value || '').trim();
+        if (!cardId || !pin) {
+          showResult('err', 'Enter both card ID and PIN.');
+          return;
+        }
+
+        showResult('info', 'Looking up balance…');
+
+        fetch(API_BASE + '/api/gift-cards/balance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ card_id: cardId, pin: pin })
+        })
+          .then(function (res) {
+            if (res.status === 404) {
+              showResult('info',
+                'Online balance lookup is not live for this card yet. ' +
+                'If your store recently joined OmniTender, check back soon — or call the merchant directly.');
+              return null;
+            }
+            return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+          })
+          .then(function (payload) {
+            if (!payload) return;
+            if (!payload.ok) {
+              showResult('err', payload.data && payload.data.error ? payload.data.error : 'Could not verify that card. Check ID and PIN.');
+              return;
+            }
+            var d = payload.data;
+            var amount = typeof d.balance_cents === 'number'
+              ? '$' + (d.balance_cents / 100).toFixed(2)
+              : '—';
+            showResult('ok',
+              '<strong>' + (d.merchant_name || 'Gift card') + '</strong><br>' +
+              'Balance: <strong>' + amount + '</strong>' +
+              (d.expires_at ? '<br><span class="fine">Expires: ' + d.expires_at + '</span>' : ''));
+          })
+          .catch(function () {
+            showResult('info',
+              'Balance lookup is rolling out store by store. ' +
+              'Contact the merchant that sold you the card, or email <a href="mailto:support@omni-tender.com">support@omni-tender.com</a>.');
+          });
+      });
+    })();
+  </script>
+</body>
+</html>

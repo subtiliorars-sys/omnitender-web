@@ -5,9 +5,23 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
-_(empty — next wave picks up after OTW-W12 merges)_
+### Wave OTW-W13 — About page FAQ
+
+**Branch:** `automation/wave-otw-w13-about-faq` _(next pickup)_
+
+- [ ] Add "Before you reach out" FAQ to `about.html` (processor role, funds, location, getting started)
+- [ ] Verify: `python3 check_web_links.py`
 
 ## Completed
+
+### Wave OTW-W12 — Legal/404 nav parity + CSS cache bust ✅
+
+**Branch:** `cursor/site-wave-processing-4d66` · PR #29 (2026-07-03)
+
+- [x] Align privacy, terms, and 404 topnav with site-wide nav
+- [x] Expand 404 helpful links (savings, contact)
+- [x] CSS cache-bust aligned with main (`style.css?v=9` on public pages)
+- [x] Merged with main passkey dashboard login (no duplicate PIN-only UI)
 
 ### Wave OTW-W12 — Hero trust strip + tel CTA prominence ✅
 
