@@ -5,6 +5,16 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
+### Wave OTW-W14 — Meta Pixel (G8, opt-in)
+
+**Branch:** `cursor/gtm-meta-pixel-g8` _(Cursor 2026-07-05)_
+
+- [x] Add `site-config.js` (owner fills `metaPixelId`)
+- [x] Add `meta-pixel.js` (no-op when ID empty)
+- [x] Wire 14 public HTML pages
+- [ ] Owner: paste Pixel ID, merge, deploy
+- [ ] Verify: Meta Pixel Helper on `/savings.html`
+
 ### Wave OTW-W13 — About page FAQ
 
 **Branch:** `automation/wave-otw-w13-about-faq` _(next pickup)_
