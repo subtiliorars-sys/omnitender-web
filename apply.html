@@ -79,9 +79,9 @@
 
         <!-- Progress Indicator Bar -->
         <div id="apply-wizard-progress" style="display: flex; gap: 8px; align-items: center; margin-bottom: 24px;">
-          <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px;">Step <span id="wizard-step-num">1</span> of 2</div>
+          <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px;">Step <span id="wizard-step-num">1</span> of 3</div>
           <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 99px; overflow: hidden; position: relative;">
-            <div id="wizard-progress-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: linear-gradient(90deg, var(--brand), var(--gold)); border-radius: 99px; transition: width 0.3s ease;"></div>
+            <div id="wizard-progress-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: 33%; background: linear-gradient(90deg, var(--brand), var(--gold)); border-radius: 99px; transition: width 0.3s ease;"></div>
           </div>
         </div>
 
@@ -100,8 +100,47 @@
             <button type="button" id="btn-next-step" class="btn btn-go" style="width: 100%; padding: 12px; font-weight: bold;">Continue &rarr;</button>
           </div>
 
-          <!-- Step 2: Contact Details -->
+          <!-- Step 2: Payment profile (partner rail routing) -->
           <div id="wizard-step-2" class="wizard-step" style="display: none;">
+            <p class="fine" style="margin-bottom: 16px;">These answers help us route you to the right licensed partner rail. OmniTender does not hold merchant or customer funds — partners process and settle.</p>
+
+            <label for="settlement_currency">Settlement currency (bank deposit)</label>
+            <select id="settlement_currency" name="settlement_currency" aria-required="true" style="margin-bottom: 16px;">
+              <option value="USD" selected>USD — U.S. dollars</option>
+              <option value="EUR">EUR — Euros</option>
+              <option value="GBP">GBP — British pounds</option>
+              <option value="CAD">CAD — Canadian dollars</option>
+              <option value="OTHER">Other (we'll confirm on the call)</option>
+            </select>
+
+            <label for="customer_currencies">Expected customer payment currencies (optional)</label>
+            <input type="text" id="customer_currencies" name="customer_currencies"
+                   placeholder="e.g. USD only, USD+EUR, stablecoin at checkout" style="margin-bottom: 16px;">
+
+            <label for="cross_border_pct">Estimated cross-border sales (optional)</label>
+            <select id="cross_border_pct" name="cross_border_pct" style="margin-bottom: 16px;">
+              <option value="">Prefer not to say</option>
+              <option value="0">0% — local / U.S. only</option>
+              <option value="1-25">1–25% from outside the U.S.</option>
+              <option value="26-50">26–50% from outside the U.S.</option>
+              <option value="51-75">51–75% from outside the U.S.</option>
+              <option value="76-100">76–100% from outside the U.S.</option>
+              <option value="unsure">Not sure yet</option>
+            </select>
+
+            <label for="international_checkout" style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 24px; cursor: pointer;">
+              <input type="checkbox" id="international_checkout" name="international_checkout" style="margin-top: 4px;">
+              <span>Interested in international / multi-currency checkout (global customer acceptance)</span>
+            </label>
+
+            <div style="display: flex; gap: 12px;">
+              <button type="button" id="btn-back-step-2" class="btn" style="flex: 1; padding: 12px; font-weight: bold; background: transparent; border: 1px solid var(--border);">Back</button>
+              <button type="button" id="btn-next-step-2" class="btn btn-go" style="flex: 2; padding: 12px; font-weight: bold;">Continue &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Step 3: Contact Details -->
+          <div id="wizard-step-3" class="wizard-step" style="display: none;">
             <label for="name">Your name</label>
             <input type="text" id="name" name="name" autocomplete="name"
                    aria-required="true" aria-describedby="name-error" style="margin-bottom: 4px;">
@@ -197,34 +236,60 @@
 
       var step1 = document.getElementById('wizard-step-1');
       var step2 = document.getElementById('wizard-step-2');
+      var step3 = document.getElementById('wizard-step-3');
       var nextBtn = document.getElementById('btn-next-step');
+      var nextBtn2 = document.getElementById('btn-next-step-2');
       var backBtn = document.getElementById('btn-back-step');
+      var backBtn2 = document.getElementById('btn-back-step-2');
       var stepNumLabel = document.getElementById('wizard-step-num');
       var progressFill = document.getElementById('wizard-progress-fill');
 
+      var DRAFT_KEYS = [
+        'business', 'notes', 'settlement_currency', 'customer_currencies',
+        'cross_border_pct', 'international_checkout', 'name', 'phone'
+      ];
+
       function updateProgress(step) {
         if (stepNumLabel) stepNumLabel.textContent = step;
-        if (progressFill) progressFill.style.width = (step === 1 ? '50%' : '100%');
+        if (progressFill) {
+          progressFill.style.width = (step === 1 ? '33%' : step === 2 ? '66%' : '100%');
+        }
+      }
+
+      function showStep(step) {
+        step1.style.display = step === 1 ? 'block' : 'none';
+        step2.style.display = step === 2 ? 'block' : 'none';
+        step3.style.display = step === 3 ? 'block' : 'none';
+        updateProgress(step);
+      }
+
+      function saveDraft(id, el) {
+        try {
+          if (el.type === 'checkbox') {
+            sessionStorage.setItem('omni_draft_' + id, el.checked ? '1' : '0');
+          } else {
+            sessionStorage.setItem('omni_draft_' + id, el.value);
+          }
+        } catch (e) {}
       }
 
       // Restore form drafts from sessionStorage if available
       try {
-        var draftBus = sessionStorage.getItem('omni_draft_business');
-        var draftNotes = sessionStorage.getItem('omni_draft_notes');
-        var draftName = sessionStorage.getItem('omni_draft_name');
-        var draftPhone = sessionStorage.getItem('omni_draft_phone');
-        if (draftBus) document.getElementById('business').value = draftBus;
-        if (draftNotes) document.getElementById('notes').value = draftNotes;
-        if (draftName) document.getElementById('name').value = draftName;
-        if (draftPhone) document.getElementById('phone').value = draftPhone;
+        DRAFT_KEYS.forEach(function (id) {
+          var val = sessionStorage.getItem('omni_draft_' + id);
+          if (val == null) return;
+          var el = document.getElementById(id);
+          if (!el) return;
+          if (el.type === 'checkbox') el.checked = val === '1';
+          else el.value = val;
+        });
       } catch (e) {}
 
-      // Save form fields dynamically on input
-      document.querySelectorAll('#apply input').forEach(function(input) {
-        input.addEventListener('input', function() {
-          try {
-            sessionStorage.setItem('omni_draft_' + input.id, input.value);
-          } catch(e) {}
+      // Save form fields dynamically on input/change
+      document.querySelectorAll('#apply input, #apply select').forEach(function (el) {
+        var evt = el.type === 'checkbox' || el.tagName === 'SELECT' ? 'change' : 'input';
+        el.addEventListener(evt, function () {
+          saveDraft(el.id, el);
         });
       });
 
@@ -248,6 +313,11 @@
       }
 
       function validateStep2() {
+        announceFormErrors([]);
+        return true;
+      }
+
+      function validateStep3() {
         var name = document.getElementById('name').value.trim();
         var phone = document.getElementById('phone').value.trim();
         var phoneOk = (phone.match(/\d/g) || []).length >= 7;
@@ -270,21 +340,35 @@
       if (nextBtn) {
         nextBtn.addEventListener('click', function() {
           if (validateStep1()) {
-            step1.style.display = 'none';
-            step2.style.display = 'block';
-            updateProgress(2);
+            showStep(2);
+            var firstInp = document.getElementById('settlement_currency');
+            if (firstInp) firstInp.focus();
+          }
+        });
+      }
+
+      if (nextBtn2) {
+        nextBtn2.addEventListener('click', function() {
+          if (validateStep2()) {
+            showStep(3);
             var firstInp = document.getElementById('name');
             if (firstInp) firstInp.focus();
           }
         });
       }
 
+      if (backBtn2) {
+        backBtn2.addEventListener('click', function() {
+          showStep(1);
+          var input = document.getElementById('business');
+          if (input) input.focus();
+        });
+      }
+
       if (backBtn) {
         backBtn.addEventListener('click', function() {
-          step2.style.display = 'none';
-          step1.style.display = 'block';
-          updateProgress(1);
-          var input = document.getElementById('business');
+          showStep(2);
+          var input = document.getElementById('settlement_currency');
           if (input) input.focus();
         });
       }
@@ -293,7 +377,7 @@
         e.preventDefault();
         err.style.display = 'none';
 
-        var firstBad = validateStep2();
+        var firstBad = validateStep3();
         if (firstBad) return;
 
         btn.disabled = true;
@@ -310,7 +394,11 @@
             business: document.getElementById('business').value.trim(),
             name: document.getElementById('name').value.trim(),
             phone: document.getElementById('phone').value.trim(),
-            notes: document.getElementById('notes').value.trim()
+            notes: document.getElementById('notes').value.trim(),
+            settlement_currency: document.getElementById('settlement_currency').value,
+            customer_currencies: document.getElementById('customer_currencies').value.trim(),
+            cross_border_pct: document.getElementById('cross_border_pct').value,
+            international_checkout: document.getElementById('international_checkout').checked
           })
         })
         .then(function (res) {
@@ -324,10 +412,9 @@
           ok.focus();
           // Clear drafts on successful submit
           try {
-            sessionStorage.removeItem('omni_draft_business');
-            sessionStorage.removeItem('omni_draft_notes');
-            sessionStorage.removeItem('omni_draft_name');
-            sessionStorage.removeItem('omni_draft_phone');
+            DRAFT_KEYS.forEach(function (id) {
+              sessionStorage.removeItem('omni_draft_' + id);
+            });
           } catch(e) {}
         })
         .catch(function () {

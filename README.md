@@ -25,7 +25,7 @@ Both forms POST JSON to the **OmniVerse** backend (`omnitender-omniverse.fly.dev
 which logs the lead and alerts the team:
 
 - `index.html` → `POST /lead-webhook` — `{ name, phone, consent, source, notes }`
-- `apply.html` → `POST /apply` — `{ business, name, phone, notes }`
+- `apply.html` → `POST /apply` — `{ business, name, phone, notes, settlement_currency, customer_currencies, cross_border_pct, international_checkout }`
 
 Forms are progressively enhanced with JavaScript: inline validation, a disabled
 "Submitting…" state, an accessible success panel (`role="status"`), and a failure
