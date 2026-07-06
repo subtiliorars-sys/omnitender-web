@@ -553,6 +553,34 @@
   }
 
   const NEXT_LABEL = { applied: 'Approve merchant', in_review: 'Approve merchant', approved: 'Advance → hardware', hardware_sent: 'Advance → active' };
+
+  function crossBorderLabel(v) {
+    var map = {
+      '0': '0% (local / U.S. only)',
+      '1-25': '1–25%',
+      '26-50': '26–50%',
+      '51-75': '51–75%',
+      '76-100': '76–100%',
+      unsure: 'Not sure yet',
+    };
+    return map[v] || v || '';
+  }
+
+  function paymentProfileHtml(o) {
+    var parts = [];
+    if (o.settlementCurrency) parts.push('<strong>Settlement:</strong> ' + esc(o.settlementCurrency));
+    if (o.customerCurrencies) parts.push('<strong>Customer currencies:</strong> ' + esc(o.customerCurrencies));
+    if (o.crossBorderPct) parts.push('<strong>Cross-border:</strong> ' + esc(crossBorderLabel(o.crossBorderPct)));
+    if (o.internationalCheckout) parts.push('<strong>Intl checkout:</strong> Yes');
+    if (o.notes) parts.push('<strong>Volume:</strong> ' + esc(o.notes));
+    if (!parts.length) {
+      return '<p style="font-size:11px;color:var(--faint);margin:8px 0 0;">No payment profile captured yet.</p>';
+    }
+    return '<div style="margin:10px 0 0;padding:10px 12px;border:1px solid var(--card-edge);border-radius:8px;font-size:12px;line-height:1.55;">' +
+      '<span style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;">Payment profile</span>' +
+      '<div style="margin-top:6px;">' + parts.join(' · ') + '</div></div>';
+  }
+
   function pipeItem(o, closed) {
     const itemId = 'pi-' + esc(o.shortId);
     let detail = [o.business, o.phone, o.source ? 'via ' + o.source : ''].filter(Boolean).join(' · ');
@@ -578,7 +606,7 @@
       '<strong>Phone:</strong> ' + esc(o.phone || 'N/A') +
       (o.business ? ' · <strong>Business:</strong> ' + esc(o.business) : '') +
       (o.source ? ' · via ' + esc(o.source) : '') +
-      '</div>' + contactedNote + assigneeHtml(o) + qualificationSummaryHtml(o.qualification);
+      '</div>' + paymentProfileHtml(o) + contactedNote + assigneeHtml(o) + qualificationSummaryHtml(o.qualification);
       
     // Render History Audit Logs
     if (o.history && o.history.length) {
@@ -2199,9 +2227,10 @@
       if (item) {
         modalTitle.innerHTML = esc(item.name) + ' <span class="badge b-' + esc(item.stage) + '">' + esc(item.stage.replace('_', ' ')) + '</span>';
         let bodyHtml = '<p><strong>Application ID:</strong> <code>' + esc(item.id) + '</code> (short: <code>' + esc(item.shortId) + '</code>)</p>' +
-          '<p><strong>Business Type:</strong> ' + esc(item.business || 'N/A') + '</p>' +
+          '<p><strong>Business:</strong> ' + esc(item.business || 'N/A') + '</p>' +
           '<p><strong>Phone:</strong> ' + esc(item.phone || 'N/A') + '</p>' +
           '<p><strong>Source:</strong> ' + esc(item.source || 'N/A') + '</p>' +
+          paymentProfileHtml(item) +
           '<p><strong>Created:</strong> ' + esc(item.createdAt || 'N/A') + '</p>' +
           '<p><strong>Last Updated:</strong> ' + esc(item.updatedAt || 'N/A') + '</p>' +
           qualificationSummaryHtml(item.qualification);
