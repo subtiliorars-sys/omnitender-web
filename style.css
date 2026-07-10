@@ -197,10 +197,15 @@ a.brand:hover { color: #fff; opacity: 0.95; }
 header .tagline {
   margin: 6px 0 0;
   color: var(--muted);
-  font-size: .8rem;
-  text-transform: uppercase;
-  letter-spacing: .25em;
-  font-weight: 700;
+  font-size: .82rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+  font-style: italic;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.35;
 }
 
 /* Primary navigation — lets either audience reach the other page. */

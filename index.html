@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <title>OmniTender — Every Payment. Every Merchant. Every Time.</title>
-  <meta name="description" content="Modern payment processing for independent merchants — cards, debit, stablecoin, and EBT/SNAP. Transparent pricing, NC-based support. Get a free rate analysis.">
+  <title>OmniTender — Money by the people, for the people</title>
+  <meta name="description" content="Payment processing for independent merchants — money by the people, for the people. Transparent pricing, cards, debit, stablecoin, and EBT/SNAP. NC-based support. Free rate analysis.">
   <meta name="theme-color" content="#F7792C">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://omnitender.us/index.html">
@@ -15,12 +15,12 @@
   <!-- Open Graph / social -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="OmniTender">
-  <meta property="og:title" content="OmniTender — Every Payment. Every Merchant. Every Time.">
-  <meta property="og:description" content="Accept cards, debit, stablecoin, and EBT/SNAP on one platform. Transparent pricing and direct NC-based support.">
+  <meta property="og:title" content="OmniTender — Money by the people, for the people">
+  <meta property="og:description" content="Payment processing for local merchants. Transparent pricing, human support, licensed partner rails.">
   <meta property="og:url" content="https://omnitender.us/index.html">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="OmniTender — Every Payment. Every Merchant. Every Time.">
-  <meta name="twitter:description" content="Transparent payment processing for independent merchants. Cards, debit, crypto, and EBT/SNAP.">
+  <meta name="twitter:title" content="OmniTender — Money by the people, for the people">
+  <meta name="twitter:description" content="Payment processing for independent merchants. Transparent pricing and direct NC-based support.">
 
   <!-- Pre-warm the connection to the lead backend so the form POST is faster. -->
   <link rel="preconnect" href="https://omnitender-omniverse.fly.dev" crossorigin>
@@ -28,7 +28,9 @@
 
   <link rel="stylesheet" href="style.css?v=9">
   <script src="site-config.js"></script>
+  <script src="google-analytics.js" defer></script>
   <script src="meta-pixel.js" defer></script>
+  <script src="conversion-events.js" defer></script>
 
   <script type="application/ld+json">
   {
@@ -36,7 +38,7 @@
     "@type": "Organization",
     "name": "OmniTender",
     "url": "https://omnitender.us/",
-    "description": "OmniTender operational and promotional SMS alert program and merchant payment services.",
+    "description": "Merchant payment processing — money by the people, for the people. Cards, debit, stablecoin, and EBT/SNAP for independent businesses.",
     "email": "support@omnitender.us",
     "telephone": "+1-828-413-0859",
     "contactPoint": {
@@ -56,7 +58,7 @@
       <img src="logo.svg" alt="OmniTender Crest Logo" style="height: 38px; width: auto; vertical-align: middle;">
       <span>Omni<span style="color: var(--brand);">Tender</span></span>
     </a>
-    <p class="tagline">S Y S T E M S</p>
+    <p class="tagline">Money by the people, for the people</p>
     <nav class="topnav" aria-label="Primary">
       <a href="index.html" aria-current="page">Home</a>
       <a href="products.html">Products</a>
@@ -71,9 +73,9 @@
 
   <main id="main">
     <div class="hero">
-      <span class="eyebrow">Merchant payment processing · Western NC · not procurement software</span>
-      <h1>Every Payment.<span> Every Merchant. Every Time.</span></h1>
-      <p class="hero-sub">Accept credit, debit, stablecoin, and EBT/SNAP on one platform — transparent pricing, fair checkout conversion, target same-day/next-day settlement (subject to processor and bank timing). Merchant payment exchange, not a crypto trading app. Get a free rate analysis, then onboard when you're ready.</p>
+      <span class="eyebrow">Merchant payment processing · Western NC</span>
+      <h1>Money by the people,<span> for the people.</span></h1>
+      <p class="hero-sub">Payment processing built for independent merchants — not Wall Street margins, not a call center. Accept credit, debit, stablecoin, and EBT/SNAP on one platform with transparent pricing and direct NC-based support. Get a free rate analysis, then onboard when you're ready.</p>
 
       <div class="hero-trust-strip" role="region" aria-label="What OmniTender is">
         <span class="hero-trust-item">NC-based merchant support</span>
@@ -601,6 +603,9 @@
         })
         .then(function (res) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
+          if (typeof window.omniTrackConversion === 'function') {
+            window.omniTrackConversion('home-lead');
+          }
           form.style.display = 'none';
           ok.style.display = 'block';
           ok.focus();
