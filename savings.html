@@ -244,12 +244,7 @@
           })
         }).then(function (res) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
-          if (typeof window.omniTrackConversion === 'function') {
-            window.omniTrackConversion('rate-analysis', { business: business });
-          }
-          form.style.display = 'none';
-          ok.style.display = 'block';
-          ok.focus();
+          window.location.href = 'thanks.html?from=rate-analysis';
         }).catch(function () {
           btn.disabled = false;
           btn.textContent = 'Request free rate analysis';

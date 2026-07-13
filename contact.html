@@ -164,11 +164,7 @@
           })
         }).then(function (res) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
-          if (typeof window.omniTrackConversion === 'function') {
-            window.omniTrackConversion('contact', { topic: topic });
-          }
-          form.style.display = 'none';
-          ok.style.display = 'block';
+          window.location.href = 'thanks.html?from=contact';
         }).catch(function () {
           btn.disabled = false;
           btn.textContent = 'Send message';

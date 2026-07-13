@@ -405,24 +405,13 @@
         })
         .then(function (res) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
-          if (typeof window.omniTrackConversion === 'function') {
-            window.omniTrackConversion('apply', {
-              business: document.getElementById('business').value.trim()
-            });
-          }
-          form.style.display = 'none';
-          var expectations = document.querySelector('.expectations-box');
-          if (expectations) expectations.style.display = 'none';
-          var progress = document.getElementById('apply-wizard-progress');
-          if (progress) progress.style.display = 'none';
-          ok.style.display = 'block';
-          ok.focus();
           // Clear drafts on successful submit
           try {
             DRAFT_KEYS.forEach(function (id) {
               sessionStorage.removeItem('omni_draft_' + id);
             });
-          } catch(e) {}
+          } catch (e) {}
+          window.location.href = 'thanks.html?from=apply';
         })
         .catch(function () {
           btn.disabled = false;

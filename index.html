@@ -603,12 +603,7 @@
         })
         .then(function (res) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
-          if (typeof window.omniTrackConversion === 'function') {
-            window.omniTrackConversion('home-lead');
-          }
-          form.style.display = 'none';
-          ok.style.display = 'block';
-          ok.focus();
+          window.location.href = 'thanks.html?from=home-lead';
         })
         .catch(function () {
           btn.disabled = false;
