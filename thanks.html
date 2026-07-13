@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23070707'/><text x='16' y='23' font-size='22' font-family='Arial,Helvetica,sans-serif' font-weight='bold' text-anchor='middle' fill='%23F7792C'>O</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Thank you — OmniTender</title>
+  <meta name="description" content="Thanks — we received your request. OmniTender will follow up shortly.">
+  <meta name="theme-color" content="#F7792C">
+  <link rel="canonical" href="https://omnitender.us/thanks.html">
+  <link rel="stylesheet" href="style.css?v=9">
+  <script src="site-config.js?v=ads2"></script>
+  <script src="google-analytics.js?v=ads1" defer></script>
+  <script src="meta-pixel.js" defer></script>
+  <script src="conversion-events.js?v=ads2" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header>
+    <a class="brand" href="index.html" style="display: inline-flex; align-items: center; gap: 12px; justify-content: center; text-decoration: none;">
+      <img src="logo.svg" alt="OmniTender Crest Logo" style="height: 38px; width: auto;">
+      <span>Omni<span style="color: var(--brand);">Tender</span></span>
+    </a>
+    <p class="tagline">Money by the people, for the people</p>
+    <nav class="topnav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="omnisecure.html">OmniSecure</a>
+      <a href="savings.html">Savings</a>
+      <a href="about.html">About</a>
+      <a href="merchants-nc.html">Western NC</a>
+      <a href="contact.html">Contact</a>
+      <a href="apply.html" class="topnav-cta">Get started</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <div class="page-hero">
+      <span class="eyebrow">Request received</span>
+      <h1 id="thanks-title">Thank you.</h1>
+      <p class="lead" id="thanks-lead">We received your request. A team member will reach out within one business day.</p>
+    </div>
+
+    <div class="content-prose" style="max-width: 640px; margin: 0 auto;">
+      <div class="ok" role="status" style="display: block;">
+        <p id="thanks-body" style="margin: 0;">You can also call <a href="tel:+18284130859">(828) 413-0859</a> or email <a href="mailto:support@omnitender.us">support@omnitender.us</a>.</p>
+
+        <div id="thanks-booking" class="booking-nudge" style="display: none; margin: 24px 0; padding: 18px; border: 1px solid var(--brand); border-radius: 12px; background: rgba(247, 121, 44, 0.05); text-align: center;">
+          <h2 style="margin: 0 0 6px; font-size: 1.1rem; font-weight: 700; color: var(--brand);">Fast-Track: Book your call now</h2>
+          <p style="font-size: 0.9rem; margin: 0 0 16px; color: var(--muted); line-height: 1.45;">Skip the email backlog. Choose a time on the calendar to talk through next steps.</p>
+          <a id="thanks-cal" class="btn btn-go" href="https://cal.com/omnitender/15min" target="_blank" rel="noopener" style="display: inline-block; padding: 10px 20px; font-size: 0.92rem; text-decoration: none; font-weight: bold; border-radius: 6px; background: var(--brand); color: #fff;">Schedule a 15-minute call</a>
+        </div>
+
+        <p id="thanks-next" style="margin-top: 20px;"></p>
+        <p class="fine" style="margin-top: 12px;">Submitting does not create an obligation — final pricing and terms depend on your business and partner program.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <nav aria-label="Legal">
+      <a href="privacy.html">Privacy</a> ·
+      <a href="terms.html">Terms</a> ·
+      <a href="contact.html">Contact</a>
+    </nav>
+    &copy; 2026 OmniTender. All rights reserved.
+  </footer>
+
+  <script defer>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var source = (params.get('from') || 'lead').trim() || 'lead';
+      var title = document.getElementById('thanks-title');
+      var lead = document.getElementById('thanks-lead');
+      var body = document.getElementById('thanks-body');
+      var booking = document.getElementById('thanks-booking');
+      var next = document.getElementById('thanks-next');
+
+      if (source === 'rate-analysis') {
+        title.textContent = 'Rate analysis requested.';
+        lead.textContent = 'Thanks — we received your request. A team member will reach out within one business day (typically within 48 hours on business days).';
+        body.innerHTML = 'You can also email a recent processing statement to <a href="mailto:support@omnitender.us">support@omnitender.us</a>.';
+        booking.style.display = 'block';
+        next.innerHTML = '<a class="btn-hero primary" href="apply.html">Ready to apply? Start merchant application →</a>';
+      } else if (source === 'apply') {
+        title.textContent = 'Application received.';
+        lead.textContent = 'Thanks — we received your application. This is not an approval or contract.';
+        body.textContent = 'A member of the OmniTender team will reach out within about one business day.';
+        booking.style.display = 'block';
+        next.innerHTML = '<a class="btn-hero secondary" href="savings.html">Compare your current rates → Request free rate analysis</a>';
+      } else if (source === 'contact') {
+        title.textContent = 'Message sent.';
+        lead.textContent = "Thanks — we'll get back to you soon.";
+        body.innerHTML = 'For urgent help, call <a href="tel:+18284130859">(828) 413-0859</a>.';
+        next.innerHTML = '<a class="btn-hero secondary" href="savings.html">Get a free rate analysis</a>';
+      } else if (source === 'home-lead') {
+        title.textContent = "You're opted in.";
+        lead.textContent = 'Thanks! Reply STOP anytime to cancel.';
+        body.innerHTML = 'Your mobile information is never sold or shared with third parties for their marketing.';
+        next.innerHTML = '<a class="btn-hero primary" href="savings.html">Get a free rate analysis</a>';
+      }
+
+      // Page-load conversion: Google Ads send_to + Meta/GA4 shared tracker.
+      if (typeof window.omniTrackConversion === 'function') {
+        window.omniTrackConversion(source);
+      }
+    })();
+  </script>
+</body>
+</html>
