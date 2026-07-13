@@ -96,11 +96,14 @@ omni-tender.com / savings
 
 ## Conversion action (in Google Ads)
 
+**Live (page load):** lead forms → `https://omnitender.us/thanks.html`  
+Snippets (live + parked click variant): [`google-ads-conversion-snippets.md`](./google-ads-conversion-snippets.md)
+
 1. **Goals → Conversions → New conversion action**
 2. Choose **Website**
-3. Enter `omni-tender.com`
+3. Enter `omnitender.us`
 4. Select **Manually coded** or **Google tag** (gtag already on site)
-5. Event: `generate_lead` (fires on successful savings/contact form submit)
+5. Prefer page-load URL `https://omnitender.us/thanks.html` (or event `send_to` already on that page)
 6. Count: **One** per click
 7. Attribution: **Data-driven** or 30-day click
 
@@ -123,4 +126,4 @@ If the Google UI is overwhelming: create the campaign with **one ad group, 5 key
 
 ---
 
-*Last updated: 2026-07-10*
+*Last updated: 2026-07-13*
