@@ -862,6 +862,10 @@
 
       <div class="login-footer-link">
         <button type="button" class="btn btn-no" id="toggle-to-register" style="width: 100%; padding: 10px; font-size: 12px;">Activate New Account</button>
+        <p style="font-size: 11px; color: var(--faint); margin: 8px 0 0; text-align: center; line-height: 1.4;">
+          <strong>Already provisioned?</strong> Use the <strong>Log In</strong> form above with your username and starter PIN — do not use Register.
+          Register is only for <em>first-time</em> activation with an admin-provided Employee Passcode.
+        </p>
       </div>
 
       <details class="login-help">
@@ -904,6 +908,10 @@
       <div style="margin-bottom: 20px;">
         <label for="reg-passcode-input" style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--accent);">Employee Passcode</label>
         <input type="password" id="reg-passcode-input" placeholder="Enter registration gate passcode">
+        <p style="font-size: 11px; color: var(--faint); margin: 4px 0 0; line-height: 1.4;">
+          The Employee Passcode is a one-time registration gate code set by your admin (backend env var). 
+          Your admin provides this — do not guess it. Once registered, use <strong>Log In</strong> with your starter PIN on future visits.
+        </p>
       </div>
 
       <button class="btn btn-go" id="register-btn" style="width: 100%; padding: 12px; font-size: 14px;">Register Account</button>
