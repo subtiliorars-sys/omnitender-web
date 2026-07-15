@@ -11,7 +11,7 @@ _(none — OTW-W14 blocked on owner Pixel ID)_
 
 ### Wave OTW-W15 — Nav parity + sitemap gift-card pages ✅
 
-**Branch:** `automation/wave-otw-w15-nav-sitemap` · PR pending (2026-07-15)
+**Branch:** `automation/wave-otw-w15-nav-sitemap` · PR #41 (2026-07-15)
 
 - [x] Add OmniSecure link to `privacy.html`, `terms.html`, and `404.html` topnav (parity with main site)
 - [x] Add `merchant-perks.html` and `gift-card-balance.html` to `sitemap.xml`
