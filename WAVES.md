@@ -5,7 +5,20 @@ Verify: `python check_web_links.py` when HTML changes.
 
 ## Active queue
 
-### Wave OTW-W14 — Meta Pixel (G8, opt-in)
+_(none — OTW-W14 blocked on owner Pixel ID)_
+
+## Completed
+
+### Wave OTW-W15 — Nav parity + sitemap gift-card pages ✅
+
+**Branch:** `automation/wave-otw-w15-nav-sitemap` · PR pending (2026-07-15)
+
+- [x] Add OmniSecure link to `privacy.html`, `terms.html`, and `404.html` topnav (parity with main site)
+- [x] Add `merchant-perks.html` and `gift-card-balance.html` to `sitemap.xml`
+- [x] Add `thanks.html` post-submit variants to `test.html` tester hub
+- [x] `python check_web_links.py` passes
+
+### Wave OTW-W14 — Meta Pixel (G8, opt-in) — owner blocked
 
 **Branch:** `cursor/gtm-meta-pixel-g8` _(Cursor 2026-07-05)_
 
@@ -15,7 +28,7 @@ Verify: `python check_web_links.py` when HTML changes.
 - [ ] Owner: paste Pixel ID, merge, deploy
 - [ ] Verify: Meta Pixel Helper on `/savings.html`
 
-## Completed
+## Completed (prior waves)
 
 ### Wave OTW-W13 — About page FAQ ✅
 
@@ -84,6 +97,7 @@ Verify: `python check_web_links.py` when HTML changes.
 **PR:** https://github.com/subtiliorars-sys/omnitender-web/pull/11
 
 ## Blocked
+- **OTW-W14 Meta Pixel** — owner must paste Pixel ID in `site-config.js`, merge, deploy
 - Deploy config, secrets, payment copy, processor rate claims — owner queue
 
 ## Revenue sprint
