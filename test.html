@@ -81,9 +81,21 @@
         <a href="apply.html">Apply form UX</a>
         <a href="index.html">SMS opt-in</a>
         <a href="savings.html">Savings calculator</a>
+        <a href="contact.html">Contact form</a>
         <a href="pos.html">POS demo</a>
       </div>
-      <p class="test-note">Check ~390px width, keyboard tab order, validation messages, success/error panels after submit.</p>
+      <p class="test-note">Check ~390px width, keyboard tab order, validation messages, and post-submit redirect to <code>thanks.html</code>.</p>
+    </section>
+
+    <section class="test-section">
+      <h2>Post-submit thank-you pages</h2>
+      <div class="test-links">
+        <a href="thanks.html?from=apply">Apply success</a>
+        <a href="thanks.html?from=rate-analysis">Rate analysis</a>
+        <a href="thanks.html?from=contact">Contact message</a>
+        <a href="thanks.html?from=home-lead">SMS opt-in</a>
+      </div>
+      <p class="test-note">Each <code>?from=</code> variant should show the right headline, next-step CTA, and booking nudge where applicable.</p>
     </section>
 
     <section class="test-section">
