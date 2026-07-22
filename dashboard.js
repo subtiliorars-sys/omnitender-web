@@ -1809,12 +1809,40 @@
     document.getElementById('mfa-setup-modal').style.display = 'flex';
   }
 
+  document.getElementById('email-login-btn').addEventListener('click', function () {
+    var user = document.getElementById('username-input').value.trim();
+    if (!user) {
+      toast('Please enter your username first.', true);
+      document.getElementById('username-input').focus();
+      return;
+    }
+    toast('Email sign-in code requested for ' + user + '. Check your mailbox.');
+  });
+
+  document.getElementById('sms-login-btn').addEventListener('click', function () {
+    var user = document.getElementById('username-input').value.trim();
+    if (!user) {
+      toast('Please enter your username first.', true);
+      document.getElementById('username-input').focus();
+      return;
+    }
+    toast('SMS sign-in code requested for ' + user + '. Check your phone.');
+  });
+
   document.getElementById('unlock-btn').addEventListener('click', async function () {
     var user = document.getElementById('username-input').value.trim();
-    var pass = document.getElementById('token-input').value.trim();
+    var pass = document.getElementById('token-input') ? document.getElementById('token-input').value.trim() : '';
     var mfaCode = document.getElementById('login-mfa-input').value.trim();
-    var recoveryCode = document.getElementById('login-recovery-input').value.trim();
-    if (!user || !pass) { toast('Username and PIN are required.', true); return; }
+    var recoveryCode = document.getElementById('login-recovery-input') ? document.getElementById('login-recovery-input').value.trim() : '';
+
+    // If username is blank and mfaCode contains hyphens, treat it as a recovery code login
+    if (!user && mfaCode && mfaCode.includes('-')) {
+      recoveryCode = mfaCode;
+      mfaCode = '';
+    } else if (!user) {
+      toast('Username is required.', true);
+      return;
+    }
 
     var btn = document.getElementById('unlock-btn');
     btn.disabled = true;
@@ -1825,10 +1853,10 @@
       const demoUser = matchDemoUser(user, pass);
       if (demoUser) {
         startDemoSession(demoUser);
-        document.getElementById('token-input').value = '';
+        if (document.getElementById('token-input')) document.getElementById('token-input').value = '';
         document.getElementById('username-input').value = '';
         document.getElementById('login-mfa-input').value = '';
-      document.getElementById('login-recovery-input').value = '';
+        if (document.getElementById('login-recovery-input')) document.getElementById('login-recovery-input').value = '';
         document.getElementById('unlock-err').style.display = 'none';
         showDash();
         renderDemoOverview();
@@ -1836,7 +1864,8 @@
         return;
       }
 
-      const payload = { username: user, password: pass };
+      const payload = { username: user };
+      if (pass) payload.password = pass;
       if (mfaCode) payload.mfaCode = mfaCode;
       if (recoveryCode) payload.recoveryCode = recoveryCode;
 
@@ -2650,6 +2679,150 @@
       });
     });
   }
+
+      });
+    });
+  }
+
+  // --- AI Lead Extractor Frontend Logic ---
+  let extractedLeadsCache = [];
+
+  document.getElementById('ai-extract-btn').addEventListener('click', async () => {
+    const fileInput = document.getElementById('ai-extract-image');
+    const textInput = document.getElementById('ai-extract-text').value.trim();
+    const statusEl = document.getElementById('ai-extract-status');
+    const resultsEl = document.getElementById('ai-extracted-results');
+    const tbodyEl = document.getElementById('ai-extracted-tbody');
+    const btn = document.getElementById('ai-extract-btn');
+
+    statusEl.style.display = 'block';
+    statusEl.style.color = 'var(--muted)';
+    statusEl.textContent = 'Processing with Gemini AI... please wait...';
+    resultsEl.style.display = 'none';
+    tbodyEl.innerHTML = '';
+    btn.disabled = true;
+
+    try {
+      let bodyPayload = {};
+      if (fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        const base64Data = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result;
+            // strip mime prefix: data:image/png;base64,
+            const commaIdx = result.indexOf(',');
+            resolve(commaIdx !== -1 ? result.slice(commaIdx + 1) : result);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        bodyPayload = {
+          imageBase64: base64Data,
+          imageMimeType: file.type
+        };
+      } else if (textInput) {
+        bodyPayload = { text: textInput };
+      } else {
+        throw new Error('Please select an image file or paste raw text first.');
+      }
+
+      const res = await api('/api/leads/ai-extract', { method: 'POST', body: bodyPayload });
+      if (!res.ok && res.error) throw new Error(res.error);
+
+      extractedLeadsCache = res.leads || [];
+      if (extractedLeadsCache.length === 0) {
+        statusEl.style.color = 'var(--down)';
+        statusEl.textContent = 'No leads could be extracted from the input source.';
+        return;
+      }
+
+      statusEl.style.color = 'var(--up)';
+      statusEl.textContent = `Successfully extracted ${extractedLeadsCache.length} leads!`;
+      resultsEl.style.display = 'block';
+
+      // Render lead list preview
+      renderExtractedLeads();
+    } catch (e) {
+      statusEl.style.color = 'var(--down)';
+      statusEl.textContent = 'Extraction failed: ' + e.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  function renderExtractedLeads() {
+    const tbodyEl = document.getElementById('ai-extracted-tbody');
+    tbodyEl.innerHTML = extractedLeadsCache.map((lead, idx) => {
+      return `
+        <tr style="border-bottom: 1px solid var(--card-edge);">
+          <td style="padding: 8px 10px;"><input type="text" value="${esc(lead.business)}" style="width: 100%; min-height: 0; padding: 4px;" data-idx="${idx}" data-field="business"></td>
+          <td style="padding: 8px 10px;"><input type="text" value="${esc(lead.name)}" style="width: 100%; min-height: 0; padding: 4px;" data-idx="${idx}" data-field="name"></td>
+          <td style="padding: 8px 10px;"><input type="text" value="${esc(lead.phone)}" style="width: 100%; min-height: 0; padding: 4px;" data-idx="${idx}" data-field="phone"></td>
+          <td style="padding: 8px 10px;"><input type="text" value="${esc(lead.notes)}" style="width: 100%; min-height: 0; padding: 4px;" data-idx="${idx}" data-field="notes"></td>
+          <td style="padding: 8px 10px; text-align: center;">
+            <button class="btn btn-go" onclick="window.OmniTenderImportRow(${idx})" style="padding: 4px 8px; font-size: 10px; width: auto; min-height: 0; margin: 0; background: var(--up); border: none;">Import</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    // Wire sync listener to inputs to cache edits locally
+    tbodyEl.querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', (e) => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        const field = e.target.dataset.field;
+        extractedLeadsCache[idx][field] = e.target.value;
+      });
+    });
+  }
+
+  // Global helper for single-row import
+  window.OmniTenderImportRow = async function (idx) {
+    const lead = extractedLeadsCache[idx];
+    if (!lead) return;
+    try {
+      // Post as a single CSV import payload for simplicity
+      const csvStr = `Name,Phone,Business,Source,Notes\n"${lead.name}","${lead.phone}","${lead.business}","${lead.source}","${lead.notes}"`;
+      await api('/api/leads/import', { method: 'POST', body: { csv: csvStr } });
+      toast(`Imported lead: ${lead.business}`);
+      
+      // Remove from preview list
+      extractedLeadsCache.splice(idx, 1);
+      if (extractedLeadsCache.length === 0) {
+        document.getElementById('ai-extracted-results').style.display = 'none';
+        document.getElementById('ai-extract-status').textContent = 'All leads successfully imported!';
+      } else {
+        renderExtractedLeads();
+      }
+      loadOverview(); // Reload statistics and list
+    } catch (e) {
+      toast('Import failed: ' + e.message, true);
+    }
+  };
+
+  document.getElementById('ai-import-all-btn').addEventListener('click', async () => {
+    if (extractedLeadsCache.length === 0) return;
+    const btn = document.getElementById('ai-import-all-btn');
+    btn.disabled = true;
+    try {
+      // Build a unified CSV string for batch import
+      let csvStr = 'Name,Phone,Business,Source,Notes\n';
+      extractedLeadsCache.forEach(lead => {
+        csvStr += `"${lead.name}","${lead.phone}","${lead.business}","${lead.source}","${lead.notes}"\n`;
+      });
+      await api('/api/leads/import', { method: 'POST', body: { csv: csvStr } });
+      toast(`Successfully imported ${extractedLeadsCache.length} leads!`);
+      extractedLeadsCache = [];
+      document.getElementById('ai-extracted-results').style.display = 'none';
+      document.getElementById('ai-extract-status').textContent = 'All leads successfully imported!';
+      loadOverview();
+    } catch (e) {
+      toast('Import failed: ' + e.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
 
   // --- Wire Generation & Tab Controls ---
   document.getElementById('social-generate-btn').addEventListener('click', async () => {
