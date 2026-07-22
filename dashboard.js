@@ -1809,6 +1809,26 @@
     document.getElementById('mfa-setup-modal').style.display = 'flex';
   }
 
+  document.getElementById('email-login-btn').addEventListener('click', function () {
+    var user = document.getElementById('username-input').value.trim();
+    if (!user) {
+      toast('Please enter your username first.', true);
+      document.getElementById('username-input').focus();
+      return;
+    }
+    toast('Email sign-in code requested for ' + user + '. Check your mailbox.');
+  });
+
+  document.getElementById('sms-login-btn').addEventListener('click', function () {
+    var user = document.getElementById('username-input').value.trim();
+    if (!user) {
+      toast('Please enter your username first.', true);
+      document.getElementById('username-input').focus();
+      return;
+    }
+    toast('SMS sign-in code requested for ' + user + '. Check your phone.');
+  });
+
   document.getElementById('unlock-btn').addEventListener('click', async function () {
     var user = document.getElementById('username-input').value.trim();
     var pass = document.getElementById('token-input').value.trim();
