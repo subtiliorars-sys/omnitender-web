@@ -1831,10 +1831,18 @@
 
   document.getElementById('unlock-btn').addEventListener('click', async function () {
     var user = document.getElementById('username-input').value.trim();
-    var pass = document.getElementById('token-input').value.trim();
+    var pass = document.getElementById('token-input') ? document.getElementById('token-input').value.trim() : '';
     var mfaCode = document.getElementById('login-mfa-input').value.trim();
-    var recoveryCode = document.getElementById('login-recovery-input').value.trim();
-    if (!user || !pass) { toast('Username and PIN are required.', true); return; }
+    var recoveryCode = document.getElementById('login-recovery-input') ? document.getElementById('login-recovery-input').value.trim() : '';
+
+    // If username is blank and mfaCode contains hyphens, treat it as a recovery code login
+    if (!user && mfaCode && mfaCode.includes('-')) {
+      recoveryCode = mfaCode;
+      mfaCode = '';
+    } else if (!user) {
+      toast('Username is required.', true);
+      return;
+    }
 
     var btn = document.getElementById('unlock-btn');
     btn.disabled = true;
@@ -1845,10 +1853,10 @@
       const demoUser = matchDemoUser(user, pass);
       if (demoUser) {
         startDemoSession(demoUser);
-        document.getElementById('token-input').value = '';
+        if (document.getElementById('token-input')) document.getElementById('token-input').value = '';
         document.getElementById('username-input').value = '';
         document.getElementById('login-mfa-input').value = '';
-      document.getElementById('login-recovery-input').value = '';
+        if (document.getElementById('login-recovery-input')) document.getElementById('login-recovery-input').value = '';
         document.getElementById('unlock-err').style.display = 'none';
         showDash();
         renderDemoOverview();
@@ -1856,7 +1864,8 @@
         return;
       }
 
-      const payload = { username: user, password: pass };
+      const payload = { username: user };
+      if (pass) payload.password = pass;
       if (mfaCode) payload.mfaCode = mfaCode;
       if (recoveryCode) payload.recoveryCode = recoveryCode;
 

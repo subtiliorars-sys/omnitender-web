@@ -834,24 +834,37 @@
       </div>
 
       <div class="login-field">
-        <label for="token-input">User PIN</label>
-        <input type="password" id="token-input" placeholder="6–12 digit PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="current-password">
-        <p class="login-field-hint" style="margin-top: 4px;">Leave blank if logging in purely with your security key (biometrics) + Authenticator code.</p>
+        <label for="login-mfa-input" class="accent">Authenticator code / PIN</label>
+        <input type="text" id="login-mfa-input" placeholder="6-digit Authenticator code or Starter PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="one-time-code">
+        <p class="login-field-hint" style="margin-top: 4px;">For new users, enter your starter PIN (e.g. 123456) directly here to set up your account.</p>
       </div>
 
-      <div class="login-field">
-        <label for="login-mfa-input" class="accent">Authenticator code</label>
-        <input type="text" id="login-mfa-input" placeholder="6-digit code from your app" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
-        <p class="login-field-hint" style="margin-top: 4px;">Leave blank only on your first bootstrap login.</p>
-      </div>
+      <button type="button" class="btn btn-go" id="unlock-btn" style="width: 100%; padding: 14px; font-size: 14px; margin-bottom: 16px;">Sign in</button>
 
-      <button type="button" class="btn btn-go" id="unlock-btn" style="width: 100%; padding: 14px; font-size: 14px; margin-bottom: 12px;">Sign in</button>
-      <button type="button" class="btn" id="passkey-login-btn" style="width: 100%; padding: 12px; font-size: 13px;">Sign in with biometric key (Passkey)</button>
+      <div style="margin-bottom: 18px;">
+        <p style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; text-align: center; letter-spacing: 0.5px;">Quick sign-in methods</p>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button type="button" class="btn" id="passkey-login-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; padding: 10px;">
+            🔑 Sign in with Biometrics (Passkey)
+          </button>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn" id="email-login-btn" style="flex: 1; font-size: 12px; padding: 10px;">
+              ✉️ Sign in with Email
+            </button>
+            <button type="button" class="btn" id="sms-login-btn" style="flex: 1; font-size: 12px; padding: 10px;">
+              💬 Sign in with SMS
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div class="login-footer-link" style="margin-top: 12px; padding-top: 12px;">
         <details class="login-help" style="margin-top: 0; text-align: left;">
           <summary>Alternative recovery &amp; registration</summary>
-          <div style="margin-top: 12px;">
+            <div class="login-field">
+              <label for="token-input">Backup PIN</label>
+              <input type="password" id="token-input" placeholder="6–12 digit PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="current-password">
+            </div>
             <div class="login-field">
               <label for="login-recovery-input">Recovery code</label>
               <input type="text" id="login-recovery-input" placeholder="XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false">
