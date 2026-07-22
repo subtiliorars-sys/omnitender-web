@@ -1118,6 +1118,48 @@
               <p style="font-size:13px; color:var(--muted); margin:12px 0 0; line-height:1.6;">Your AI operations assistant — talk naturally to update merchants, draft grounded follow-up emails, import merchants from PDFs, search the knowledge base, run research, and issue bulk commands. Opens in a new tab; sign in with your AI Hub account.</p>
             </div>
 
+            <!-- AI SCREENSHOT & TEXT EXTRACTOR -->
+            <div class="card" style="border-color: var(--accent);">
+              <h2>📸 AI Lead Extractor (Gemini)</h2>
+              <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;">
+                Drop or select an image (e.g., a screenshot of a business list or lead details) OR paste raw text. Gemini will extract names, phones, business names, and notes, displaying them in an editable grid to import directly into the CRM.
+              </p>
+              
+              <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px;">
+                <div style="flex: 1; min-width: 250px;">
+                  <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 6px; color: var(--muted);">1. Select Image (Screenshot)</label>
+                  <input type="file" id="ai-extract-image" accept="image/*" style="width: 100%; padding: 8px; background: #222; border: 1px solid #444; border-radius: 6px; color: #fff;">
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                  <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 6px; color: var(--muted);">OR Paste Raw Text</label>
+                  <textarea id="ai-extract-text" rows="2" placeholder="Paste copy/pasted text here..." style="width: 100%; padding: 8px; background: #222; border: 1px solid #444; border-radius: 6px; color: #fff; font-family: inherit; font-size: 13px; resize: vertical;"></textarea>
+                </div>
+              </div>
+
+              <button class="btn btn-go" id="ai-extract-btn" style="width: 100%;">Extract Leads with AI</button>
+              <div id="ai-extract-status" style="margin-top: 10px; font-size: 12px; font-weight: bold; display: none;"></div>
+
+              <!-- EXTRACTED LEADS PREVIEW GRID -->
+              <div id="ai-extracted-results" style="display: none; margin-top: 20px; border-top: 1px solid var(--card-edge); padding-top: 16px;">
+                <h3 style="font-size: 14px; margin: 0 0 12px; color: var(--accent);">Parsed AI Leads Preview</h3>
+                <div style="overflow-x: auto; margin-bottom: 16px;">
+                  <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; min-width: 500px;">
+                    <thead>
+                      <tr style="border-bottom: 2px solid var(--card-edge); color: var(--muted); font-weight: bold;">
+                        <th style="padding: 6px 10px;">Business Name</th>
+                        <th style="padding: 6px 10px;">Contact Name</th>
+                        <th style="padding: 6px 10px;">Phone</th>
+                        <th style="padding: 6px 10px;">Notes / Details</th>
+                        <th style="padding: 6px 10px; text-align: center;">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="ai-extracted-tbody"></tbody>
+                  </table>
+                </div>
+                <button class="btn btn-go" id="ai-import-all-btn" style="width: auto; min-height: 0; padding: 8px 16px; margin: 0;">📥 Import All Into CRM</button>
+              </div>
+            </div>
+
             <div class="card">
               <h2 style="border-left:3px solid var(--accent); padding-left:10px;">Assistants &amp; Tools</h2>
               <div class="grid" style="margin-top:12px;">
