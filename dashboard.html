@@ -826,57 +826,43 @@
         <p style="margin: 4px 0 0; font-size: 0.75rem; letter-spacing: 2px; color: var(--muted); text-transform: uppercase;">CRM &amp; Ops Console</p>
       </div>
       <h2>Console Login</h2>
-      <p class="login-intro">Staff console for OmniTender CRM. Enter your username and authenticator code, then sign in with your passkey or PIN. Merchants: <a href="apply.html">apply here</a>. <strong>Admin-provisioned?</strong> Use Sign in with PIN — not Activate New Account.</p>
+      <p class="login-intro">Staff console for OmniTender CRM. Log in using your credentials below. For first-time setups, use Sign In to initialize your passkey/MFA.</p>
 
       <div class="login-field">
         <label for="username-input">Username</label>
-        <input type="text" id="username-input" placeholder="e.g. j.smith" autocomplete="username" autofocus>
-        <p class="login-field-hint">Required for all sign-in methods.</p>
+        <input type="text" id="username-input" placeholder="e.g. dan" autocomplete="username" autofocus>
+      </div>
+
+      <div class="login-field">
+        <label for="token-input">User PIN</label>
+        <input type="password" id="token-input" placeholder="6–12 digit PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="current-password">
+        <p class="login-field-hint" style="margin-top: 4px;">Leave blank if logging in purely with your security key (biometrics) + Authenticator code.</p>
       </div>
 
       <div class="login-field">
         <label for="login-mfa-input" class="accent">Authenticator code</label>
         <input type="text" id="login-mfa-input" placeholder="6-digit code from your app" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
-        <p class="login-field-hint">Required for passkey sign-in. For PIN sign-in, leave blank only on first login before MFA setup.</p>
+        <p class="login-field-hint" style="margin-top: 4px;">Leave blank only on your first bootstrap login.</p>
       </div>
 
-      <div class="login-field">
-        <label for="login-recovery-input">Recovery code</label>
-        <input type="text" id="login-recovery-input" placeholder="XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false">
-        <p class="login-field-hint">Optional alternative to the authenticator code.</p>
+      <button type="button" class="btn btn-go" id="unlock-btn" style="width: 100%; padding: 14px; font-size: 14px; margin-bottom: 12px;">Sign in</button>
+      <button type="button" class="btn" id="passkey-login-btn" style="width: 100%; padding: 12px; font-size: 13px;">Sign in with biometric key (Passkey)</button>
+
+      <div class="login-footer-link" style="margin-top: 12px; padding-top: 12px;">
+        <details class="login-help" style="margin-top: 0; text-align: left;">
+          <summary>Alternative recovery &amp; registration</summary>
+          <div style="margin-top: 12px;">
+            <div class="login-field">
+              <label for="login-recovery-input">Recovery code</label>
+              <input type="text" id="login-recovery-input" placeholder="XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false">
+            </div>
+            <button type="button" class="btn btn-no" id="toggle-to-register" style="width: 100%; padding: 10px; font-size: 12px; margin-top: 12px;">Activate New Account</button>
+            <p style="font-size: 11px; color: var(--faint); margin: 8px 0 0; line-height: 1.4;">
+              Register is only for first-time activation with an admin Employee Passcode. Already provisioned users should log in directly above.
+            </p>
+          </div>
+        </details>
       </div>
-
-      <button type="button" class="btn btn-go" id="passkey-login-btn" style="width: 100%; padding: 14px; font-size: 14px;">Sign in with passkey</button>
-      <p class="login-passkey-hint">Username + authenticator (or recovery) + your registered security key.</p>
-
-      <div class="login-divider" aria-hidden="true">Or PIN + backup</div>
-
-      <div id="pin-login-panel">
-        <div class="login-field">
-          <label for="token-input">User PIN</label>
-          <input type="password" id="token-input" placeholder="6–12 digit PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="current-password">
-        </div>
-
-        <button class="btn btn-go" id="unlock-btn" style="width: 100%; padding: 12px; font-size: 14px;">Sign in with PIN + backup</button>
-      </div>
-
-      <div class="login-footer-link">
-        <button type="button" class="btn btn-no" id="toggle-to-register" style="width: 100%; padding: 10px; font-size: 12px;">Activate New Account</button>
-        <p style="font-size: 11px; color: var(--faint); margin: 8px 0 0; text-align: center; line-height: 1.4;">
-          <strong>Already provisioned?</strong> Use the <strong>Log In</strong> form above with your username and starter PIN — do not use Register.
-          Register is only for <em>first-time</em> activation with an admin-provided Employee Passcode.
-        </p>
-      </div>
-
-      <details class="login-help">
-        <summary>Need help signing in?</summary>
-        <ol>
-          <li><strong>Daily login:</strong> Username + authenticator code + passkey.</li>
-          <li><strong>No passkey handy:</strong> Username + PIN + authenticator code, or a recovery code.</li>
-          <li><strong>First login:</strong> Username + temporary PIN only — you will set up MFA on the next screen.</li>
-          <li><strong>New employee:</strong> Use Activate New Account with your admin passcode.</li>
-        </ol>
-      </details>
 
       <div id="unlock-err" style="display: none; color: var(--down); background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); padding: 12px; border-radius: var(--radius-sm); font-size: 13px; margin-top: 14px; text-align: center;"></div>
     </div>
