@@ -7,11 +7,11 @@
   'use strict';
 
   // Autodetect if we are running on the Fly backend directly or on the static site
-  var API = window.location.hostname === 'omnitender-omniverse.fly.dev' || window.location.port === '3000'
+  var API = window.location.hostname === 'omnitender.fly.dev' || window.location.port === '3000'
     ? ''
     : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]'
       ? 'http://' + window.location.hostname + ':3000'
-      : 'https://omnitender-omniverse.fly.dev');
+      : 'https://omnitender.fly.dev');
 
   var REFRESH_MS = 30000;
   var _refreshTimer = null;
