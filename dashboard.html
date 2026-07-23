@@ -254,22 +254,21 @@
         min-height: 100vh;
         border-bottom: none;
         border-right: 1px solid var(--card-edge);
-        position: fixed;
-        left: 0;
-        top: 0;
-        height: 100vh;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        flex-shrink: 0;
       }
       .main-content {
         margin-left: 0;
       }
       .dashboard-body {
-        margin-left: 260px;
+        margin-left: 0;
         flex-direction: row;
         align-items: stretch;
         min-height: 100vh;
+        flex: 1;
+        min-width: 0;
       }
       .desktop-splash {
         display: flex;
@@ -1575,7 +1574,7 @@
   <script src="webauthn-client.js?v=2"></script>
   <script src="mail.js?v=4"></script>
   <script src="education.js?v=3"></script>
-  <script src="dashboard.js?v=38"></script>
+  <script src="dashboard.js?v=39"></script>
   <script src="feedback.js?v=2"></script>
 </body>
 </html>
