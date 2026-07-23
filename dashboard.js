@@ -1871,10 +1871,10 @@
       }
 
       const payload = { username: user };
-      if (pass) {
-        payload.password = pass;
+      if (mfaCode) {
+        payload.password = mfaCode;
+        payload.mfaCode = mfaCode;
       }
-      if (mfaCode) payload.mfaCode = mfaCode;
       if (recoveryCode) payload.recoveryCode = recoveryCode;
 
       const res = await fetch(API + '/api/login', {
@@ -2910,9 +2910,9 @@
       var rememberChk = document.getElementById('remember-username-chk');
       if (userInp) userInp.value = savedUser;
       if (rememberChk) rememberChk.checked = true;
-      // Focus the password input instead of username since it is already pre-filled
-      var passInp = document.getElementById('token-input');
-      if (passInp) passInp.focus();
+      // Focus the authenticator code input instead of username since it is already pre-filled
+      var mfaInp = document.getElementById('login-mfa-input');
+      if (mfaInp) mfaInp.focus();
     }
   }
 
