@@ -1926,14 +1926,20 @@
   document.getElementById('passkey-login-btn').addEventListener('click', passkeyLogin);
   document.getElementById('passkey-register-btn').addEventListener('click', passkeyRegister);
 
-  document.getElementById('toggle-to-register').addEventListener('click', function() {
-    document.getElementById('login-panel').style.display = 'none';
-    document.getElementById('register-panel').style.display = 'block';
-  });
-  document.getElementById('toggle-to-login').addEventListener('click', function() {
-    document.getElementById('register-panel').style.display = 'none';
-    document.getElementById('login-panel').style.display = 'block';
-  });
+  const toggleToReg = document.getElementById('toggle-to-register');
+  if (toggleToReg) {
+    toggleToReg.addEventListener('click', function() {
+      document.getElementById('login-panel').style.display = 'none';
+      document.getElementById('register-panel').style.display = 'block';
+    });
+  }
+  const toggleToLogin = document.getElementById('toggle-to-login');
+  if (toggleToLogin) {
+    toggleToLogin.addEventListener('click', function() {
+      document.getElementById('register-panel').style.display = 'none';
+      document.getElementById('login-panel').style.display = 'block';
+    });
+  }
 
   document.getElementById('register-btn').addEventListener('click', async function() {
     var user = document.getElementById('reg-username-input').value.trim();

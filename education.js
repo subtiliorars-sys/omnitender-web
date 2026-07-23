@@ -170,12 +170,14 @@
       v.src = src;
       v.classList.remove('hidden');
       empty?.classList.add('hidden');
-      document.getElementById('edu-now-playing')?.textContent = title || 'Playing';
+      const nowPlaying = document.getElementById('edu-now-playing');
+      if (nowPlaying) nowPlaying.textContent = title || 'Playing';
     } else {
       v.removeAttribute('src');
       v.classList.add('hidden');
       empty?.classList.remove('hidden');
-      document.getElementById('edu-now-playing')?.textContent = title || 'Select a lesson';
+      const nowPlaying = document.getElementById('edu-now-playing');
+      if (nowPlaying) nowPlaying.textContent = title || 'Select a lesson';
     }
     bindPlayerEvents();
   }
