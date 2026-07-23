@@ -2684,10 +2684,6 @@
     });
   }
 
-      });
-    });
-  }
-
   // --- AI Lead Extractor Frontend Logic ---
   let extractedLeadsCache = [];
 
