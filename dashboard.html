@@ -603,9 +603,10 @@
       background: rgba(0, 0, 0, 0.75);
       backdrop-filter: blur(6px);
       z-index: 200;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 20px;
+      padding: 40px 20px;
+      overflow-y: auto;
       animation: fadeIn 0.2s ease-out;
     }
     /* Blur breaks QR scanning on some mobile browsers — keep MFA setup crisp */
@@ -904,7 +905,7 @@
 
   <!-- FIRST LOGIN SETUP / 2FA ENROLLMENT MODAL -->
   <div id="mfa-setup-modal" class="modal-overlay" style="display: none;">
-    <div class="card" style="max-width: 460px; width: 100%; margin: 0; box-shadow: 0 10px 40px rgba(0,0,0,0.8); text-align: left;">
+    <div class="card" style="max-width: 460px; width: 100%; margin: 0; box-shadow: 0 10px 40px rgba(0,0,0,0.8); text-align: left; max-height: 90vh; overflow-y: auto;">
       <h2 style="border-left: 3px solid var(--accent); padding-left: 10px; margin-bottom: 12px; color: var(--accent);">Activate Your Console Account</h2>
       <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;">Choose your permanent username and PIN, then scan the QR in your authenticator app. The account will appear as <strong>OmniTender</strong>. Scan on another device, or copy the setup key.</p>
       
