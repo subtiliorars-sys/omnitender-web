@@ -1899,10 +1899,10 @@
       sessionStorage.setItem('omni_dash_username', data.username);
       currentUserRole = data.role;
 
-      document.getElementById('token-input').value = '';
+      if (document.getElementById('token-input')) document.getElementById('token-input').value = '';
       document.getElementById('username-input').value = '';
       document.getElementById('login-mfa-input').value = '';
-      document.getElementById('login-recovery-input').value = '';
+      if (document.getElementById('login-recovery-input')) document.getElementById('login-recovery-input').value = '';
 
       showDash();
       loadOverview();
@@ -1915,7 +1915,7 @@
       toast(err.message, true);
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Sign in with PIN + backup';
+      btn.textContent = 'Sign in';
     }
   });
 
