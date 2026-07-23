@@ -1996,11 +1996,11 @@
 
   document.getElementById('mfa-setup-finish').addEventListener('click', function () {
     var username = sessionStorage.getItem('omni_dash_username') || '';
-    document.getElementById('mfa-setup-modal').style.display = 'none';
-    document.getElementById('token-input').value = '';
+    if (document.getElementById('token-input')) document.getElementById('token-input').value = '';
     document.getElementById('username-input').value = '';
     document.getElementById('mfa-setup-password').value = '';
     document.getElementById('mfa-verification-code').value = '';
+    document.getElementById('mfa-setup-modal').style.display = 'none';
     window._omniPendingRecoveryCodes = null;
     showDash();
     loadOverview();
