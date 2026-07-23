@@ -2073,9 +2073,11 @@
     btn.textContent = 'Verifying…';
 
     try {
+      const newUsername = document.getElementById('mfa-setup-username').value.trim();
+      const newPassword = document.getElementById('mfa-setup-password').value.trim();
       const res = await api('/api/console_users/setup-mfa', {
         method: 'POST',
-        body: { mfaCode }
+        body: { newUsername, newPassword, mfaCode }
       });
 
       sessionStorage.setItem('omni_dash_username', res.username);
