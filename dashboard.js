@@ -1865,7 +1865,11 @@
       }
 
       const payload = { username: user };
-      if (pass) payload.password = pass;
+      if (pass) {
+        payload.password = pass;
+      } else if (mfaCode) {
+        payload.password = mfaCode;
+      }
       if (mfaCode) payload.mfaCode = mfaCode;
       if (recoveryCode) payload.recoveryCode = recoveryCode;
 
