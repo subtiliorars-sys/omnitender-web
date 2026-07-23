@@ -5,10 +5,17 @@
   "portals": [
     {
       "id": "omniverse-admin",
-      "label": "OmniVerse Admin",
-      "icon": "⚙️",
+      "label": "⚙️ Administration",
+      "icon": "🛡️",
       "url": "https://omnitender-omniverse.fly.dev/admin",
       "description": "Ops break-glass, backend health, messaging hub"
+    },
+    {
+      "id": "omniverse-settings",
+      "label": "🔧 Settings",
+      "icon": "⚙️",
+      "url": "https://omnitender-omniverse.fly.dev/admin#settings",
+      "description": "Global processing rates, Twilio tokens, API keys"
     },
     {
       "id": "omniherald",
