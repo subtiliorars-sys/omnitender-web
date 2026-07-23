@@ -835,6 +835,16 @@
         <input type="text" id="username-input" placeholder="e.g. stan" autocomplete="username" autofocus>
       </div>
 
+      <div class="login-field" style="margin-top: 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="remember-username-chk" style="width: 16px; height: 16px; margin: 0; accent-color: var(--accent);">
+        <label for="remember-username-chk" style="margin: 0; font-size: 12px; color: var(--muted); cursor: pointer; user-select: none;">Remember my username</label>
+      </div>
+
+      <div class="login-field">
+        <label for="token-input">Password / PIN</label>
+        <input type="password" id="token-input" placeholder="Enter your password or account PIN" autocomplete="current-password">
+      </div>
+
       <div class="login-field">
         <label for="login-mfa-input" class="accent">Authenticator code / PIN</label>
         <input type="text" id="login-mfa-input" placeholder="6-digit Authenticator code or Starter PIN" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="one-time-code">
@@ -1570,7 +1580,7 @@
   <script src="webauthn-client.js?v=2"></script>
   <script src="mail.js?v=4"></script>
   <script src="education.js?v=3"></script>
-  <script src="dashboard.js?v=35"></script>
+  <script src="dashboard.js?v=36"></script>
   <script src="feedback.js?v=2"></script>
 </body>
 </html>

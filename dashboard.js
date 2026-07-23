@@ -1844,6 +1844,13 @@
       return;
     }
 
+    var rememberChk = document.getElementById('remember-username-chk');
+    if (rememberChk && rememberChk.checked) {
+      localStorage.setItem('omni_remembered_username', user);
+    } else {
+      localStorage.removeItem('omni_remembered_username');
+    }
+
     var btn = document.getElementById('unlock-btn');
     btn.disabled = true;
     btn.textContent = 'Logging in…';
@@ -1854,7 +1861,6 @@
       if (demoUser) {
         startDemoSession(demoUser);
         if (document.getElementById('token-input')) document.getElementById('token-input').value = '';
-        document.getElementById('username-input').value = '';
         document.getElementById('login-mfa-input').value = '';
         if (document.getElementById('login-recovery-input')) document.getElementById('login-recovery-input').value = '';
         document.getElementById('unlock-err').style.display = 'none';
@@ -1867,8 +1873,6 @@
       const payload = { username: user };
       if (pass) {
         payload.password = pass;
-      } else if (mfaCode) {
-        payload.password = mfaCode;
       }
       if (mfaCode) payload.mfaCode = mfaCode;
       if (recoveryCode) payload.recoveryCode = recoveryCode;
@@ -1904,7 +1908,6 @@
       currentUserRole = data.role;
 
       if (document.getElementById('token-input')) document.getElementById('token-input').value = '';
-      document.getElementById('username-input').value = '';
       document.getElementById('login-mfa-input').value = '';
       if (document.getElementById('login-recovery-input')) document.getElementById('login-recovery-input').value = '';
 
@@ -2899,6 +2902,18 @@
       }
     }
     showUnlock();
+    
+    // Load remembered username if exists
+    var savedUser = localStorage.getItem('omni_remembered_username');
+    if (savedUser) {
+      var userInp = document.getElementById('username-input');
+      var rememberChk = document.getElementById('remember-username-chk');
+      if (userInp) userInp.value = savedUser;
+      if (rememberChk) rememberChk.checked = true;
+      // Focus the password input instead of username since it is already pre-filled
+      var passInp = document.getElementById('token-input');
+      if (passInp) passInp.focus();
+    }
   }
 
   init();
