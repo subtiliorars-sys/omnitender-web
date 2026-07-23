@@ -167,7 +167,7 @@
     }
     wrap.style.display = 'block';
     try {
-      var r = await fetch('systems-portal.json?v=2');
+      var r = await fetch('systems-portal.json?v=3');
       if (!r.ok) throw new Error('load failed');
       var data = await r.json();
       nav.innerHTML = (data.portals || []).map(function (p) {
