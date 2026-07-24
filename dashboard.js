@@ -322,6 +322,7 @@
     leads: loadLeads,
     feedback: loadFeedback,
     access: loadAccess,
+    usersettings: loadUserSettings,
     savings: loadPricing,
     digest: loadDigest,
     social: loadSocial
@@ -1348,12 +1349,52 @@
           const pkBadge = u.passkeyCount ? ' <span class="badge b-approved">' + u.passkeyCount + ' key(s)</span>' : '';
           const rcBadge = u.recoveryCodesRemaining != null && u.mfaEnabled
             ? ' <span class="badge">' + u.recoveryCodesRemaining + ' recovery</span>' : '';
-          return '<div class="item"><div class="t">' + esc(u.username) +
-          '<span class="badge b-approved">' + esc(u.role) + '</span>' + pendingBadge + pkBadge + rcBadge + '</div>' +
-          '<div class="m">Created ' + esc(u.createdAt.slice(0, 10)) + '</div>' +
-          (u.bootstrap ? '' : '<div class="actions" style="margin-top:4px">' +
-            (u.mfaEnabled ? '<button class="btn btn-no" data-regen-rc="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">New recovery codes</button> ' : '') +
-            '<button class="btn btn-no" data-deluser="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">Delete</button></div>') +
+          
+          const isMe = u.username === sessionStorage.getItem('omni_dash_username');
+          const deleteBtn = (u.isBootstrapOwner || isMe) ? '' : '<button class="btn btn-no" data-deluser="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">Delete</button>';
+          
+          return '<div class="item" style="border-left: 3px solid var(--accent); padding-left: 10px; margin-bottom: 12px;">' +
+            '<div class="t" style="font-weight: bold; display: flex; align-items: center; justify-content: space-between;">' +
+              '<span>' + esc(u.username) + ' <span class="badge b-approved">' + esc(u.role) + '</span>' + pendingBadge + pkBadge + rcBadge + '</span>' +
+              '<span style="font-size: 11px; font-weight: normal; color: var(--faint);">ID: ' + esc(u.id) + '</span>' +
+            '</div>' +
+            '<div class="m" style="margin-top: 4px; font-size: 11px; color: var(--muted);">' +
+              'Primary Email: <strong>' + esc(u.primaryEmail || 'None') + '</strong> · ' +
+              'Phone: <strong>' + esc(u.primaryPhone || 'None') + '</strong><br>' +
+              'Secondary Email: <strong>' + esc(u.secondaryEmail || 'None') + '</strong> · ' +
+              'Phone: <strong>' + esc(u.secondaryPhone || 'None') + '</strong><br>' +
+              'Created ' + esc(u.createdAt.slice(0, 10)) +
+            '</div>' +
+            '<div class="actions" style="margin-top:8px; display: flex; flex-wrap: wrap; gap: 6px;">' +
+              (u.mfaEnabled ? '<button class="btn btn-no" data-regen-rc="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">New recovery codes</button> ' : '') +
+              '<button class="btn btn-go" data-modifyuser="' + esc(u.id) + '" data-uname="' + esc(u.username) + '">Modify User</button>' +
+              deleteBtn +
+            '</div>' +
+            '<div id="modify-panel-' + esc(u.id) + '" style="display:none; background: var(--inset); border: 1px solid var(--card-edge); padding: 12px; margin-top: 8px; border-radius: var(--radius-sm);">' +
+              '<h4 style="margin: 0 0 8px; font-size: 12px;">Modify credentials for ' + esc(u.username) + '</h4>' +
+              '<div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">' +
+                '<div style="display: flex; gap: 6px;">' +
+                  '<input type="text" id="mod-uname-' + esc(u.id) + '" value="' + esc(u.username) + '" placeholder="Username" style="flex: 1; padding: 6px; font-size:12px;">' +
+                  '<input type="password" id="mod-pin-' + esc(u.id) + '" placeholder="New PIN (leave blank to keep)" style="flex: 1; padding: 6px; font-size:12px;">' +
+                '</div>' +
+                '<div style="display: flex; gap: 6px;">' +
+                  '<input type="email" id="mod-pemail-' + esc(u.id) + '" value="' + esc(u.primaryEmail || '') + '" placeholder="Primary Email" style="flex: 1; padding: 6px; font-size:12px;">' +
+                  '<input type="email" id="mod-semail-' + esc(u.id) + '" value="' + esc(u.secondaryEmail || '') + '" placeholder="Secondary Email" style="flex: 1; padding: 6px; font-size:12px;">' +
+                '</div>' +
+                '<div style="display: flex; gap: 6px;">' +
+                  '<input type="text" id="mod-pphone-' + esc(u.id) + '" value="' + esc(u.primaryPhone || '') + '" placeholder="Primary Phone" style="flex: 1; padding: 6px; font-size:12px;">' +
+                  '<input type="text" id="mod-sphone-' + esc(u.id) + '" value="' + esc(u.secondaryPhone || '') + '" placeholder="Secondary Phone" style="flex: 1; padding: 6px; font-size:12px;">' +
+                '</div>' +
+                '<div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">' +
+                  '<input type="checkbox" id="mod-resetmfa-' + esc(u.id) + '" style="width: auto; margin:0;">' +
+                  '<label for="mod-resetmfa-' + esc(u.id) + '" style="font-weight: bold; color: var(--accent);">Reset 2FA app &amp; Security keys (force setup on next login)</label>' +
+                '</div>' +
+                '<div style="display: flex; gap: 6px; margin-top: 4px;">' +
+                  '<button class="btn btn-go" data-savemodify="' + esc(u.id) + '" style="width: auto; padding: 6px 12px; margin:0; font-size:12px;">Save Changes</button>' +
+                  '<button class="btn btn-no" data-cancelmodify="' + esc(u.id) + '" style="width: auto; padding: 6px 12px; margin:0; font-size:12px;">Cancel</button>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
           '</div>';
         });
         document.getElementById('console-users-list').innerHTML = cul.length ? cul.join('') : '<div class=empty>No custom accounts created yet.</div>';
@@ -1735,6 +1776,61 @@
         toast('Security key removed.');
         loadPasskeys();
       } catch (err) { toast(err.message, true); pkDel.disabled = false; }
+      return;
+    }
+
+    // Toggle modify panel
+    const modBtn = e.target.closest('button[data-modifyuser]');
+    if (modBtn) {
+      const uid = modBtn.dataset.modifyuser;
+      const panel = document.getElementById('modify-panel-' + uid);
+      if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      return;
+    }
+
+    // Cancel modify
+    const cancelModBtn = e.target.closest('button[data-cancelmodify]');
+    if (cancelModBtn) {
+      const uid = cancelModBtn.dataset.cancelmodify;
+      const panel = document.getElementById('modify-panel-' + uid);
+      if (panel) panel.style.display = 'none';
+      return;
+    }
+
+    // Save modify
+    const saveModBtn = e.target.closest('button[data-savemodify]');
+    if (saveModBtn) {
+      const uid = saveModBtn.dataset.savemodify;
+      saveModBtn.disabled = true;
+
+      const username = document.getElementById('mod-uname-' + uid).value.trim();
+      const newPassword = document.getElementById('mod-pin-' + uid).value.trim();
+      const primaryEmail = document.getElementById('mod-pemail-' + uid).value.trim();
+      const secondaryEmail = document.getElementById('mod-semail-' + uid).value.trim();
+      const primaryPhone = document.getElementById('mod-pphone-' + uid).value.trim();
+      const secondaryPhone = document.getElementById('mod-sphone-' + uid).value.trim();
+      const resetMfa = document.getElementById('mod-resetmfa-' + uid).checked;
+
+      try {
+        await api('/api/console_users/admin_modify', {
+          method: 'POST',
+          body: {
+            id: uid,
+            username,
+            newPassword: newPassword || undefined,
+            primaryEmail,
+            secondaryEmail,
+            primaryPhone,
+            secondaryPhone,
+            resetMfa
+          }
+        });
+        toast('User ' + username + ' updated successfully!');
+        loadAccess();
+      } catch (err) {
+        toast(err.message, true);
+        saveModBtn.disabled = false;
+      }
       return;
     }
   });
@@ -2446,6 +2542,112 @@
       loadDigest();
     } catch (err) {
       statusDiv.innerHTML = `<span style="color:red;">Failed: ${esc(err.message)}</span>`;
+    }
+  });
+
+  // --- Individual User Settings Panel Bindings ---
+  async function loadUserSettings() {
+    try {
+      const p = await api('/api/console_users/profile');
+      document.getElementById('settings-username-input').value = p.username || '';
+      document.getElementById('settings-email-primary').value = p.primaryEmail || '';
+      document.getElementById('settings-email-secondary').value = p.secondaryEmail || '';
+      document.getElementById('settings-phone-primary').value = p.primaryPhone || '';
+      document.getElementById('settings-phone-secondary').value = p.secondaryPhone || '';
+      
+      document.getElementById('settings-username-status').innerHTML = '';
+      document.getElementById('settings-pin-status').innerHTML = '';
+      document.getElementById('settings-emails-status').innerHTML = '';
+      document.getElementById('settings-phones-status').innerHTML = '';
+      document.getElementById('settings-mfa-status').innerHTML = '';
+    } catch (e) {
+      toast('Failed to load profile settings: ' + e.message, true);
+    }
+  }
+
+  document.getElementById('settings-username-save').addEventListener('click', async () => {
+    const uname = document.getElementById('settings-username-input').value.trim();
+    const status = document.getElementById('settings-username-status');
+    status.innerHTML = '<span style="color:var(--accent);">Updating username...</span>';
+    try {
+      await api('/api/console_users/setup-mfa', {
+        method: 'POST',
+        body: { newUsername: uname }
+      });
+      sessionStorage.setItem('omni_dash_username', uname);
+      status.innerHTML = '<span style="color:#22c55e;">✓ Username updated successfully!</span>';
+      toast('Username updated to ' + uname);
+    } catch (e) {
+      status.innerHTML = '<span style="color:red;">Error: ' + esc(e.message) + '</span>';
+    }
+  });
+
+  document.getElementById('settings-pin-save').addEventListener('click', async () => {
+    const oldP = document.getElementById('settings-pin-old').value.trim();
+    const newP = document.getElementById('settings-pin-new').value.trim();
+    const status = document.getElementById('settings-pin-status');
+    status.innerHTML = '<span style="color:var(--accent);">Changing PIN...</span>';
+    try {
+      await api('/api/console_users/change-password', {
+        method: 'POST',
+        body: { oldPassword: oldP, newPassword: newP }
+      });
+      document.getElementById('settings-pin-old').value = '';
+      document.getElementById('settings-pin-new').value = '';
+      status.innerHTML = '<span style="color:#22c55e;">✓ PIN changed successfully!</span>';
+      toast('Security PIN changed.');
+    } catch (e) {
+      status.innerHTML = '<span style="color:red;">Error: ' + esc(e.message) + '</span>';
+    }
+  });
+
+  document.getElementById('settings-emails-save').addEventListener('click', async () => {
+    const pemail = document.getElementById('settings-email-primary').value.trim();
+    const semail = document.getElementById('settings-email-secondary').value.trim();
+    const status = document.getElementById('settings-emails-status');
+    status.innerHTML = '<span style="color:var(--accent);">Saving emails...</span>';
+    try {
+      await api('/api/console_users/profile', {
+        method: 'POST',
+        body: { primaryEmail: pemail, secondaryEmail: semail }
+      });
+      status.innerHTML = '<span style="color:#22c55e;">✓ Emails updated successfully!</span>';
+      toast('Email profile updated.');
+    } catch (e) {
+      status.innerHTML = '<span style="color:red;">Error: ' + esc(e.message) + '</span>';
+    }
+  });
+
+  document.getElementById('settings-phones-save').addEventListener('click', async () => {
+    const pphone = document.getElementById('settings-phone-primary').value.trim();
+    const sphone = document.getElementById('settings-phone-secondary').value.trim();
+    const status = document.getElementById('settings-phones-status');
+    status.innerHTML = '<span style="color:var(--accent);">Saving phone numbers...</span>';
+    try {
+      await api('/api/console_users/profile', {
+        method: 'POST',
+        body: { primaryPhone: pphone, secondaryPhone: sphone }
+      });
+      status.innerHTML = '<span style="color:#22c55e;">✓ Phone numbers updated successfully!</span>';
+      toast('Phone profile updated.');
+    } catch (e) {
+      status.innerHTML = '<span style="color:red;">Error: ' + esc(e.message) + '</span>';
+    }
+  });
+
+  document.getElementById('settings-mfa-reset').addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to reset your 2FA Authenticator app link? This will also remove any registered passkeys. You will be forced to configure a new authenticator token on your next login.')) return;
+    const status = document.getElementById('settings-mfa-status');
+    status.innerHTML = '<span style="color:red;">Resetting 2FA credentials...</span>';
+    try {
+      await api('/api/console_users/profile', {
+        method: 'POST',
+        body: { resetMfa: true }
+      });
+      status.innerHTML = '<span style="color:#22c55e;">✓ 2FA has been reset. You will configure 2FA again on next sign-in.</span>';
+      toast('2FA configuration has been reset.');
+    } catch (e) {
+      status.innerHTML = '<span style="color:red;">Error: ' + esc(e.message) + '</span>';
     }
   });
 

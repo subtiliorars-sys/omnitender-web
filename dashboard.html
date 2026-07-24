@@ -998,7 +998,8 @@
             <button data-v="mail">✉️ Your mail</button>
             <button data-v="leads">👥 Leads</button>
             <button data-v="feedback">💬 Feedback</button>
-            <button data-v="access">🔑 Access &amp; Admins</button>
+            <button data-v="access">🛡️ Administration</button>
+            <button data-v="usersettings">⚙️ Settings</button>
             <button data-v="savings">💰 Savings &amp; Pricing</button>
             <button data-v="digest">📰 Digest</button>
             <button data-v="social">📣 Social Media</button>
@@ -1391,6 +1392,72 @@
               
               <h3>Active dashboard accounts</h3>
               <div id="console-users-list"></div>
+            </div>
+          </section>
+          
+          <!-- INDIVIDUAL USER SETTINGS VIEW -->
+          <section id="v-usersettings" class="view">
+            <div class="card">
+              <h2>⚙️ Your Profile &amp; Credentials</h2>
+              <p style="font-size:12px; color:var(--muted); margin-top:-6px; margin-bottom:16px;">Update your personal profile details here. These changes take effect immediately on your active session.</p>
+              
+              <div style="background: var(--inset); border: 1px solid var(--card-edge); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+                <h3 style="margin: 0 0 12px; font-size: 13px; color: #fff;">Change Username</h3>
+                <div class="row" style="margin-bottom: 8px; display: flex; gap: 8px;">
+                  <input type="text" id="settings-username-input" placeholder="New username" style="flex:1;">
+                  <button class="btn btn-go" id="settings-username-save" style="width:auto; margin:0; padding:10px 16px;">Update Username</button>
+                </div>
+                <div id="settings-username-status" style="font-size: 11px; margin-top: 4px;"></div>
+              </div>
+
+              <div style="background: var(--inset); border: 1px solid var(--card-edge); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+                <h3 style="margin: 0 0 12px; font-size: 13px; color: #fff;">Change Password PIN</h3>
+                <div class="row" style="margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;">
+                  <input type="password" id="settings-pin-old" placeholder="Current PIN" style="width: 100%;">
+                  <input type="password" id="settings-pin-new" placeholder="New PIN (6–12 digits)" style="width: 100%;">
+                  <button class="btn btn-go" id="settings-pin-save" style="width:100%; margin:0; padding:10px 16px;">Change PIN</button>
+                </div>
+                <div id="settings-pin-status" style="font-size: 11px; margin-top: 4px;"></div>
+              </div>
+
+              <div style="background: var(--inset); border: 1px solid var(--card-edge); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+                <h3 style="margin: 0 0 12px; font-size: 13px; color: #fff;">Emails Configuration</h3>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+                  <div>
+                    <label for="settings-email-primary" style="display: block; font-size: 11px; font-weight: bold; color: var(--muted); margin-bottom: 4px;">Primary Email</label>
+                    <input type="email" id="settings-email-primary" placeholder="primary@example.com" style="width: 100%;">
+                  </div>
+                  <div>
+                    <label for="settings-email-secondary" style="display: block; font-size: 11px; font-weight: bold; color: var(--muted); margin-bottom: 4px;">Secondary Email (Backup)</label>
+                    <input type="email" id="settings-email-secondary" placeholder="backup@example.com" style="width: 100%;">
+                  </div>
+                </div>
+                <button class="btn btn-go" id="settings-emails-save" style="width: 100%; margin: 0; padding: 10px 16px;">Save Email Profiles</button>
+                <div id="settings-emails-status" style="font-size: 11px; margin-top: 4px;"></div>
+              </div>
+
+              <div style="background: var(--inset); border: 1px solid var(--card-edge); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+                <h3 style="margin: 0 0 12px; font-size: 13px; color: #fff;">Phone Numbers Configuration</h3>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+                  <div>
+                    <label for="settings-phone-primary" style="display: block; font-size: 11px; font-weight: bold; color: var(--muted); margin-bottom: 4px;">Primary Phone Number</label>
+                    <input type="text" id="settings-phone-primary" placeholder="+1234567890" style="width: 100%;">
+                  </div>
+                  <div>
+                    <label for="settings-phone-secondary" style="display: block; font-size: 11px; font-weight: bold; color: var(--muted); margin-bottom: 4px;">Secondary Phone (Backup)</label>
+                    <input type="text" id="settings-phone-secondary" placeholder="+1234567890" style="width: 100%;">
+                  </div>
+                </div>
+                <button class="btn btn-go" id="settings-phones-save" style="width: 100%; margin: 0; padding: 10px 16px;">Save Phone Profiles</button>
+                <div id="settings-phones-status" style="font-size: 11px; margin-top: 4px;"></div>
+              </div>
+
+              <div style="background: var(--inset); border: 1px solid var(--card-edge); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+                <h3 style="margin: 0 0 12px; font-size: 13px; color: #fff;">Reset 2FA (Authenticator)</h3>
+                <p style="font-size: 11px; color: var(--muted); line-height: 1.4; margin-bottom: 12px;">Need to link your authenticator app to a new phone? Resetting 2FA triggers a QR setup flow on your next login to pair your account with a new authenticator token.</p>
+                <button class="btn btn-no" id="settings-mfa-reset" style="width: auto; margin: 0; padding: 10px 16px;">Reset 2FA Setup</button>
+                <div id="settings-mfa-status" style="font-size: 11px; margin-top: 4px;"></div>
+              </div>
             </div>
           </section>
 
