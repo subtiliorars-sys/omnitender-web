@@ -170,14 +170,28 @@
       var r = await fetch('systems-portal.json?v=3');
       if (!r.ok) throw new Error('load failed');
       var data = await r.json();
+      var token = getToken();
       nav.innerHTML = (data.portals || []).map(function (p) {
-        return '<a href="' + esc(p.url) + '" target="_blank" rel="noopener" class="nav-portal-link" title="' + esc(p.description || '') + '">' +
+        var targetUrl = p.url || '';
+        if (targetUrl.indexOf('omnitender-omniverse.fly.dev') !== -1 && token) {
+          var separator = targetUrl.indexOf('?') !== -1 ? '&' : '?';
+          if (targetUrl.indexOf('#') !== -1) {
+            var parts = targetUrl.split('#');
+            targetUrl = parts[0] + separator + 'token=' + encodeURIComponent(token) + '#' + parts[1];
+          } else {
+            targetUrl = targetUrl + separator + 'token=' + encodeURIComponent(token);
+          }
+        }
+        return '<a href="' + esc(targetUrl) + '" target="_blank" rel="noopener" class="nav-portal-link" title="' + esc(p.description || '') + '">' +
           esc(p.icon || '•') + ' ' + esc(p.label) + '</a>';
       }).join('');
     } catch (_) {
+      var token = getToken();
+      var adminUrl = 'https://omnitender-omniverse.fly.dev/admin' + (token ? '?token=' + encodeURIComponent(token) : '');
+      var settingsUrl = 'https://omnitender-omniverse.fly.dev/admin' + (token ? '?token=' + encodeURIComponent(token) : '') + '#settings';
       nav.innerHTML = 
-        '<a href="https://omnitender-omniverse.fly.dev/admin" target="_blank" rel="noopener" class="nav-portal-link">🛡️ Administration</a>' +
-        '<a href="https://omnitender-omniverse.fly.dev/admin#settings" target="_blank" rel="noopener" class="nav-portal-link">⚙️ Settings</a>';
+        '<a href="' + esc(adminUrl) + '" target="_blank" rel="noopener" class="nav-portal-link">🛡️ Administration</a>' +
+        '<a href="' + esc(settingsUrl) + '" target="_blank" rel="noopener" class="nav-portal-link">⚙️ Settings</a>';
     }
   }
 
