@@ -186,12 +186,9 @@
           esc(p.icon || '•') + ' ' + esc(p.label) + '</a>';
       }).join('');
     } catch (_) {
-      var token = getToken();
-      var adminUrl = 'https://omnitender.fly.dev/admin' + (token ? '?token=' + encodeURIComponent(token) : '');
-      var settingsUrl = 'https://omnitender.fly.dev/admin' + (token ? '?token=' + encodeURIComponent(token) : '') + '#settings';
       nav.innerHTML = 
-        '<a href="' + esc(adminUrl) + '" target="_blank" rel="noopener" class="nav-portal-link">🛡️ Administration</a>' +
-        '<a href="' + esc(settingsUrl) + '" target="_blank" rel="noopener" class="nav-portal-link">⚙️ Settings</a>';
+        '<a href="#/access" class="nav-portal-link">🛡️ Administration</a>' +
+        '<a href="#/usersettings" class="nav-portal-link">⚙️ Settings</a>';
     }
   }
 
