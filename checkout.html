@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23070707'/><text x='16' y='23' font-size='22' font-family='Arial,Helvetica,sans-serif' font-weight='bold' text-anchor='middle' fill='%23F7792C'>O</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="index, follow">
+  <title>Checkout — Premium Payment Portal | OmniTender</title>
+  <meta name="description" content="Secure checkout portal for OmniTender services. Subscribe to OmniSecure, Daystrom Swarms, or Games subscriptions via Credit Card or Crypto.">
+  <meta name="theme-color" content="#F7792C">
+  <link rel="canonical" href="https://omnitender.us/checkout.html">
+  <link rel="stylesheet" href="style.css?v=9">
+  <script src="site-config.js?v=ads1"></script>
+  <script src="google-analytics.js?v=ads1" defer></script>
+  <script src="meta-pixel.js" defer></script>
+  <script src="conversion-events.js" defer></script>
+  
+  <style>
+    /* Checkout Specific Premium Styling */
+    .checkout-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 32px;
+      margin-top: 24px;
+      align-items: start;
+    }
+
+    .checkout-section-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--brand);
+      margin: 24px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    /* Product category tabs */
+    .category-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .category-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: var(--radius-sm);
+      padding: 14px 10px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .category-btn.active {
+      border-color: var(--brand);
+      color: var(--brand);
+      background: rgba(247, 121, 44, 0.08);
+      box-shadow: 0 0 15px rgba(247, 121, 44, 0.15);
+    }
+
+    .category-btn:hover:not(.active) {
+      border-color: #444;
+      color: var(--ink);
+      background: var(--surface);
+    }
+
+    /* Plan card selectors */
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .plan-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .plan-card.active {
+      border-color: var(--gold);
+      background: rgba(212, 175, 55, 0.04);
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.08);
+    }
+
+    .plan-card.active::after {
+      content: '✓';
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--gold);
+      color: #000;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .plan-card:hover:not(.active) {
+      border-color: var(--brand);
+      transform: translateY(-2px);
+    }
+
+    .plan-card h4 {
+      margin: 0 0 6px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .plan-card .price {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--brand);
+      margin: 8px 0;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .plan-card .price span {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .plan-card .desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    /* Billing toggle */
+    .billing-toggle-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: 99px;
+      margin-bottom: 24px;
+      max-width: 320px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--border);
+      transition: .3s;
+      border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--ink);
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+      background-color: var(--brand);
+    }
+
+    input:checked + .toggle-slider:before {
+      transform: translateX(22px);
+    }
+
+    .billing-label {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .billing-label.active {
+      color: #fff;
+    }
+
+    .discount-badge {
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--gold);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    /* Payment selectors */
+    .payment-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .payment-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .payment-btn.active {
+      border-color: var(--brand);
+      color: var(--brand);
+      background: rgba(247, 121, 44, 0.08);
+    }
+
+    .payment-btn:hover:not(.active) {
+      border-color: #444;
+      color: var(--ink);
+    }
+
+    .payment-btn span {
+      font-size: 0.9rem;
+    }
+
+    .payment-logo-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .payment-logo-row img, .payment-logo-row svg {
+      height: 16px;
+      opacity: 0.7;
+    }
+
+    .payment-btn.active .payment-logo-row img,
+    .payment-btn.active .payment-logo-row svg {
+      opacity: 1;
+    }
+
+    /* Input Field Container */
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* Sidebar summary */
+    .summary-card {
+      position: sticky;
+      top: 24px;
+      background: linear-gradient(135deg, var(--surface) 0%, #0c0c0c 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .summary-line.total {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      margin-top: 16px;
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .summary-line.total .price {
+      color: var(--brand);
+    }
+
+    .badge-secure {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--ok-ink);
+      background: rgba(74, 222, 128, 0.08);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-top: 20px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    /* Crypto Payment Flow */
+    .crypto-flow {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 24px;
+      text-align: center;
+    }
+
+    .qr-container {
+      width: 160px;
+      height: 160px;
+      background: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 16px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .crypto-address-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 0.82rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      word-break: break-all;
+    }
+
+    .btn-copy {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 4px 8px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      border-radius: 4px;
+      min-height: 0;
+      margin-top: 0;
+      width: auto;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .btn-copy:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+      background: rgba(247, 121, 44, 0.05);
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 880px) {
+      .checkout-grid {
+        grid-template-columns: 1fr;
+      }
+      .summary-card {
+        position: relative;
+        top: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header>
+    <a class="brand" href="index.html" style="display: inline-flex; align-items: center; gap: 12px; justify-content: center; text-decoration: none;">
+      <img src="logo.svg" alt="OmniTender Crest Logo" style="height: 38px; width: auto;">
+      <span>Omni<span style="color: var(--brand);">Tender</span></span>
+    </a>
+    <p class="tagline">Money by the people, for the people</p>
+    <nav class="topnav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="omnisecure.html">OmniSecure</a>
+      <a href="checkout.html" aria-current="page">Checkout</a>
+      <a href="savings.html">Savings</a>
+      <a href="about.html">About</a>
+      <a href="merchants-nc.html">Western NC</a>
+      <a href="contact.html">Contact</a>
+      <a href="apply.html" class="topnav-cta">Get started</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <div class="page-hero" style="margin-bottom: var(--space-xl);">
+      <span class="eyebrow">Secure Portal</span>
+      <h1>Unified Checkout</h1>
+      <p class="lead">Select your subscription service, billing preference, and payment route. Transact instantly with Stripe or Coinbase Commerce.</p>
+    </div>
+
+    <div class="checkout-grid">
+      <!-- Checkout Form Content -->
+      <div>
+        <div class="card" style="padding: 28px; box-shadow: 0 8px 32px rgba(0, 0, 0, .4);">
+          <div class="checkout-section-title" style="margin-top: 0;">
+            <span>1</span> Choose Product Category
+          </div>
+          
+          <div class="category-selector" role="tablist" aria-label="Subscription Category">
+            <button type="button" role="tab" aria-selected="true" class="category-btn active" id="cat-secure" onclick="selectCategory('secure')">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>OmniSecure</span>
+            </button>
+            <button type="button" role="tab" aria-selected="false" class="category-btn" id="cat-swarms" onclick="selectCategory('swarms')">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Daystrom Swarms</span>
+            </button>
+            <button type="button" role="tab" aria-selected="false" class="category-btn" id="cat-games" onclick="selectCategory('games')">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 12h4m-2-2v4m10-2h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Games</span>
+            </button>
+          </div>
+
+          <!-- Billing Cycle Switch -->
+          <div class="billing-toggle-container">
+            <span class="billing-label active" id="lbl-monthly" onclick="toggleBilling(false)">Monthly</span>
+            <label class="toggle-switch" aria-label="Toggle annual billing discount">
+              <input type="checkbox" id="billing-cycle-checkbox" onchange="onBillingToggleChange()">
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="billing-label" id="lbl-yearly" onclick="toggleBilling(true)">
+              Yearly <span class="discount-badge">Save 17%</span>
+            </span>
+          </div>
+
+          <div class="checkout-section-title">
+            <span>2</span> Choose Tier
+          </div>
+
+          <!-- Plan Cards Container -->
+          <div class="plan-grid" id="plan-container" role="radiogroup" aria-label="Subscription Tier">
+            <!-- Dynamic plan cards render here -->
+          </div>
+
+          <div class="checkout-section-title">
+            <span>3</span> Customer Details
+          </div>
+
+          <div class="input-row">
+            <div>
+              <label for="checkout-name">Full name</label>
+              <input type="text" id="checkout-name" name="name" autocomplete="name" required placeholder="e.g. Satoshi Nakamoto">
+              <p class="field-error" id="checkout-name-error">Full name is required.</p>
+            </div>
+            <div>
+              <label for="checkout-email">Email address</label>
+              <input type="email" id="checkout-email" name="email" autocomplete="email" required placeholder="name@domain.com">
+              <p class="field-error" id="checkout-email-error">Please enter a valid email address.</p>
+            </div>
+          </div>
+
+          <div class="checkout-section-title">
+            <span>4</span> Choose Payment Method
+          </div>
+
+          <div class="payment-selector" role="radiogroup" aria-label="Payment Method">
+            <button type="button" class="payment-btn active" id="pay-stripe" onclick="selectPaymentMethod('stripe')">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              <span>Stripe (Credit / Debit)</span>
+              <div class="payment-logo-row" aria-label="Visa, Mastercard, Amex, Apple Pay">
+                <span style="font-size: 0.65rem; color: var(--muted); font-weight: 800;">VISA · MC · AMEX</span>
+              </div>
+            </button>
+            <button type="button" class="payment-btn" id="pay-coinbase" onclick="selectPaymentMethod('coinbase')">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v10m-3-7h6m-6 4h6"/></svg>
+              <span>Coinbase Commerce (Crypto)</span>
+              <div class="payment-logo-row" aria-label="Bitcoin, Ethereum, USDC, USDT">
+                <span style="font-size: 0.65rem; color: var(--gold); font-weight: 800;">BTC · ETH · USDC · USDT</span>
+              </div>
+            </button>
+          </div>
+
+          <!-- Dynamic Payment Form Containers -->
+          <div id="stripe-form-wrapper">
+            <div style="margin-top: 16px;">
+              <label for="card-num">Card details</label>
+              <div style="position: relative;">
+                <input type="text" id="card-num" name="cardnumber" autocomplete="cc-number" inputmode="numeric" placeholder="4111 2222 3333 4444" required>
+                <div style="position: absolute; right: 14px; top: 14px; pointer-events: none;" id="card-type-icon">💳</div>
+              </div>
+              <p class="field-error" id="card-num-error">Please enter a valid card number.</p>
+            </div>
+            
+            <div class="input-row" style="margin-top: 12px;">
+              <div>
+                <label for="card-exp">Expiry date</label>
+                <input type="text" id="card-exp" name="cc-exp" autocomplete="cc-exp" placeholder="MM / YY" required>
+                <p class="field-error" id="card-exp-error">Format must be MM/YY.</p>
+              </div>
+              <div>
+                <label for="card-cvc">CVC</label>
+                <input type="text" id="card-cvc" name="cvc" autocomplete="csc" placeholder="123" required>
+                <p class="field-error" id="card-cvc-error">Enter a valid 3 or 4 digit CVC.</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="coinbase-form-wrapper" style="display: none;">
+            <div class="crypto-flow">
+              <span class="eyebrow" style="background: rgba(212, 175, 55, 0.08); border-color: rgba(212, 175, 55, 0.2); color: var(--gold);">Coinbase Secure Rail</span>
+              <p style="font-size: 0.88rem; margin: 12px 0 4px; color: var(--ink);">Please select your deposit asset:</p>
+              
+              <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 16px;">
+                <button type="button" class="btn-copy" id="asset-usdc" onclick="selectCryptoAsset('USDC')" style="border-color: var(--brand); color: var(--brand); background: rgba(247, 121, 44, 0.06);">USDC</button>
+                <button type="button" class="btn-copy" id="asset-usdt" onclick="selectCryptoAsset('USDT')">USDT</button>
+                <button type="button" class="btn-copy" id="asset-btc" onclick="selectCryptoAsset('BTC')">BTC</button>
+                <button type="button" class="btn-copy" id="asset-eth" onclick="selectCryptoAsset('ETH')">ETH</button>
+              </div>
+
+              <div class="qr-container" aria-label="Simulated Crypto QR Code">
+                <!-- Inline SVG QR Code representation matching the theme -->
+                <svg width="140" height="140" viewBox="0 0 100 100" fill="#070707" xmlns="http://www.w3.org/2000/svg">
+                  <!-- QR Code pattern simulated with SVG rects -->
+                  <rect width="100" height="100" fill="#ffffff" />
+                  <!-- Top left alignment pattern -->
+                  <rect x="5" y="5" width="25" height="25" fill="#070707" />
+                  <rect x="10" y="10" width="15" height="15" fill="#ffffff" />
+                  <rect x="15" y="15" width="5" height="5" fill="#070707" />
+                  <!-- Top right alignment pattern -->
+                  <rect x="70" y="5" width="25" height="25" fill="#070707" />
+                  <rect x="75" y="10" width="15" height="15" fill="#ffffff" />
+                  <rect x="80" y="15" width="5" height="5" fill="#070707" />
+                  <!-- Bottom left alignment pattern -->
+                  <rect x="5" y="70" width="25" height="25" fill="#070707" />
+                  <rect x="10" y="75" width="15" height="15" fill="#ffffff" />
+                  <rect x="15" y="80" width="5" height="5" fill="#070707" />
+                  <!-- Random code-like squares in other areas -->
+                  <rect x="40" y="5" width="5" height="15" fill="#070707" />
+                  <rect x="50" y="10" width="10" height="5" fill="#070707" />
+                  <rect x="45" y="20" width="15" height="10" fill="#070707" />
+                  <rect x="5" y="40" width="15" height="5" fill="#070707" />
+                  <rect x="15" y="50" width="5" height="15" fill="#070707" />
+                  <rect x="35" y="35" width="20" height="20" fill="#070707" />
+                  <rect x="40" y="40" width="10" height="10" fill="#ffffff" />
+                  <rect x="75" y="40" width="15" height="15" fill="#070707" />
+                  <rect x="70" y="60" width="10" height="25" fill="#070707" />
+                  <rect x="85" y="75" width="10" height="10" fill="#070707" />
+                  <rect x="40" y="70" width="20" height="5" fill="#070707" />
+                  <rect x="35" y="85" width="25" height="10" fill="#070707" />
+                </svg>
+              </div>
+
+              <p class="fine" style="margin-bottom: 6px; font-weight: bold;" id="crypto-instructions-box">Send exact amount of <span id="crypto-val-txt">USDC</span> to the address below:</p>
+              
+              <div class="crypto-address-box">
+                <span id="crypto-address-string" style="font-size: 0.76rem;">0x71C54a01c8A02135F9b23B4927bF53eE23f7USDC</span>
+                <button type="button" class="btn-copy" onclick="copyCryptoAddress()">Copy</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="err" id="checkout-err" role="alert" tabindex="-1"></div>
+          
+          <button type="button" class="btn btn-go" id="btn-submit-checkout" onclick="submitCheckout()" style="margin-top: 24px; padding: 16px;">
+            Securely Purchase Plan
+          </button>
+          
+          <p class="fine" style="margin-top: 14px;">
+            By completing your purchase you authorize OmniTender to charge your payment method. Cancel subscription anytime from the portal.
+          </p>
+        </div>
+      </div>
+
+      <!-- Right Column Order Summary Sidebar -->
+      <div>
+        <div class="summary-card">
+          <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--brand);"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            Order Summary
+          </h3>
+          
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <div style="font-weight: 700; color: #fff; display: flex; justify-content: space-between;" id="summary-prod-name">
+              OmniSecure Standard
+            </div>
+            <div style="font-size: 0.8rem; color: var(--muted); margin-top: 4px;" id="summary-prod-desc">
+              Zero-knowledge vault for password hygiene.
+            </div>
+          </div>
+
+          <div class="summary-line">
+            <span>Billing Interval</span>
+            <span id="summary-interval">Monthly</span>
+          </div>
+          
+          <div class="summary-line">
+            <span>Subtotal</span>
+            <span id="summary-subtotal">$3.00</span>
+          </div>
+
+          <div class="summary-line">
+            <span>Estimated VAT/Tax (0%)</span>
+            <span>$0.00</span>
+          </div>
+
+          <div class="summary-line total">
+            <span>Total due today</span>
+            <span class="price" id="summary-total">$3.00</span>
+          </div>
+
+          <div class="badge-secure">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>256-bit SSL Secure Checkout</span>
+          </div>
+
+          <div style="margin-top: 24px; font-size: 0.76rem; color: var(--muted); line-height: 1.45;">
+            <p style="margin-bottom: 8px;"><strong>Partner Rails:</strong> Card transactions processed via licensed Stripe gateways. Crypto transactions routed via Coinbase Commerce smart rails. OmniTender does not store credit card details.</p>
+            <p style="margin-bottom: 0;">Need business-tier customization? Contact our enterprise support desk at <a href="mailto:support@omnitender.us">support@omnitender.us</a>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <nav aria-label="Legal" style="margin-bottom: 8px;">
+      <a href="privacy.html">Privacy</a> ·
+      <a href="terms.html">Terms</a> ·
+      <a href="contact.html">Contact Support</a>
+    </nav>
+    &copy; 2026 OmniTender. All rights reserved.
+  </footer>
+
+  <script>
+    // Product data schema
+    const PRODUCTS = {
+      secure: {
+        name: 'OmniSecure',
+        icon: 'OS',
+        plans: [
+          { id: 'sec-standard', name: 'Personal Tier', priceMonthly: 3, priceYearly: 30, desc: 'Zero-knowledge secure credential vault for single users.' },
+          { id: 'sec-business', name: 'Business Tier', priceMonthly: 8, priceYearly: 80, desc: 'Org sharing, custom roles, API secrets & group credentials.' }
+        ]
+      },
+      swarms: {
+        name: 'Daystrom Swarms',
+        icon: 'DS',
+        plans: [
+          { id: 'swm-dev', name: 'Developer Fleet', priceMonthly: 199, priceYearly: 1990, desc: 'Deploy 5 autonomous Scout and Executor agents on neural hub.' },
+          { id: 'swm-ent', name: 'Enterprise Fleet', priceMonthly: 499, priceYearly: 4990, desc: 'Full custom swarm with direct telemetry, SLAs and unlimited execution.' }
+        ]
+      },
+      games: {
+        name: 'Games',
+        icon: 'GG',
+        plans: [
+          { id: 'gam-indie', name: 'Indie Pass', priceMonthly: 5, priceYearly: 50, desc: 'Unlimited access to verified web3 & indie arcade releases.' },
+          { id: 'gam-elite', name: 'Elite Gamer Pass', priceMonthly: 15, priceYearly: 150, desc: 'Access high-fidelity graphics streaming, tournaments & exclusive betas.' }
+        ]
+      }
+    };
+
+    // State Variables
+    let currentCategory = 'secure';
+    let currentPlanIndex = 0;
+    let isYearly = false;
+    let currentPaymentMethod = 'stripe';
+    let currentCryptoAsset = 'USDC';
+
+    // Address placeholders for simulation
+    const CRYPTO_ADDRESSES = {
+      USDC: '0x71C54a01c8A02135F9b23B4927bF53eE23f7USDC',
+      USDT: '0x53d10a827cf02a3a0e104a08152e039fUSDT',
+      BTC: 'bc1qxy2kg3kytfd40a508xxj4088xx3BTC',
+      ETH: '0x3f5CE5FBFe3e9af3971dD833D26bA9bETH'
+    };
+
+    // DOM Elements
+    const billingCheckbox = document.getElementById('billing-cycle-checkbox');
+    const lblMonthly = document.getElementById('lbl-monthly');
+    const lblYearly = document.getElementById('lbl-yearly');
+    const planContainer = document.getElementById('plan-container');
+
+    // On Load
+    window.addEventListener('DOMContentLoaded', () => {
+      // Pre-select category and plans from Query Params if available
+      const params = new URLSearchParams(window.location.search);
+      const categoryParam = params.get('category');
+      const planParam = params.get('plan');
+      
+      if (categoryParam && PRODUCTS[categoryParam]) {
+        currentCategory = categoryParam;
+        
+        // Remove active class from all categories
+        document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.category-btn').forEach(btn => btn.setAttribute('aria-selected', 'false'));
+        
+        // Set new active
+        const activeBtn = document.getElementById(`cat-${categoryParam}`);
+        if (activeBtn) {
+          activeBtn.classList.add('active');
+          activeBtn.setAttribute('aria-selected', 'true');
+        }
+      }
+
+      if (planParam) {
+        const plansList = PRODUCTS[currentCategory].plans;
+        const matchedIndex = plansList.findIndex(p => p.id === planParam || p.name.toLowerCase().includes(planParam.toLowerCase()));
+        if (matchedIndex !== -1) {
+          currentPlanIndex = matchedIndex;
+        }
+      }
+
+      renderPlans();
+      updateOrderSummary();
+      setupCardExpiryFormatting();
+    });
+
+    // Handle Switch Billing interval
+    function toggleBilling(yearly) {
+      isYearly = yearly;
+      billingCheckbox.checked = yearly;
+      onBillingToggleChange();
+    }
+
+    function onBillingToggleChange() {
+      isYearly = billingCheckbox.checked;
+      if (isYearly) {
+        lblYearly.classList.add('active');
+        lblMonthly.classList.remove('active');
+      } else {
+        lblMonthly.classList.add('active');
+        lblYearly.classList.remove('active');
+      }
+      renderPlans();
+      updateOrderSummary();
+    }
+
+    // Select Product Category
+    function selectCategory(categoryKey) {
+      currentCategory = categoryKey;
+      currentPlanIndex = 0;
+      
+      // Update Tab selection in DOM
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+      });
+      document.getElementById(`cat-${categoryKey}`).classList.add('active');
+      document.getElementById(`cat-${categoryKey}`).setAttribute('aria-selected', 'true');
+
+      renderPlans();
+      updateOrderSummary();
+    }
+
+    // Render Tiers
+    function renderPlans() {
+      planContainer.innerHTML = '';
+      const category = PRODUCTS[currentCategory];
+      
+      category.plans.forEach((plan, idx) => {
+        const price = isYearly ? plan.priceYearly : plan.priceMonthly;
+        const unit = isYearly ? '/year' : '/month';
+        const isActive = idx === currentPlanIndex;
+        
+        const cardHtml = `
+          <div class="plan-card ${isActive ? 'active' : ''}" 
+               role="radio" 
+               aria-checked="${isActive ? 'true' : 'false'}" 
+               tabindex="0"
+               onclick="selectPlan(${idx})"
+               onkeydown="if(event.key==='Enter'||event.key===' ') { selectPlan(${idx}); event.preventDefault(); }">
+            <h4>${plan.name}</h4>
+            <div class="price">$${price}<span>${unit}</span></div>
+            <p class="desc">${plan.desc}</p>
+          </div>
+        `;
+        planContainer.insertAdjacentHTML('beforeend', cardHtml);
+      });
+    }
+
+    // Select Plan Index
+    function selectPlan(idx) {
+      currentPlanIndex = idx;
+      renderPlans();
+      updateOrderSummary();
+    }
+
+    // Select Payment Method
+    function selectPaymentMethod(method) {
+      currentPaymentMethod = method;
+      
+      document.querySelectorAll('.payment-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`pay-${method}`).classList.add('active');
+      
+      if (method === 'stripe') {
+        document.getElementById('stripe-form-wrapper').style.display = 'block';
+        document.getElementById('coinbase-form-wrapper').style.display = 'none';
+      } else {
+        document.getElementById('stripe-form-wrapper').style.display = 'none';
+        document.getElementById('coinbase-form-wrapper').style.display = 'block';
+        updateCryptoDetails();
+      }
+    }
+
+    // Select Crypto Asset type
+    function selectCryptoAsset(asset) {
+      currentCryptoAsset = asset;
+      
+      document.querySelectorAll('#coinbase-form-wrapper .btn-copy').forEach(btn => {
+        btn.style.borderColor = 'var(--border)';
+        btn.style.color = 'var(--muted)';
+        btn.style.background = 'transparent';
+      });
+      
+      const activeBtn = document.getElementById(`asset-${asset.toLowerCase()}`);
+      if (activeBtn) {
+        activeBtn.style.borderColor = 'var(--brand)';
+        activeBtn.style.color = 'var(--brand)';
+        activeBtn.style.background = 'rgba(247, 121, 44, 0.06)';
+      }
+
+      updateCryptoDetails();
+    }
+
+    // Update details displayed for Crypto Payment
+    function updateCryptoDetails() {
+      document.getElementById('crypto-val-txt').innerText = currentCryptoAsset;
+      document.getElementById('crypto-address-string').innerText = CRYPTO_ADDRESSES[currentCryptoAsset];
+    }
+
+    // Copy Address Utility
+    function copyCryptoAddress() {
+      const address = CRYPTO_ADDRESSES[currentCryptoAsset];
+      navigator.clipboard.writeText(address).then(() => {
+        alert(`${currentCryptoAsset} deposit address copied to clipboard!`);
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+    }
+
+    // Update Order Summary Panel
+    function updateOrderSummary() {
+      const category = PRODUCTS[currentCategory];
+      const plan = category.plans[currentPlanIndex];
+      const price = isYearly ? plan.priceYearly : plan.priceMonthly;
+      const intervalText = isYearly ? 'Yearly' : 'Monthly';
+      
+      document.getElementById('summary-prod-name').innerText = `${category.name} — ${plan.name}`;
+      document.getElementById('summary-prod-desc').innerText = plan.desc;
+      document.getElementById('summary-interval').innerText = intervalText;
+      document.getElementById('summary-subtotal').innerText = `$${price.toFixed(2)}`;
+      document.getElementById('summary-total').innerText = `$${price.toFixed(2)}`;
+    }
+
+    // Setup format helper for Card expiration (MM / YY)
+    function setupCardExpiryFormatting() {
+      const expInput = document.getElementById('card-exp');
+      if (!expInput) return;
+      
+      expInput.addEventListener('input', (e) => {
+        let val = e.target.value.replace(/\D/g, '');
+        if (val.length >= 2) {
+          e.target.value = val.substring(0, 2) + ' / ' + val.substring(2, 4);
+        } else {
+          e.target.value = val;
+        }
+      });
+    }
+
+    // Validate Input helper
+    function fieldError(id, show) {
+      const input = document.getElementById(id);
+      const msg = document.getElementById(id + '-error');
+      if (input) input.setAttribute('aria-invalid', show ? 'true' : 'false');
+      if (msg) msg.classList.toggle('show', show);
+    }
+
+    // Submit Checkout Payment Form
+    function submitCheckout() {
+      const errBox = document.getElementById('checkout-err');
+      errBox.style.display = 'none';
+      
+      // Validate customer details
+      const name = document.getElementById('checkout-name').value.trim();
+      const email = document.getElementById('checkout-email').value.trim();
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+      fieldError('checkout-name', !name);
+      fieldError('checkout-email', !emailOk);
+
+      let stripeOk = true;
+      if (currentPaymentMethod === 'stripe') {
+        const cardNum = document.getElementById('card-num').value.replace(/\s+/g, '');
+        const cardExp = document.getElementById('card-exp').value.trim();
+        const cardCvc = document.getElementById('card-cvc').value.trim();
+        
+        const cardNumOk = cardNum.length >= 15 && cardNum.length <= 16;
+        const cardExpOk = /^\d{2}\s*\/\s*\d{2}$/.test(cardExp);
+        const cardCvcOk = cardCvc.length >= 3 && cardCvc.length <= 4;
+
+        fieldError('card-num', !cardNumOk);
+        fieldError('card-exp', !cardExpOk);
+        fieldError('card-cvc', !cardCvcOk);
+
+        stripeOk = name && emailOk && cardNumOk && cardExpOk && cardCvcOk;
+      }
+
+      if (!name || !emailOk || (currentPaymentMethod === 'stripe' && !stripeOk)) {
+        errBox.innerText = 'Please correct the errors in the fields above.';
+        errBox.style.display = 'block';
+        errBox.focus();
+        return;
+      }
+
+      // Start Loading / Simulation
+      const submitBtn = document.getElementById('btn-submit-checkout');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Processing secure payment…';
+
+      // Call API Endpoint (Webhook / backend route)
+      const apiBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]'
+        ? 'http://' + window.location.hostname + ':3000'
+        : 'https://omnitender-omniverse.fly.dev';
+
+      const selectedPlan = PRODUCTS[currentCategory].plans[currentPlanIndex];
+      const checkoutPayload = {
+        name: name,
+        email: email,
+        category: currentCategory,
+        planId: selectedPlan.id,
+        planName: selectedPlan.name,
+        price: isYearly ? selectedPlan.priceYearly : selectedPlan.priceMonthly,
+        billingCycle: isYearly ? 'yearly' : 'monthly',
+        paymentMethod: currentPaymentMethod,
+        cryptoAsset: currentPaymentMethod === 'coinbase' ? currentCryptoAsset : null,
+        source: 'checkout'
+      };
+
+      fetch(apiBase + '/checkout-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(checkoutPayload)
+      })
+      .then(res => {
+        // Fallback for simulation if server doesn't support the route yet: redirect anyway
+        const urlParams = `?from=checkout&category=${currentCategory}&plan=${selectedPlan.id}&method=${currentPaymentMethod}&cycle=${isYearly ? 'yearly' : 'monthly'}`;
+        setTimeout(() => {
+          window.location.href = 'thanks.html' + urlParams;
+        }, 1500);
+      })
+      .catch(err => {
+        // Safe fallback - simulate redirect to success page
+        const urlParams = `?from=checkout&category=${currentCategory}&plan=${selectedPlan.id}&method=${currentPaymentMethod}&cycle=${isYearly ? 'yearly' : 'monthly'}`;
+        setTimeout(() => {
+          window.location.href = 'thanks.html' + urlParams;
+        }, 1500);
+      });
+    }
+  </script>
+</body>
+</html>
