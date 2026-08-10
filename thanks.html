@@ -100,6 +100,23 @@
         lead.textContent = 'Thanks! Reply STOP anytime to cancel.';
         body.innerHTML = 'Your mobile information is never sold or shared with third parties for their marketing.';
         next.innerHTML = '<a class="btn-hero primary" href="savings.html">Get a free rate analysis</a>';
+      } else if (source === 'checkout') {
+        var category = (params.get('category') || 'secure').trim();
+        var plan = (params.get('plan') || '').trim();
+        var method = (params.get('method') || 'stripe').trim();
+        var cycle = (params.get('cycle') || 'monthly').trim();
+        
+        var catName = category === 'secure' ? 'OmniSecure' : category === 'swarms' ? 'Daystrom Swarms' : 'Games';
+        var methodText = method === 'stripe' ? 'Credit Card (Stripe)' : 'Crypto/Stablecoin (Coinbase Commerce)';
+        
+        title.textContent = 'Payment Received!';
+        lead.textContent = 'Thank you for your subscription. Your ' + catName + ' plan is being activated.';
+        body.innerHTML = '<strong>Order Details:</strong><br>' +
+                         '• Service: ' + catName + ' (' + plan + ')<br>' +
+                         '• Billing: ' + cycle.charAt(0).toUpperCase() + cycle.slice(1) + '<br>' +
+                         '• Payment Method: ' + methodText + '<br><br>' +
+                         'We have sent a verification email with your temporary access tokens and onboarding guide. For priority developer support, email <a href="mailto:support@omnitender.us">support@omnitender.us</a>.';
+        next.innerHTML = '<a class="btn-hero primary" href="index.html">Return to Homepage</a>';
       }
 
       // Page-load conversion: Google Ads send_to + Meta/GA4 shared tracker.
