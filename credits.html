@@ -197,29 +197,65 @@
   </main>
 
   <script>
+    // Determine API Base URL dynamically
+    const apiBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]'
+      ? 'http://' + window.location.hostname + ':3000'
+      : 'https://omnitender-omniverse.fly.dev';
+
+    // Parse token from URL query or fallback to sessionStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    let token = urlParams.get('token');
+    if (token) {
+      sessionStorage.setItem('omni_dash_token', token);
+      // Clean query string from browser URL bar
+      const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+    } else {
+      token = sessionStorage.getItem('omni_dash_token');
+    }
+
+    function getAuthHeaders() {
+      const headers = { 'Accept': 'application/json' };
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+      }
+      return headers;
+    }
+
     async function fetchCredits() {
       try {
-        const response = await fetch('/api/billing/credits');
+        const response = await fetch(`${apiBase}/api/billing/credits`, {
+          headers: getAuthHeaders()
+        });
+        if (response.status === 401) {
+          document.getElementById('credit-balance').innerText = '🔑 Log in required';
+          document.getElementById('tx-history').innerHTML = '<p style="color: var(--muted);">Please access this page through the CRM Console to authenticate.</p>';
+          return;
+        }
         if (!response.ok) throw new Error('Failed to fetch credits');
         const data = await response.json();
         
-        // Update balance
-        document.getElementById('credit-balance').innerText = data.balance !== undefined ? data.balance : 0;
+        // Update balance (backend keys: creditBalance, creditTransactions)
+        document.getElementById('credit-balance').innerText = data.creditBalance !== undefined ? data.creditBalance : 0;
         
         // Update transactions
         const historyContainer = document.getElementById('tx-history');
-        if (data.transactions && data.transactions.length > 0) {
-          historyContainer.innerHTML = data.transactions.map(tx => `
-            <div class="tx-item">
-              <div>
-                <div style="font-weight: 600; color: #fff;">${tx.description || 'Credit Purchase'}</div>
-                <div class="tx-date">${new Date(tx.date).toLocaleDateString()}</div>
+        if (data.creditTransactions && data.creditTransactions.length > 0) {
+          historyContainer.innerHTML = data.creditTransactions.map(tx => {
+            const desc = tx.type === 'purchase' ? 'Credit Purchase' : (tx.type === 'bid_submission' ? 'Bid Submission' : tx.type);
+            const dateStr = tx.at ? new Date(tx.at).toLocaleDateString() : 'N/A';
+            return `
+              <div class="tx-item">
+                <div>
+                  <div style="font-weight: 600; color: #fff;">${desc}</div>
+                  <div class="tx-date">${dateStr}</div>
+                </div>
+                <div style="font-weight: 700; color: ${tx.amount > 0 ? 'var(--brand)' : '#fff'};">
+                  ${tx.amount > 0 ? '+' : ''}${tx.amount}
+                </div>
               </div>
-              <div style="font-weight: 700; color: ${tx.amount > 0 ? 'var(--brand)' : '#fff'};">
-                ${tx.amount > 0 ? '+' : ''}${tx.amount}
-              </div>
-            </div>
-          `).join('');
+            `;
+          }).join('');
         } else {
           historyContainer.innerHTML = '<p style="color: var(--muted);">No transactions found.</p>';
         }
@@ -232,10 +268,17 @@
 
     async function buyCredits(planId) {
       try {
-        const response = await fetch('/api/billing/create-checkout-session', {
+        const response = await fetch(`${apiBase}/api/billing/create-checkout-session`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ plan: planId })
+          headers: { 
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
+          },
+          body: JSON.stringify({ 
+            plan: planId,
+            provider: 'stripe', // default to stripe
+            email: sessionStorage.getItem('omni_dash_username') || 'customer@omnitender.us'
+          })
         });
         if (!response.ok) throw new Error('Failed to create checkout session');
         const data = await response.json();
