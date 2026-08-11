@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23070707'/><text x='16' y='23' font-size='22' font-family='Arial,Helvetica,sans-serif' font-weight='bold' text-anchor='middle' fill='%23F7792C'>O</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>Credits — Premium Payment Portal | OmniTender</title>
+  <meta name="theme-color" content="#F7792C">
+  <link rel="stylesheet" href="style.css?v=9">
+  <style>
+    .credits-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-top: 24px;
+      align-items: start;
+    }
+    .credits-header {
+      font-size: 1.1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--brand);
+      margin: 24px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .plan-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .plan-card:hover {
+      border-color: var(--brand);
+      transform: translateY(-2px);
+    }
+    .plan-card h4 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .plan-card .price {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--brand);
+      margin: 0;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .plan-card .price span {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .buy-btn {
+      margin-top: auto;
+      padding: 10px;
+      border: none;
+      background: var(--brand);
+      color: #000;
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .buy-btn:hover {
+      opacity: 0.9;
+    }
+    .tx-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tx-item:last-child {
+      border-bottom: none;
+    }
+    .tx-date {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    @media (max-width: 880px) {
+      .credits-grid {
+        grid-template-columns: 1fr;
+      }
+      .plan-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="brand" href="index.html" style="display: inline-flex; align-items: center; gap: 12px; justify-content: center; text-decoration: none;">
+      <img src="logo.svg" alt="OmniTender Crest Logo" style="height: 38px; width: auto;">
+      <span>Omni<span style="color: var(--brand);">Tender</span></span>
+    </a>
+    <p class="tagline">Money by the people, for the people</p>
+    <nav class="topnav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="omnisecure.html">OmniSecure</a>
+      <a href="checkout.html">Checkout</a>
+      <a href="credits.html" aria-current="page">Credits</a>
+      <a href="savings.html">Savings</a>
+      <a href="about.html">About</a>
+      <a href="merchants-nc.html">Western NC</a>
+      <a href="contact.html">Contact</a>
+      <a href="apply.html" class="topnav-cta">Get started</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <div class="page-hero" style="margin-bottom: var(--space-xl);">
+      <span class="eyebrow">Credits Portal</span>
+      <h1>Your OmniTender Credits</h1>
+      <p class="lead">Manage your credit balance, review your history, and purchase more credits instantly.</p>
+    </div>
+
+    <div class="credits-grid">
+      <!-- Balance and Transactions -->
+      <div>
+        <div class="card" style="padding: 28px; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(0, 0, 0, .4);">
+          <div class="credits-header" style="margin-top: 0;">
+            Current Balance
+          </div>
+          <div style="font-size: 3rem; font-weight: 900; color: #fff;" id="credit-balance">
+            --
+          </div>
+          <p style="color: var(--muted); margin-top: 8px;">Available Credits</p>
+        </div>
+
+        <div class="card" style="padding: 28px; box-shadow: 0 8px 32px rgba(0, 0, 0, .4);">
+          <div class="credits-header" style="margin-top: 0;">
+            Transaction History
+          </div>
+          <div id="tx-history">
+            <p style="color: var(--muted);">Loading history...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buy Credits -->
+      <div>
+        <div class="card" style="padding: 28px; box-shadow: 0 8px 32px rgba(0, 0, 0, .4);">
+          <div class="credits-header" style="margin-top: 0;">
+            Purchase Credits
+          </div>
+          
+          <div class="plan-grid">
+            <div class="plan-card">
+              <h4>Starter</h4>
+              <div class="price">$10 <span>/ 1 Credit</span></div>
+              <button class="buy-btn" onclick="buyCredits('credit_1')">Buy Now</button>
+            </div>
+            
+            <div class="plan-card">
+              <h4>Basic</h4>
+              <div class="price">$45 <span>/ 5 Credits</span></div>
+              <button class="buy-btn" onclick="buyCredits('credit_5')">Buy Now</button>
+            </div>
+            
+            <div class="plan-card">
+              <h4>Pro</h4>
+              <div class="price">$160 <span>/ 20 Credits</span></div>
+              <button class="buy-btn" onclick="buyCredits('credit_20')">Buy Now</button>
+            </div>
+            
+            <div class="plan-card">
+              <h4>Enterprise</h4>
+              <div class="price">$700 <span>/ 100 Credits</span></div>
+              <button class="buy-btn" onclick="buyCredits('credit_100')">Buy Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    async function fetchCredits() {
+      try {
+        const response = await fetch('/api/billing/credits');
+        if (!response.ok) throw new Error('Failed to fetch credits');
+        const data = await response.json();
+        
+        // Update balance
+        document.getElementById('credit-balance').innerText = data.balance !== undefined ? data.balance : 0;
+        
+        // Update transactions
+        const historyContainer = document.getElementById('tx-history');
+        if (data.transactions && data.transactions.length > 0) {
+          historyContainer.innerHTML = data.transactions.map(tx => `
+            <div class="tx-item">
+              <div>
+                <div style="font-weight: 600; color: #fff;">${tx.description || 'Credit Purchase'}</div>
+                <div class="tx-date">${new Date(tx.date).toLocaleDateString()}</div>
+              </div>
+              <div style="font-weight: 700; color: ${tx.amount > 0 ? 'var(--brand)' : '#fff'};">
+                ${tx.amount > 0 ? '+' : ''}${tx.amount}
+              </div>
+            </div>
+          `).join('');
+        } else {
+          historyContainer.innerHTML = '<p style="color: var(--muted);">No transactions found.</p>';
+        }
+      } catch (error) {
+        console.error(error);
+        document.getElementById('credit-balance').innerText = '0';
+        document.getElementById('tx-history').innerHTML = '<p style="color: var(--muted);">Could not load history.</p>';
+      }
+    }
+
+    async function buyCredits(planId) {
+      try {
+        const response = await fetch('/api/billing/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan: planId })
+        });
+        if (!response.ok) throw new Error('Failed to create checkout session');
+        const data = await response.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert('Error initializing checkout. Please try again.');
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Error initializing checkout. Please try again.');
+      }
+    }
+
+    // Load data on page ready
+    document.addEventListener('DOMContentLoaded', fetchCredits);
+  </script>
+</body>
+</html>
