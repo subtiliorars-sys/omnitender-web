@@ -314,6 +314,7 @@
     overview: loadOverview,
     ledger: loadLedger,
     pipeline: loadPipeline,
+    workboard: loadWorkboard,
     mail: loadMail,
     training: loadTraining,
     leads: loadLeads,
@@ -343,6 +344,10 @@
 
   function loadMail() {
     if (window.OmniTenderMail) window.OmniTenderMail.init();
+  }
+
+  function loadWorkboard() {
+    if (window.OmniTenderWorkboard) window.OmniTenderWorkboard.init();
   }
 
   function loadTraining() {
