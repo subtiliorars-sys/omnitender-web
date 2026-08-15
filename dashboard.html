@@ -995,6 +995,7 @@
             <button data-v="aihub">🤖 AI Hub</button>
             <button data-v="ledger">💵 Ledger <span class="nav-preview-tag">Example</span></button>
             <button data-v="pipeline">📈 Pipeline</button>
+            <button data-v="workboard">🗂️ Workboard</button>
             <button data-v="mail">✉️ Your mail</button>
             <button data-v="leads">👥 Leads</button>
             <button data-v="feedback">💬 Feedback</button>
@@ -1576,6 +1577,15 @@
               <div id="social-drafts-list"><div class="empty">Loading drafts...</div></div>
             </div>
           </section>
+
+          <!-- WORKBOARD VIEW — employee human-work Kanban -->
+          <section id="v-workboard" class="view">
+            <div class="card" style="border-color: var(--accent); margin-bottom: 12px;">
+              <h2 style="margin: 0 0 6px; border-left: 3px solid var(--accent); padding-left: 10px;">🗂️ OmniTender Workboard</h2>
+              <p style="font-size: 12px; color: var(--muted); margin: 0; line-height: 1.5;">Your team's human-work board. Every card needs a named owner and a clear next action. GitHub issues and PRs stay in GitHub — link them here for reference. <strong>Express Lane</strong> is for genuine same-day blockers only (max 3 at a time).</p>
+            </div>
+            <div id="workboard-root"></div>
+          </section>
           
         </main>
         
@@ -1643,5 +1653,6 @@
   <script src="education.js?v=3"></script>
   <script src="dashboard.js?v=43"></script>
   <script src="feedback.js?v=2"></script>
+  <script src="workboard.js?v=1"></script>
 </body>
 </html>
